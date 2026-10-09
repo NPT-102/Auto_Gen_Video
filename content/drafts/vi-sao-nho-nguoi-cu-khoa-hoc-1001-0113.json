@@ -1,0 +1,265 @@
+{
+  "id": "vi-sao-nho-nguoi-cu-khoa-hoc",
+  "title": "Bạn nghĩ còn yêu người cũ? Não bạn đang bị nghiện đấy!",
+  "voice": "vi-VN-HoaiMyNeural",
+  "scenes": [
+    {
+      "type": "title",
+      "say": "Bạn nghĩ mình nhớ người cũ vì yêu sâu đậm? Sai rồi, não bạn chỉ đang lên cơn nghiện. Cắt đứt quan hệ đột ngột giống hệt việc cai chất kích thích mạnh, cơ thể cồn cào chỉ vì thiếu dopamine quen thuộc.",
+      "tag": "TÂM LÝ HỌC THẦN KINH",
+      "headline": [
+        [
+          "NGHIỆN",
+          true
+        ],
+        [
+          "NGƯỜI CŨ",
+          false
+        ]
+      ],
+      "sub": "Bản chất sinh học của nỗi đau chia tay",
+      "chips": [
+        {
+          "text": "Không phải tình yêu",
+          "cue": "Sai rồi"
+        },
+        {
+          "text": "Não lên cơn nghiện",
+          "cue": "lên cơn nghiện"
+        },
+        {
+          "text": "Cai chất kích thích",
+          "cue": "cai chất kích thích"
+        }
+      ],
+      "stock": [
+        "sad woman bed phone"
+      ]
+    },
+    {
+      "type": "stat",
+      "say": "Năm 2010, nhà nhân chủng học Helen Fisher quét fMRI não của 15 người vừa chia tay. Kết quả cho thấy vùng VTA liên quan đến phần thưởng và cảm giác thèm muốn hoạt động mạnh, y hệt não bộ người nghiện cocaine.",
+      "kicker": "BẰNG CHỨNG fMRI",
+      "heading": "Não người chia tay như người cai nghiện",
+      "stats": [
+        {
+          "value": "2010",
+          "label": "Helen Fisher fMRI",
+          "cue": "Năm 2010"
+        },
+        {
+          "value": "15",
+          "label": "Người vừa chia tay",
+          "cue": "15 người"
+        },
+        {
+          "value": "VTA",
+          "label": "Vùng thèm muốn kích hoạt",
+          "cue": "vùng VTA"
+        }
+      ],
+      "stock": [
+        "mri scan screen"
+      ]
+    },
+    {
+      "type": "flow",
+      "say": "Khi chia tay, lượng dopamine sụt giảm đột ngột gây ra cảm giác thèm khát. Để tìm lại dopamine, vùng VTA kích hoạt khi bạn stalk trang cá nhân lúc nửa đêm, vô tình kéo dài thêm chu kỳ nghiện dằn vặt này.",
+      "kicker": "CHU TRÌNH SINH HỌC",
+      "heading": "Vòng lặp nghiện sau chia tay",
+      "direction": "down",
+      "groups": [
+        {
+          "id": "brain",
+          "label": "Hệ thống thần kinh",
+          "kind": "box",
+          "tone": "red",
+          "parent": null
+        },
+        {
+          "id": "action",
+          "label": "Hành vi đáp ứng",
+          "kind": "box",
+          "tone": "blue",
+          "parent": null
+        }
+      ],
+      "nodes": [
+        {
+          "id": "n1",
+          "label": "Chia tay đột ngột",
+          "icon": "💔"
+        },
+        {
+          "id": "n2",
+          "label": "Tụt Dopamine",
+          "icon": "📉",
+          "group": "brain"
+        },
+        {
+          "id": "n3",
+          "label": "Kích hoạt VTA",
+          "icon": "🧠",
+          "group": "brain"
+        },
+        {
+          "id": "n4",
+          "label": "Stalk mạng xã hội",
+          "icon": "📱",
+          "group": "action"
+        },
+        {
+          "id": "n5",
+          "label": "Liều Dopamine ngắn hạn",
+          "icon": "⚡",
+          "group": "brain"
+        },
+        {
+          "id": "n6",
+          "label": "Kéo dài cơn nghiện",
+          "icon": "🔄"
+        }
+      ],
+      "edges": [
+        {
+          "from": "n1",
+          "to": "n2",
+          "style": "solid"
+        },
+        {
+          "from": "n2",
+          "to": "n4",
+          "style": "flow"
+        },
+        {
+          "from": "n4",
+          "to": "n3",
+          "style": "flow"
+        },
+        {
+          "from": "n3",
+          "to": "n5",
+          "label": "thỏa mãn ảo",
+          "style": "flow"
+        },
+        {
+          "from": "n5",
+          "to": "n6",
+          "style": "solid"
+        }
+      ],
+      "steps": [
+        {
+          "cue": "lượng dopamine sụt giảm đột ngột",
+          "show": [
+            "n1",
+            "n2"
+          ],
+          "focus": [
+            "n2"
+          ]
+        },
+        {
+          "cue": "vùng VTA kích hoạt khi bạn stalk",
+          "show": [
+            "n3",
+            "n4"
+          ],
+          "focus": [
+            "n3"
+          ]
+        },
+        {
+          "cue": "chu kỳ nghiện dằn vặt này",
+          "show": [
+            "n5",
+            "n6"
+          ],
+          "focus": [
+            "n6"
+          ]
+        }
+      ],
+      "stock": [
+        "woman typing phone night"
+      ]
+    },
+    {
+      "type": "compare",
+      "say": "Chưa hết, hiệu ứng Zeigarnik năm 1927 chứng minh não nhớ việc dở dang hơn 90 phần trăm so với việc đã xong. Cuộc tình đứt gánh khiến tâm trí mắc kẹt, liên tục tự hỏi giá như để tìm hồi kết.",
+      "kicker": "HIỆU ỨNG ZEIGARNIK 1927",
+      "heading": "Cơ chế tâm lý dở dang",
+      "left": {
+        "title": "Việc hoàn thành",
+        "points": [
+          "Đóng vòng lặp nhận thức",
+          "Não dễ dàng lãng quên"
+        ],
+        "cue": "việc đã xong"
+      },
+      "right": {
+        "title": "Việc dở dang",
+        "points": [
+          "Nhớ lâu hơn 90 phần trăm",
+          "Liên tục tua lại quá khứ"
+        ],
+        "cue": "hiệu ứng Zeigarnik"
+      },
+      "stock": [
+        "pensive woman window"
+      ]
+    },
+    {
+      "type": "tip",
+      "say": "Nhiều người nghĩ theo dõi người cũ để vơi bớt nỗi nhớ, nhưng đó là sai lầm làm bạn nghiện nặng hơn. Giải pháp khoa học là áp dụng quy tắc No Contact hoàn toàn và viết thư giãi bày nhưng không gửi để tự đóng vòng lặp.",
+      "label": "GIẢI PHÁP KHOA HỌC",
+      "q_label": "SAI LẦM",
+      "a_label": "NÊN LÀM",
+      "question": "Nên tiếp tục lén theo dõi trang cá nhân để giải tỏa cảm xúc?",
+      "answer": "Áp dụng No Contact và viết nhật ký",
+      "answer_cue": "Giải pháp khoa học là áp dụng",
+      "stock": [
+        "female journal writing"
+      ]
+    },
+    {
+      "type": "next",
+      "say": "Nỗi nhớ chỉ là phản ứng sinh học nhất thời, không phải dấu hiệu định mệnh. Hãy lưu video này để nhắc nhở bản thân, bấm theo dõi kênh và chia sẻ góc nhìn của bạn dưới phần bình luận nhé!",
+      "label": "GHI NHỚ",
+      "title": "Nỗi nhớ là hóa chất, không phải định mệnh",
+      "sub": "Lưu video và theo dõi để hiểu rõ tâm lý học não bộ",
+      "stock": [
+        "woman walking park sunrise"
+      ]
+    }
+  ],
+  "diagrams": {},
+  "stock_terms": [
+    "sad woman bed phone",
+    "mri scan screen",
+    "woman typing phone night",
+    "pensive woman window",
+    "female journal writing",
+    "woman walking park sunrise"
+  ],
+  "description": "Khoa học thần kinh chứng minh nỗi nhớ người yêu cũ thực chất chỉ là phản ứng sinh học tương tự cơn cai nghiện. Bạn mất bao lâu để vượt qua người cũ?",
+  "hashtags": [
+    "tamlyhoc",
+    "khoahocthannkinh",
+    "tinhyeu",
+    "chiasetainghe",
+    "kienthuc"
+  ],
+  "angle": "Nỗi nhớ người yêu cũ không phải vì tình yêu sâu đậm, mà là não bộ đang trải qua cơn 'vã thuốc' và mắc kẹt trong việc chưa hoàn tất.",
+  "podcast": {
+    "title": "Nỗi nhớ người cũ thực chất là gì?",
+    "say": "Có bao giờ lúc nửa đêm, bạn vô thức cầm điện thoại lên, vào trang cá nhân của người cũ chỉ để xem họ dạo này thế nào chưa? Thật ra thì, mình cứ nghĩ là do bản thân còn yêu sâu đậm lắm, nhưng dưới góc nhìn khoa học thì không hẳn thế đâu. Nhà nhân chủng học Helen Fisher từng chỉ ra rằng, việc chia tay đột ngột hoạt động giống hệt như việc cơ thể đang cai một chất kích thích mạnh vậy ấy. Khi người đó rời đi, lượng dopamine, cái hormone hạnh phúc vốn đã rất quen thuộc, đột ngột sụt giảm nghiêm trọng, khiến não bộ của chúng ta rơi vào một cơn thèm khát tột độ. Cái hành động stalk trang cá nhân lúc nửa đêm ấy, thực chất chỉ là cách bộ não đang cố tìm lại chút dopamine ít ỏi để xoa dịu cơn nghiện dằn vặt này mà thôi. Thế nên, nỗi nhớ đôi khi chỉ là một phản ứng sinh học nhất thời của cơ thể chứ chẳng phải là định mệnh gì đâu dằn vặt bản thân mãi làm gì, đúng không? Để tự đóng lại vòng lặp mệt mỏi này, có lẽ điều tốt nhất bạn có thể làm lúc này là thực sự bước đi, áp dụng quy tắc ngắt kết nối hoàn toàn và viết ra những dòng giãi bày nhưng đừng bao giờ gửi đi cả. Mong rằng bạn sẽ sớm nhẹ lòng sau những giông bão đã qua. Nếu bạn thấy đồng cảm, hãy lưu lại video này như một cái ôm vỗ về cho chính mình, và chia sẻ cùng mình ở phần bình luận nhé.",
+    "stock_terms": [
+      "person looking at phone screen in dark bedroom",
+      "rain sliding down window glass close up",
+      "sad woman drinking warm tea looking lonely",
+      "blurry city traffic lights through window",
+      "writing letter with pen on paper warm lighting"
+    ]
+  }
+}

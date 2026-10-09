@@ -1,0 +1,122 @@
+{
+  "id": "20-phut-thien-nhien",
+  "title": "Vì sao 20 phút giữa thiên nhiên làm bạn dịu lại?",
+  "voice": "vi-VN-HoaiMyNeural",
+  "diagrams": {},
+  "stock_terms": [
+    "forest canopy looking up",
+    "mountain peaks above clouds",
+    "waterfall aerial drone",
+    "ocean waves aerial",
+    "mountain lake aerial",
+    "sun rays through forest canopy",
+    "clouds timelapse mountains",
+    "mossy stream forest",
+    "rain on leaves macro",
+    "flower blooming timelapse macro",
+    "snow mountains aerial",
+    "glacier aerial"
+  ],
+  "description": "Chỉ 20–30 phút giữa thiên nhiên đã đủ làm hormone căng thẳng giảm rõ (Hunter và cộng sự, 2019). Vì sao não lại cần cây xanh?",
+  "hashtags": [
+    "tamlyhoc",
+    "tamlyhocai",
+    "thiennhien",
+    "chualanh",
+    "suckhoetinhthan"
+  ],
+  "scenes": [
+    {
+      "type": "title",
+      "say": "Chỉ 20 phút giữa rừng cây, hormone căng thẳng trong người bạn đã bắt đầu giảm. Vì sao cây xanh, mặt nước và bầu trời lại làm não bộ dịu lại?",
+      "tag": "TÂM LÝ HỌC MÔI TRƯỜNG",
+      "headline": [
+        [
+          "20 PHÚT",
+          true
+        ],
+        [
+          "GIỮA RỪNG CÂY",
+          false
+        ]
+      ],
+      "sub": "Thiên nhiên làm gì với não bạn",
+      "stock": [
+        "forest canopy looking up"
+      ]
+    },
+    {
+      "type": "stat",
+      "say": "Năm 1984, nhà nghiên cứu Roger Ulrich theo dõi bệnh nhân trong một bệnh viện ở Mỹ. Người có cửa sổ nhìn ra hàng cây xanh xuất viện sớm hơn và cần ít thuốc giảm đau mạnh hơn người chỉ nhìn thấy một bức tường gạch.",
+      "kicker": "NGHIÊN CỨU 1984",
+      "heading": "Cửa sổ nhìn ra cây xanh",
+      "stats": [
+        {
+          "value": "1984",
+          "label": "Roger Ulrich, tạp chí Science",
+          "cue": "Năm 1984"
+        }
+      ],
+      "stock": [
+        "sun rays through forest canopy"
+      ]
+    },
+    {
+      "type": "bullets",
+      "say": "Hai nhà tâm lý học Rachel và Stephen Kaplan gọi đây là sự phục hồi chú ý. Phố xá ồn ào bắt não căng ra như dây đàn. Còn thiên nhiên thu hút ta thật nhẹ nhàng. Một giọt mưa đọng trên lá. Một ngọn cỏ lay trong gió. Một con sóng vỗ vào bờ. Nhờ vậy, phần não lo tập trung được nghỉ ngơi.",
+      "kicker": "THUYẾT PHỤC HỒI CHÚ Ý",
+      "heading": "Vì sao não được nghỉ",
+      "items": [
+        {
+          "text": "Phố xá: não căng như dây đàn",
+          "cue": "Phố xá ồn ào bắt não căng ra như dây đàn"
+        },
+        {
+          "text": "Thiên nhiên: cuốn hút nhẹ nhàng",
+          "cue": "thiên nhiên thu hút ta thật nhẹ nhàng"
+        },
+        {
+          "text": "Não được nghỉ ngơi",
+          "cue": "phần não lo tập trung được nghỉ ngơi"
+        }
+      ],
+      "stock": [
+        "rain on leaves macro"
+      ]
+    },
+    {
+      "type": "stat",
+      "say": "Năm 2019, các nhà khoa học ở Mỹ đo hormone căng thẳng cortisol và thấy chỉ 20 đến 30 phút ở nơi có cây xanh đã đủ làm cortisol giảm rõ. Một khảo sát trên gần 20 nghìn người ở Anh cho thấy ai dành ít nhất 120 phút mỗi tuần dưới tán cây, bên hồ nước hay trên đồng cỏ thường tự đánh giá mình khoẻ và hạnh phúc hơn hẳn.",
+      "kicker": "CON SỐ ĐÁNG NHỚ",
+      "heading": "Bao nhiêu là đủ?",
+      "stats": [
+        {
+          "value": "20–30 phút",
+          "label": "cortisol giảm rõ (2019)",
+          "cue": "20 đến 30 phút"
+        },
+        {
+          "value": "120 phút/tuần",
+          "label": "gần 20 nghìn người ở Anh",
+          "cue": "120 phút mỗi tuần"
+        }
+      ],
+      "stock": [
+        "mossy stream forest"
+      ]
+    },
+    {
+      "type": "next",
+      "say": "Không cần đi đâu xa. Một khoảng cỏ xanh hay một hàng cây gần nhà cũng đủ. Lưu video này lại, và tuần này thử dành 120 phút cho thiên nhiên nhé.",
+      "label": "THỬ NGAY",
+      "title": "Mỗi tuần 120 phút với thiên nhiên",
+      "sub": "Một khoảng cỏ xanh gần nhà cũng đủ",
+      "stock": [
+        "clouds timelapse mountains"
+      ]
+    }
+  ],
+  "image_source": "comfyui",
+  "image_note": "Pure untouched nature only: wild landscapes, forests, water, sky, plants, flowers and wild animals. Show exactly the natural thing the sentence names (a raindrop on a leaf, grass in the wind, a wave on the shore, a row of trees, a lake, a meadow). If the sentence names no natural thing, show a nature scene with the same mood (a storm for stress, still water for calm, sunrise for hope). Never include or mention people, body parts, buildings, windows, walls, roads, paths, fences, boats, vehicles or any man-made object. The image model draws footpaths whenever it shows a forest floor, a clearing or a meadow at eye level, so avoid those views: prefer close-ups (leaves, ferns, moss, flowers, water drops), tree canopies seen from below, water, sky, rocks and mountains seen from far away.",
+  "image_forbid": "people or body parts, footpaths, trails, tracks or roads, buildings, walls, windows, fences, bridges, boats, vehicles, signs or any other man-made object"
+}

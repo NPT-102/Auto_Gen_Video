@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <!-- Ảnh đại diện kênh "Tâm lý học hành vi" (@tamlyhocai): đầu người nhìn nghiêng, trái tim trong vùng não.
+       Hình đơn giản, tương phản mạnh để vẫn đọc được khi TikTok thu thành hình tròn ~56 px. -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="75%">
+      <stop offset="0" stop-color="#5A3872"/>
+      <stop offset="0.55" stop-color="#2D1C46"/>
+      <stop offset="1" stop-color="#160E25"/>
+    </radialGradient>
+    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#F4A261" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#F4A261" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="head" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#FFF6EA"/>
+      <stop offset="1" stop-color="#F5C7A3"/>
+    </linearGradient>
+    <radialGradient id="heart" cx="42%" cy="32%" r="80%">
+      <stop offset="0" stop-color="#FF9A8B"/>
+      <stop offset="0.6" stop-color="#F0506E"/>
+      <stop offset="1" stop-color="#C92A4F"/>
+    </radialGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="22" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="soft" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#0B0614" flood-opacity="0.55"/>
+    </filter>
+  </defs>
+
+  <rect width="1080" height="1080" fill="url(#bg)"/>
+  <circle cx="545" cy="500" r="430" fill="url(#halo)"/>
+  <circle cx="540" cy="540" r="468" fill="none" stroke="#F4A261" stroke-opacity="0.35" stroke-width="6"/>
+
+  <!-- bán thân nhìn nghiêng sang phải -->
+  <path filter="url(#soft)" fill="url(#head)" d="
+    M 150 1120 L 160 1030
+    C 175 975, 300 950, 385 905
+    C 405 850, 395 780, 350 720
+    C 295 650, 268 560, 290 470
+    C 318 345, 420 252, 530 250
+    C 640 250, 718 305, 738 395
+    C 746 432, 746 462, 752 490
+    C 760 526, 784 548, 798 566
+    C 808 580, 798 594, 770 594
+    C 778 604, 784 616, 776 628
+    C 770 636, 764 642, 766 650
+    C 778 660, 780 674, 770 684
+    C 766 704, 758 722, 744 732
+    C 725 748, 700 754, 676 754
+    C 660 776, 652 820, 656 878
+    C 662 930, 760 960, 860 990
+    C 910 1010, 935 1060, 940 1120 Z"/>
+
+  <!-- trái tim ở vùng não -->
+  <path filter="url(#glow)" fill="url(#heart)" d="
+    M 520 566
+    C 428 508, 402 452, 418 410
+    C 431 375, 471 362, 500 380
+    C 511 387, 517 397, 520 407
+    C 523 397, 529 387, 540 380
+    C 569 362, 609 375, 622 410
+    C 638 452, 612 508, 520 566 Z"/>
+  <path fill="#FFFFFF" fill-opacity="0.55" d="M 452 418 C 458 399, 476 392, 490 398 C 474 404, 463 414, 458 430 Z"/>
+</svg>

@@ -1,0 +1,305 @@
+{
+  "id": "bi-mat-cau-treo-hen-ho",
+  "title": "Bạn nghĩ đi cà phê hẹn hò là chuẩn? Sai lầm rồi",
+  "voice": "vi-VN-HoaiMyNeural",
+  "scenes": [
+    {
+      "type": "title",
+      "say": "Muốn người ấy thích bạn? Đừng đi cà phê, hãy rủ họ đi chơi tàu lượn siêu tốc. Nghe vô lý, nhưng một thí nghiệm nổi tiếng năm 1974 cho thấy nhịp tim đập thình thịch vì sợ hãi có thể bị não bộ hiểu nhầm thành cảm giác rung động.",
+      "tag": "BÍ QUYẾT HẸN HÒ",
+      "headline": [
+        [
+          "ĐỪNG ĐI",
+          false
+        ],
+        [
+          "CÀ PHÊ",
+          true
+        ]
+      ],
+      "sub": "Khi tim đập nhanh vì sợ bị hiểu nhầm là rung động",
+      "chips": [
+        {
+          "text": "Đừng đi cà phê",
+          "cue": "Muốn người ấy thích bạn? Đừng đi cà phê"
+        },
+        {
+          "text": "Não bộ hiểu nhầm",
+          "cue": "não bộ hiểu nhầm thành cảm giác rung động"
+        }
+      ],
+      "stock": [
+        "roller coaster screaming",
+        "couple coffee date"
+      ]
+    },
+    {
+      "type": "bullets",
+      "say": "Năm 1974, hai nhà tâm lý học Donald Dutton và Arthur Aron đã thực hiện một thí nghiệm kinh điển tại Canada mang tên Thí nghiệm cầu treo Capilano. Họ muốn kiểm tra xem nỗi sợ hãi từ môi trường xung quanh có thể biến đổi thành sự hấp dẫn giới tính hay không.",
+      "kicker": "THÍ NGHIỆM KINH ĐIỂN",
+      "heading": "Thí nghiệm Cầu treo Capilano 1974",
+      "items": [
+        {
+          "text": "Donald Dutton và Arthur Aron",
+          "cue": "Donald Dutton và Arthur Aron"
+        },
+        {
+          "text": "Thực hiện năm 1974",
+          "cue": "Năm 1974"
+        },
+        {
+          "text": "Sợ hãi có hóa thành hấp dẫn?",
+          "cue": "nỗi sợ hãi từ môi trường xung quanh có thể biến đổi thành"
+        }
+      ],
+      "stock": [
+        "suspension bridge swaying"
+      ]
+    },
+    {
+      "type": "compare",
+      "say": "Họ tiếp cận những người đàn ông tình cờ đi qua một trong hai cây cầu. Một nhóm đi qua cầu treo Capilano cao 70 mét, dài 137 mét, chao đảo trên hẻm núi sâu. Nhóm còn lại đi qua một cây cầu gỗ vững chắc chỉ cao 3 mét bắc qua một con suối nhỏ.",
+      "kicker": "BỐI CẢNH THÍ NGHIỆM",
+      "heading": "So sánh hai cây cầu trong thử nghiệm",
+      "left": {
+        "title": "Cầu treo nguy hiểm",
+        "points": [
+          "Cao 70 mét",
+          "Dài 137 mét",
+          "Chao đảo dữ dội"
+        ],
+        "cue": "đi qua cầu treo Capilano cao 70 mét"
+      },
+      "right": {
+        "title": "Cầu gỗ an toàn",
+        "points": [
+          "Cao 3 mét",
+          "Bắc qua suối nhỏ",
+          "Vô cùng vững chắc"
+        ],
+        "cue": "đi qua một cây cầu gỗ vững chắc chỉ cao 3 mét"
+      },
+      "stock": [
+        "suspension bridge swaying",
+        "wooden bridge stream"
+      ]
+    },
+    {
+      "type": "stat",
+      "say": "Ngay trên cầu, một nữ phỏng vấn viên hấp dẫn nhờ họ trả lời một bảng hỏi ngắn, rồi để lại số điện thoại của mình. Trong số những người nhận số, 50 phần trăm nam giới đi qua cầu treo nguy hiểm đã gọi lại cho cô, trong khi chỉ có 12,5 phần trăm nam giới đi qua cây cầu gỗ an toàn làm điều đó.",
+      "kicker": "KẾT QUẢ KINH NGẠC",
+      "heading": "Tỷ lệ gọi điện lại cho cô gái",
+      "stats": [
+        {
+          "value": "50%",
+          "label": "Đi cầu treo: 9/18 người gọi lại",
+          "cue": "50 phần trăm nam giới đi qua cầu treo nguy hiểm"
+        },
+        {
+          "value": "12,5%",
+          "label": "Đi cầu gỗ: 2/16 người gọi lại",
+          "cue": "12,5 phần trăm nam giới đi qua cây cầu gỗ"
+        }
+      ],
+      "stock": [
+        "woman giving phone number",
+        "man calling on phone"
+      ]
+    },
+    {
+      "type": "flow",
+      "say": "Hiện tượng này được khoa học gọi là nhầm lẫn nguồn gốc kích thích. Khi trải qua cảm giác mạo hiểm, tuyến thượng thận lập tức tiết ra adrenaline làm tim đập nhanh và thở dốc. Lúc này, não bộ bối rối tìm kiếm nguyên nhân xung quanh và có thể gán nhầm rằng tôi đang rung động vì người đối diện.",
+      "kicker": "CƠ CHẾ TÂM LÝ",
+      "heading": "Sự nhầm lẫn nguồn gốc kích thích",
+      "direction": "down",
+      "groups": [
+        {
+          "id": "g1",
+          "label": "Phản ứng Sinh lý",
+          "kind": "box",
+          "tone": "red",
+          "parent": null
+        },
+        {
+          "id": "g2",
+          "label": "Xử lý của Não",
+          "kind": "box",
+          "tone": "blue",
+          "parent": null
+        }
+      ],
+      "nodes": [
+        {
+          "id": "n1",
+          "label": "Trải nghiệm mạo hiểm",
+          "icon": "🎢",
+          "group": "g1"
+        },
+        {
+          "id": "n2",
+          "label": "Tiết Adrenaline",
+          "icon": "⚡",
+          "group": "g1"
+        },
+        {
+          "id": "n3",
+          "label": "Tim đập nhanh",
+          "icon": "💓",
+          "group": "g1"
+        },
+        {
+          "id": "n4",
+          "label": "Gặp đối phương",
+          "icon": "👤",
+          "group": "g2"
+        },
+        {
+          "id": "n5",
+          "label": "Não gán nhầm: rung động",
+          "icon": "🧠",
+          "group": "g2"
+        }
+      ],
+      "edges": [
+        {
+          "from": "n1",
+          "to": "n2",
+          "style": "flow"
+        },
+        {
+          "from": "n2",
+          "to": "n3",
+          "style": "flow"
+        },
+        {
+          "from": "n3",
+          "to": "n4",
+          "style": "solid"
+        },
+        {
+          "from": "n4",
+          "to": "n5",
+          "style": "flow"
+        }
+      ],
+      "steps": [
+        {
+          "cue": "Khi trải qua cảm giác mạo hiểm, tuyến thượng thận",
+          "show": [
+            "n1",
+            "n2"
+          ],
+          "focus": [
+            "n2"
+          ]
+        },
+        {
+          "cue": "làm tim đập nhanh và thở dốc",
+          "show": [
+            "n3"
+          ],
+          "focus": [
+            "n3"
+          ]
+        },
+        {
+          "cue": "não bộ bối rối tìm kiếm nguyên nhân xung quanh và có thể gán nhầm",
+          "show": [
+            "n4",
+            "n5"
+          ],
+          "focus": [
+            "n5"
+          ]
+        }
+      ],
+      "stock": [
+        "scared heart beating"
+      ]
+    },
+    {
+      "type": "bullets",
+      "say": "Não bộ của chúng ta giống như một người phiên dịch ngơ ngác. Khi thấy cơ thể có các biểu hiện sinh lý mạnh mẽ như tim đập thình thịch và thở gấp, nó nhìn sang bên cạnh thấy một người khác giới, nó dễ tự dịch ngay tín hiệu đó thành mình đang yêu rồi.",
+      "kicker": "ẢO GIÁC NÃO BỘ",
+      "heading": "Người phiên dịch ngơ ngác",
+      "items": [
+        {
+          "text": "Phản ứng sinh lý mạnh mẽ",
+          "cue": "biểu hiện sinh lý mạnh mẽ"
+        },
+        {
+          "text": "Nhìn sang người bên cạnh",
+          "cue": "nhìn sang bên cạnh thấy một người"
+        },
+        {
+          "text": "Dịch thành tín hiệu tình yêu",
+          "cue": "tự dịch ngay tín hiệu đó thành mình đang yêu"
+        }
+      ],
+      "stock": [
+        "confused brain cartoon"
+      ]
+    },
+    {
+      "type": "compare",
+      "say": "Nhiều người nghĩ cảm xúc yêu đương chỉ đến từ tính cách hoặc ngoại hình. Nhưng thực tế bối cảnh sinh lý kích thích nhịp tim có thể đánh lừa não bộ nhận diện đó là tình yêu. Một quán cà phê yên tĩnh khó có thể tạo ra phản ứng sinh lý bùng nổ này.",
+      "kicker": "BỐI CẢNH QUYẾT ĐỊNH",
+      "heading": "Cà phê yên tĩnh so với Trải nghiệm mạnh",
+      "left": {
+        "title": "Quán cà phê yên tĩnh",
+        "points": [
+          "Yên tĩnh, nhẹ nhàng",
+          "Nhịp tim bình thường",
+          "Khó tạo đột phá"
+        ],
+        "cue": "Một quán cà phê yên tĩnh khó có thể"
+      },
+      "right": {
+        "title": "Trải nghiệm mạnh",
+        "points": [
+          "Kích thích sinh lý",
+          "Tim đập thình thịch",
+          "Đánh lừa não bộ"
+        ],
+        "cue": "bối cảnh sinh lý kích thích nhịp tim có thể"
+      },
+      "stock": [
+        "boring coffee date",
+        "thrill ride park"
+      ]
+    },
+    {
+      "type": "tip",
+      "say": "Vậy làm thế nào để ứng dụng điều này? Thay vì những buổi hẹn nhàm chán, hãy rủ đối phương đi xem phim kinh dị hoặc chơi trò rơi tự do trong công viên giải trí, hay cùng chạy bộ trước khi trò chuyện. Nhưng nhớ rằng hồi hộp chỉ khuếch đại cảm xúc có sẵn: các nghiên cứu sau này cho thấy nếu người ấy vốn không có cảm tình, nó có thể phản tác dụng.",
+      "label": "MẸO HẸN HÒ",
+      "q_label": "HOẠT ĐỘNG GỢI Ý",
+      "a_label": "TRẢI NGHIỆM MẠNH",
+      "question": "Nên rủ crush đi đâu trong buổi hẹn đầu tiên để kích thích nhịp tim của họ?",
+      "answer": "Đi xem phim kinh dị hoặc chơi trò rơi tự do",
+      "answer_cue": "hãy rủ đối phương đi xem phim kinh dị hoặc chơi trò rơi tự do"
+    },
+    {
+      "type": "next",
+      "say": "Hãy nhớ rằng môi trường xung quanh ảnh hưởng không nhỏ đến cảm xúc của chúng ta. Bạn đã từng có trải nghiệm tim đập chân run nào bên cạnh người ấy chưa? Hãy lưu video này lại, nhấn theo dõi kênh và chia sẻ câu chuyện của bạn dưới phần bình luận nhé.",
+      "label": "GHI NHỚ",
+      "title": "Hồi hộp dễ bị nhầm là rung động",
+      "sub": "Đừng quên lưu lại và chia sẻ trải nghiệm của bạn!"
+    }
+  ],
+  "diagrams": {},
+  "stock_terms": [
+    "roller coaster screaming",
+    "suspension bridge swaying",
+    "wooden bridge stream",
+    "scared heart beating",
+    "couple watching horror movie"
+  ],
+  "description": "Vì sao hẹn hò ở nơi khiến tim đập nhanh lại dễ tạo rung động hơn một quán cà phê yên tĩnh? Thí nghiệm cầu treo Capilano (1974) và giới hạn ít người nhắc tới.",
+  "hashtags": [
+    "tamlyhoc",
+    "henho",
+    "yeuduong",
+    "khampha"
+  ],
+  "angle": "Tỷ lệ rung động tăng vọt khi cùng nhau trải qua một trải nghiệm kích thích nhịp tim trên chiếc cầu treo qua hiện tượng nhầm lẫn nguồn gốc kích thích."
+}

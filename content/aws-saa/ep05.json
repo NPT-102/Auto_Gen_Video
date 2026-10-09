@@ -1,0 +1,646 @@
+{
+  "id": "aws-saa-ep05",
+  "title": "VPC: subnet, Internet Gateway, NAT Gateway",
+  "series": "AWS SAA-C03",
+  "ep": 5,
+  "total": 31,
+  "voice": "vi-VN-HoaiMyNeural",
+  "stock_terms": [
+    "network cables",
+    "network switch",
+    "server rack",
+    "city aerial view",
+    "highway interchange"
+  ],
+  "description": "VPC là nền móng mạng của mọi hệ thống trên AWS: dải IP riêng, subnet public và private, kiến trúc ba tầng và NAT Gateway. Lưu lại để ôn thi AWS Solutions Architect Associate.",
+  "hashtags": [
+    "AWS",
+    "SAAC03",
+    "AWSSolutionsArchitect",
+    "CloudComputing",
+    "VPC",
+    "HocAWS"
+  ],
+  "scenes": [
+    {
+      "type": "title",
+      "say": "Tập 5: VPC, mạng ảo riêng của bạn trên AWS. Ta sẽ dựng một VPC chuẩn, từng lớp một.",
+      "tag": "MẠNG",
+      "headline": [
+        [
+          "VPC",
+          true
+        ]
+      ],
+      "size": 240,
+      "sub": "Mạng ảo riêng của bạn trên AWS",
+      "chips": [
+        {
+          "text": "Dải IP và subnet",
+          "cue": "dựng một VPC"
+        },
+        {
+          "text": "Public và private",
+          "cue": "chuẩn"
+        },
+        {
+          "text": "NAT Gateway",
+          "cue": "từng lớp"
+        }
+      ]
+    },
+    {
+      "type": "diagram",
+      "diagram": "vpc",
+      "step": "01",
+      "kicker": "DẢI IP VÀ SUBNET",
+      "heading": "Một dải IP riêng, chia thành subnet",
+      "say": "Khi tạo VPC, bạn chọn một dải địa chỉ IP riêng, gọi là khối CIDR. VPC nằm trong một Region và được chia thành các subnet, mỗi subnet nằm gọn trong một AZ.",
+      "events": [
+        {
+          "cue": "Khi tạo VPC",
+          "show": [
+            "vpc"
+          ]
+        },
+        {
+          "cue": "khối CIDR",
+          "show": [
+            "cidr"
+          ]
+        },
+        {
+          "cue": "một Region",
+          "show": [
+            "region"
+          ]
+        },
+        {
+          "cue": "được chia",
+          "show": [
+            "azA",
+            "azB"
+          ]
+        },
+        {
+          "cue": "các subnet",
+          "show": [
+            "pubA",
+            "appA",
+            "dbA",
+            "pubB",
+            "appB",
+            "dbB"
+          ]
+        },
+        {
+          "cue": "một AZ",
+          "focus": [
+            "azA",
+            "azB"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "diagram",
+      "diagram": "vpc",
+      "step": "02",
+      "kicker": "PUBLIC VÀ PRIVATE",
+      "heading": "Subnet nào được ra Internet?",
+      "say": "Subnet public là subnet có route table trỏ ra Internet Gateway, nên tài nguyên có IP public trong đó có thể liên lạc với Internet. Subnet private không có đường đó, dùng cho cơ sở dữ liệu và máy chủ ứng dụng.",
+      "events": [
+        {
+          "cue": "Subnet public",
+          "add": [
+            {
+              "id": "pubA",
+              "cls": "pub"
+            },
+            {
+              "id": "pubB",
+              "cls": "pub"
+            }
+          ]
+        },
+        {
+          "cue": "Internet Gateway",
+          "show": [
+            "igw"
+          ]
+        },
+        {
+          "cue": "liên lạc với Internet",
+          "show": [
+            "internet",
+            "a_inet"
+          ]
+        },
+        {
+          "cue": "Subnet private",
+          "add": [
+            {
+              "id": "appA",
+              "cls": "pri"
+            },
+            {
+              "id": "appB",
+              "cls": "pri"
+            },
+            {
+              "id": "dbA",
+              "cls": "db"
+            },
+            {
+              "id": "dbB",
+              "cls": "db"
+            }
+          ]
+        },
+        {
+          "cue": "cơ sở dữ liệu",
+          "focus": [
+            "dbA",
+            "dbB"
+          ]
+        },
+        {
+          "cue": "máy chủ ứng dụng",
+          "focus": [
+            "appA",
+            "appB"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "diagram",
+      "diagram": "vpc",
+      "step": "03",
+      "kicker": "KIẾN TRÚC BA TẦNG",
+      "heading": "Mô hình ba tầng kinh điển",
+      "say": "Mô hình kinh điển là ba tầng: load balancer ở subnet public, máy chủ ứng dụng ở subnet private, cơ sở dữ liệu ở một subnet private riêng, và mỗi tầng trải trên ít nhất hai AZ.",
+      "events": [
+        {
+          "cue": "load balancer",
+          "show": [
+            "alb"
+          ]
+        },
+        {
+          "cue": "máy chủ ứng dụng",
+          "show": [
+            "ec2A",
+            "ec2B"
+          ]
+        },
+        {
+          "cue": "cơ sở dữ liệu",
+          "show": [
+            "rdsA",
+            "rdsB"
+          ]
+        },
+        {
+          "cue": "hai AZ",
+          "focus": [
+            "azA",
+            "azB"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "diagram",
+      "diagram": "vpc",
+      "step": "04",
+      "kicker": "NAT GATEWAY",
+      "heading": "Private subnet cần tải bản vá?",
+      "say": "Vậy máy chủ trong subnet private muốn tải bản cập nhật từ Internet thì sao? Ta đặt một NAT Gateway ở subnet public. NAT Gateway cho phép đi ra Internet nhưng không cho Internet chủ động kết nối vào.",
+      "events": [
+        {
+          "cue": "máy chủ trong subnet private",
+          "focus": [
+            "ec2A"
+          ]
+        },
+        {
+          "cue": "một NAT Gateway",
+          "show": [
+            "natA"
+          ]
+        },
+        {
+          "cue": "đi ra Internet",
+          "show": [
+            "flowA1",
+            "flowA2",
+            "flowUp"
+          ]
+        },
+        {
+          "cue": "không cho Internet",
+          "show": [
+            "blocked",
+            "xbadge"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "diagram",
+      "diagram": "vpc",
+      "step": "05",
+      "kicker": "SẴN SÀNG CAO",
+      "heading": "Mỗi AZ một NAT Gateway",
+      "say": "Lưu ý NAT Gateway nằm trong một AZ, nên để có tính sẵn sàng cao, hãy đặt mỗi AZ một NAT Gateway.",
+      "events": [
+        {
+          "cue": "nằm trong một AZ",
+          "focus": [
+            "natA",
+            "azA"
+          ]
+        },
+        {
+          "cue": "mỗi AZ một NAT Gateway",
+          "show": [
+            "natB",
+            "flowB1",
+            "flowB2"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "tip",
+      "say": "Mẹo thi: đề yêu cầu máy chủ private tải được bản vá mà không bị lộ ra Internet, đáp án là NAT Gateway.",
+      "question": "Máy chủ ở private subnet cần tải bản vá, nhưng không được lộ ra Internet?",
+      "answer": "NAT Gateway",
+      "answer_cue": "đáp án"
+    },
+    {
+      "type": "next",
+      "say": "Tập sau: Security Group và Network ACL, hai lớp tường lửa của VPC.",
+      "title": "Security Group & Network ACL",
+      "sub": "Hai lớp tường lửa của VPC"
+    }
+  ],
+  "diagrams": {
+    "vpc": {
+      "w": 940,
+      "h": 1040,
+      "elements": [
+        {
+          "id": "region",
+          "kind": "box",
+          "style": "region",
+          "x": 10,
+          "y": 192,
+          "w": 920,
+          "h": 843,
+          "label": "REGION"
+        },
+        {
+          "id": "vpc",
+          "kind": "box",
+          "style": "vpc",
+          "x": 40,
+          "y": 240,
+          "w": 860,
+          "h": 780,
+          "label": "VPC"
+        },
+        {
+          "id": "cidr",
+          "kind": "text",
+          "x": 124,
+          "y": 250,
+          "text": "10.0.0.0/16"
+        },
+        {
+          "id": "azA",
+          "kind": "box",
+          "style": "az",
+          "x": 65,
+          "y": 345,
+          "w": 390,
+          "h": 660,
+          "label": "AZ a"
+        },
+        {
+          "id": "azB",
+          "kind": "box",
+          "style": "az",
+          "x": 485,
+          "y": 345,
+          "w": 390,
+          "h": 660,
+          "label": "AZ b"
+        },
+        {
+          "id": "pubA",
+          "kind": "box",
+          "style": "subnet",
+          "x": 82,
+          "y": 392,
+          "w": 356,
+          "h": 190,
+          "label": "SUBNET",
+          "label_on": "PUBLIC"
+        },
+        {
+          "id": "appA",
+          "kind": "box",
+          "style": "subnet",
+          "x": 82,
+          "y": 598,
+          "w": 356,
+          "h": 190,
+          "label": "SUBNET",
+          "label_on": "PRIVATE · APP"
+        },
+        {
+          "id": "dbA",
+          "kind": "box",
+          "style": "subnet",
+          "x": 82,
+          "y": 804,
+          "w": 356,
+          "h": 188,
+          "label": "SUBNET",
+          "label_on": "PRIVATE · DB"
+        },
+        {
+          "id": "pubB",
+          "kind": "box",
+          "style": "subnet",
+          "x": 502,
+          "y": 392,
+          "w": 356,
+          "h": 190,
+          "label": "SUBNET",
+          "label_on": "PUBLIC"
+        },
+        {
+          "id": "appB",
+          "kind": "box",
+          "style": "subnet",
+          "x": 502,
+          "y": 598,
+          "w": 356,
+          "h": 190,
+          "label": "SUBNET",
+          "label_on": "PRIVATE · APP"
+        },
+        {
+          "id": "dbB",
+          "kind": "box",
+          "style": "subnet",
+          "x": 502,
+          "y": 804,
+          "w": 356,
+          "h": 188,
+          "label": "SUBNET",
+          "label_on": "PRIVATE · DB"
+        },
+        {
+          "id": "a_inet",
+          "kind": "arrow",
+          "style": "solid",
+          "points": [
+            [
+              470,
+              188
+            ],
+            [
+              470,
+              114
+            ]
+          ]
+        },
+        {
+          "id": "flowA1",
+          "kind": "arrow",
+          "style": "flow",
+          "points": [
+            [
+              128,
+              648
+            ],
+            [
+              128,
+              442
+            ],
+            [
+              326,
+              442
+            ]
+          ]
+        },
+        {
+          "id": "flowA2",
+          "kind": "arrow",
+          "style": "flow",
+          "points": [
+            [
+              370,
+              402
+            ],
+            [
+              370,
+              240
+            ],
+            [
+              414,
+              240
+            ]
+          ]
+        },
+        {
+          "id": "flowUp",
+          "kind": "arrow",
+          "style": "flow",
+          "points": [
+            [
+              470,
+              188
+            ],
+            [
+              470,
+              114
+            ]
+          ]
+        },
+        {
+          "id": "flowB1",
+          "kind": "arrow",
+          "style": "flow",
+          "points": [
+            [
+              548,
+              648
+            ],
+            [
+              548,
+              442
+            ],
+            [
+              746,
+              442
+            ]
+          ]
+        },
+        {
+          "id": "flowB2",
+          "kind": "arrow",
+          "style": "flow",
+          "points": [
+            [
+              790,
+              402
+            ],
+            [
+              790,
+              240
+            ],
+            [
+              526,
+              240
+            ]
+          ]
+        },
+        {
+          "id": "blocked",
+          "kind": "arrow",
+          "style": "blocked",
+          "points": [
+            [
+              526,
+              58
+            ],
+            [
+              912,
+              58
+            ],
+            [
+              912,
+              700
+            ],
+            [
+              864,
+              700
+            ]
+          ]
+        },
+        {
+          "id": "internet",
+          "kind": "node",
+          "icon": "globe",
+          "x": 470,
+          "y": 58,
+          "label": "Internet"
+        },
+        {
+          "id": "igw",
+          "kind": "node",
+          "icon": "gateway",
+          "style": "dark",
+          "x": 470,
+          "y": 240,
+          "label": "Internet Gateway"
+        },
+        {
+          "id": "alb",
+          "kind": "bar",
+          "icon": "balance",
+          "x": 150,
+          "y": 534,
+          "w": 640,
+          "h": 42,
+          "label": "Application Load Balancer"
+        },
+        {
+          "id": "natA",
+          "kind": "node",
+          "size": "sm",
+          "icon": "nat",
+          "style": "accent",
+          "x": 370,
+          "y": 442,
+          "label": "NAT Gateway"
+        },
+        {
+          "id": "natB",
+          "kind": "node",
+          "size": "sm",
+          "icon": "nat",
+          "style": "accent",
+          "x": 790,
+          "y": 442,
+          "label": "NAT Gateway"
+        },
+        {
+          "id": "ec2A",
+          "kind": "node",
+          "layout": "row",
+          "icon": "server",
+          "style": "blue",
+          "x": 150,
+          "y": 705,
+          "label": "EC2 · App"
+        },
+        {
+          "id": "ec2B",
+          "kind": "node",
+          "layout": "row",
+          "icon": "server",
+          "style": "blue",
+          "x": 570,
+          "y": 705,
+          "label": "EC2 · App"
+        },
+        {
+          "id": "rdsA",
+          "kind": "node",
+          "layout": "row",
+          "icon": "database",
+          "style": "purple",
+          "x": 150,
+          "y": 910,
+          "label": "RDS Primary"
+        },
+        {
+          "id": "rdsB",
+          "kind": "node",
+          "layout": "row",
+          "icon": "database",
+          "style": "purple",
+          "x": 570,
+          "y": 910,
+          "label": "RDS Standby"
+        },
+        {
+          "id": "xbadge",
+          "kind": "badge",
+          "style": "left",
+          "x": 912,
+          "y": 330,
+          "label": "Không vào được"
+        }
+      ]
+    }
+  },
+  "podcast": {
+    "title": "Thiết lập ranh giới bình yên cho chính mình",
+    "say": "Có bao giờ bạn cảm thấy kiệt sức vì để thế giới bên ngoài chạm vào mình quá dễ dàng không? Thật ra thì trong công nghệ đám mây, người ta có một khái niệm rất hay gọi là VPC, giống như việc bạn tự vẽ ra một khoảng trời riêng vậy. Ở đó, chúng ta chia cuộc sống thành những vùng sáng để giao tiếp, và những góc khuất riêng tư để cất giữ những gì trân quý nhất, như dữ liệu hay chính tâm hồn mình. Những máy chủ nằm sâu trong góc kín ấy chẳng bao giờ để người lạ tự tiện bước vào, nhưng khi cần học hỏi hay cập nhật điều mới, chúng sẽ mượn một cánh cổng mang tên NAT Gateway để bước ra nhìn ngắm thế giới một chiều rồi lặng lẽ quay về. Trưởng thành rồi mới hiểu, việc thiết lập ranh giới an toàn không phải là trốn tránh, mà là để bảo vệ sự bình yên sâu kín nhất mà thôi. Nếu hôm nay bạn cũng đang mỏi mệt, hãy thử lưu lại góc nhỏ này và chia sẻ với mình ở phần bình luận nhé.",
+    "stock_terms": [
+      "solitary person walking city street night bokeh",
+      "gentle rain dripping down coffee shop window",
+      "hands holding warm ceramic cup moody lighting",
+      "cozy dimly lit bedroom reading late night",
+      "silhouette gazing out modern apartment window dusk"
+    ],
+    "voice": "nhatphong"
+  }
+}

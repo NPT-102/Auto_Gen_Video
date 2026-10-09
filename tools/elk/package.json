@@ -1,0 +1,6 @@
+{
+  "name": "factory-elk",
+  "private": true,
+  "type": "module",
+  "dependencies": { "elkjs": "0.10.0" }
+}

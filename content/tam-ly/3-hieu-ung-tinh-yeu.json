@@ -1,0 +1,334 @@
+{
+  "id": "3-hieu-ung-tinh-yeu",
+  "title": "3 hiệu ứng tâm lý khiến bạn vô tình phải lòng ai đó",
+  "voice": "vi-VN-HoaiMyNeural",
+  "scenes": [
+    {
+      "type": "title",
+      "say": "Bạn nghĩ mình tự chọn người để yêu? Thực ra bạn đang bị chính não bộ của mình thao túng, qua 3 hiệu ứng tâm lý dưới đây. Hãy cùng giải mã khoa học đằng sau những rung động vô thức.",
+      "tag": "TÂM LÝ HỌC",
+      "headline": [
+        [
+          "BỊ NÃO BỘ",
+          false
+        ],
+        [
+          "THAO TÚNG",
+          true
+        ]
+      ],
+      "sub": "3 hiệu ứng tâm lý khiến bạn phải lòng ai đó",
+      "chips": [
+        {
+          "text": "tự chọn người để yêu",
+          "cue": "Bạn nghĩ mình tự chọn người để yêu"
+        },
+        {
+          "text": "bị não bộ thao túng",
+          "cue": "bị chính não bộ của mình thao túng"
+        }
+      ],
+      "stock": [
+        "couple looking at each other",
+        "woman smiling at man"
+      ]
+    },
+    {
+      "type": "stat",
+      "say": "Hiệu ứng thứ nhất: năm 1968, nhà tâm lý học Robert Zajonc cho người tham gia xem ảnh chân dung người lạ, có ảnh chỉ xem 1 lần, có ảnh xem tới 25 lần. Ảnh nào được xem càng nhiều, người đó càng được chấm điểm thiện cảm cao, dù chẳng ai quen người trong ảnh.",
+      "kicker": "HIỆU ỨNG 1 · TIẾP XÚC ĐƠN THUẦN",
+      "heading": "Càng nhìn nhiều, càng thấy thích",
+      "stats": [
+        {
+          "value": "1968",
+          "label": "Robert Zajonc công bố",
+          "cue": "năm 1968"
+        },
+        {
+          "value": "25 lần",
+          "label": "xem ảnh một người lạ",
+          "cue": "có ảnh xem tới 25 lần"
+        }
+      ],
+      "stock": [
+        "looking at photos",
+        "portrait photos"
+      ]
+    },
+    {
+      "type": "bullets",
+      "say": "Vì vậy bạn có thể bắt đầu thích một đồng nghiệp ngồi cạnh sau vài tuần làm việc chung, dù ban đầu không ấn tượng. Sự quen thuộc được não bộ hiểu là an toàn, và từ an toàn rất dễ chuyển thành thiện cảm.",
+      "kicker": "VÍ DỤ THỰC TẾ",
+      "heading": "Từ quen thuộc đến rung động",
+      "items": [
+        {
+          "text": "Đồng nghiệp ngồi cạnh",
+          "cue": "thích một đồng nghiệp ngồi cạnh"
+        },
+        {
+          "text": "Quen thuộc = an toàn",
+          "cue": "được não bộ hiểu là an toàn"
+        },
+        {
+          "text": "An toàn → thiện cảm",
+          "cue": "dễ chuyển thành thiện cảm"
+        }
+      ],
+      "stock": [
+        "coworkers talking office",
+        "office colleagues"
+      ]
+    },
+    {
+      "type": "stat",
+      "say": "Hiệu ứng thứ hai đến từ thí nghiệm năm 1974 của Donald Dutton và Arthur Aron trên cây cầu treo Capilano cao 70 mét. Một cô gái phỏng vấn những người đàn ông vừa đi qua cầu rồi để lại số điện thoại. Một nửa số người nhận số đã gọi lại cho cô, trong khi ở cây cầu vững chắc chỉ có 2 trên 16 người.",
+      "kicker": "HIỆU ỨNG 2 · CÂY CẦU TREO",
+      "heading": "Thí nghiệm cây cầu Capilano",
+      "stats": [
+        {
+          "value": "70 m",
+          "label": "cầu treo chênh vênh",
+          "cue": "cao 70 mét"
+        },
+        {
+          "value": "50%",
+          "label": "gọi lại cho cô gái",
+          "cue": "Một nửa số người nhận số"
+        },
+        {
+          "value": "2/16",
+          "label": "ở cây cầu vững chắc",
+          "cue": "chỉ có 2 trên 16 người"
+        }
+      ],
+      "stock": [
+        "suspension bridge walking",
+        "man on suspension bridge"
+      ]
+    },
+    {
+      "type": "compare",
+      "say": "Lý do là tim đập nhanh vì sợ có thể bị não bộ dịch sai tín hiệu. Khi bạn cùng ai đó xem phim kinh dị, thay vì nhận ra là do sợ, não lại gán nhãn rằng bạn đang rung động trước người ngồi cạnh.",
+      "kicker": "NHẦM LẪN CẢM XÚC",
+      "heading": "Sợ hãi hay yêu thích?",
+      "left": {
+        "title": "Phản ứng vật lý",
+        "points": [
+          "Tim đập nhanh",
+          "Tăng adrenaline"
+        ],
+        "cue": "tim đập nhanh vì sợ"
+      },
+      "right": {
+        "title": "Não bộ dịch sai",
+        "points": [
+          "Gán nhãn rung động",
+          "Tưởng là tình yêu"
+        ],
+        "cue": "não lại gán nhãn"
+      },
+      "stock": [
+        "couple watching horror movie",
+        "scared couple cinema"
+      ]
+    },
+    {
+      "type": "bullets",
+      "say": "Hiệu ứng thứ ba mang tên Benjamin Franklin, được hai nhà tâm lý học Jecker và Landy kiểm chứng năm 1969. Khi bạn giúp đỡ ai đó, não bộ tự thuyết phục rằng mình giúp vì mình quý họ. Vì vậy, muốn ai đó có thiện cảm với bạn, hãy thử nhờ họ một việc nhỏ.",
+      "kicker": "HIỆU ỨNG 3 · BEN FRANKLIN",
+      "heading": "Giúp ai đó, bạn sẽ quý họ hơn",
+      "items": [
+        {
+          "text": "Jecker & Landy, 1969",
+          "cue": "Jecker và Landy kiểm chứng năm 1969"
+        },
+        {
+          "text": "Não tự thuyết phục",
+          "cue": "não bộ tự thuyết phục"
+        },
+        {
+          "text": "Nhờ một việc nhỏ",
+          "cue": "hãy thử nhờ họ một việc nhỏ"
+        }
+      ],
+      "stock": [
+        "man helping woman",
+        "helping carry boxes"
+      ]
+    },
+    {
+      "type": "flow",
+      "say": "Điểm chung của cả 3 hiệu ứng: não bộ không tự biết mình thích ai, nó đoán dựa vào tín hiệu. Gặp nhiều lần thì thấy quen và an toàn. Tim đập nhanh thì tưởng là rung động. Đã giúp ai đó thì nghĩ mình giúp vì quý họ. Và não kết luận: mình thích người này rồi.",
+      "kicker": "ĐIỂM CHUNG",
+      "heading": "Cách não bộ đoán cảm xúc",
+      "direction": "down",
+      "groups": [
+        {
+          "id": "g1",
+          "label": "3 tín hiệu",
+          "kind": "box",
+          "tone": "blue",
+          "parent": null
+        }
+      ],
+      "nodes": [
+        {
+          "id": "n1",
+          "label": "Gặp nhiều lần",
+          "icon": "👀",
+          "group": "g1"
+        },
+        {
+          "id": "n2",
+          "label": "Tim đập nhanh",
+          "icon": "💓",
+          "group": "g1"
+        },
+        {
+          "id": "n3",
+          "label": "Đã giúp người đó",
+          "icon": "🤝",
+          "group": "g1"
+        },
+        {
+          "id": "n4",
+          "label": "Não bộ đoán cảm xúc",
+          "icon": "🧠"
+        },
+        {
+          "id": "n5",
+          "label": "Mình thích người này",
+          "icon": "💘"
+        }
+      ],
+      "edges": [
+        {
+          "from": "n1",
+          "to": "n4",
+          "style": "flow"
+        },
+        {
+          "from": "n2",
+          "to": "n4",
+          "style": "flow"
+        },
+        {
+          "from": "n3",
+          "to": "n4",
+          "style": "flow"
+        },
+        {
+          "from": "n4",
+          "to": "n5",
+          "style": "solid"
+        }
+      ],
+      "steps": [
+        {
+          "cue": "não bộ không tự biết mình thích ai",
+          "show": [
+            "n4"
+          ],
+          "focus": [
+            "n4"
+          ]
+        },
+        {
+          "cue": "Gặp nhiều lần thì thấy quen",
+          "show": [
+            "n1"
+          ],
+          "focus": [
+            "n1"
+          ]
+        },
+        {
+          "cue": "Tim đập nhanh thì tưởng là rung động",
+          "show": [
+            "n2"
+          ],
+          "focus": [
+            "n2"
+          ]
+        },
+        {
+          "cue": "Đã giúp ai đó",
+          "show": [
+            "n3"
+          ],
+          "focus": [
+            "n3"
+          ]
+        },
+        {
+          "cue": "mình thích người này rồi",
+          "show": [
+            "n5"
+          ],
+          "focus": [
+            "n5"
+          ]
+        }
+      ],
+      "stock": [
+        "couple holding hands",
+        "couple eye contact"
+      ]
+    },
+    {
+      "type": "tip",
+      "say": "Nhiều người tin tiếng sét ái tình là định mệnh. Nhưng một nghiên cứu năm 2017 ở Hà Lan cho thấy thứ người ta gọi là tiếng sét ái tình chủ yếu là sự hấp dẫn ngoại hình, chứ chưa có sự gắn bó của tình yêu.",
+      "label": "SAI LẦM PHỔ BIẾN",
+      "q_label": "NHIỀU NGƯỜI TIN",
+      "a_label": "NGHIÊN CỨU 2017",
+      "question": "Tiếng sét ái tình có phải là tình yêu thật sự?",
+      "answer": "Chủ yếu là do vẻ ngoài",
+      "answer_cue": "chủ yếu là sự hấp dẫn ngoại hình",
+      "stock": [
+        "eye contact couple",
+        "first date"
+      ]
+    },
+    {
+      "type": "next",
+      "say": "Bộ não giống như hệ thống định vị tự động, luôn tìm kiếm sự an toàn để dẫn đường cho con tim. Hãy lưu video này lại, theo dõi kênh và để lại bình luận xem bạn đã từng rơi vào hiệu ứng nào nhé.",
+      "label": "GHI NHỚ",
+      "title": "Thấu hiểu khoa học tình yêu",
+      "sub": "Đừng để não bộ đánh lừa cảm xúc nhất thời",
+      "stock": [
+        "couple laughing",
+        "happy couple"
+      ]
+    }
+  ],
+  "diagrams": {},
+  "stock_terms": [
+    "couple holding hands",
+    "coworkers talking",
+    "shaking bridge",
+    "couple watching movie",
+    "first date",
+    "couple laughing"
+  ],
+  "description": "3 hiệu ứng tâm lý có thật (Zajonc 1968, Dutton & Aron 1974, Jecker & Landy 1969) khiến bạn phải lòng ai đó mà không hề hay biết. Bạn đã từng rơi vào hiệu ứng nào?",
+  "hashtags": [
+    "tamlyhoc",
+    "hieuungtamly",
+    "tinhyeu",
+    "khoahoctinhyeu",
+    "hoccungtiktok"
+  ],
+  "podcast": {
+    "title": "Trái tim bạn rung động, hay não bộ đang lừa bạn?",
+    "say": "Có bao giờ bạn thắc mắc vì sao mình lại vô thức rung động trước một người mà ban đầu bản thân chẳng hề có chút ấn tượng nào không? Thật ra thì đôi khi trái tim không tự chọn ai cả, mà là não bộ đang âm thầm dẫn dắt chúng ta qua những tín hiệu rất đỗi tình cờ. Như một người đồng nghiệp ngồi cạnh mỗi ngày, chỉ vì gặp gỡ quá nhiều mà não tự dịch sự quen thuộc ấy thành cảm giác an toàn và dễ chịu. Hay như cái lần hai người cùng đi qua một đoạn đường cheo leo, cùng xem một bộ phim kinh dị thót tim, nhịp tim đập loạn xạ vì hồi hộp lại bị não bộ hiểu lầm thành một cơn rung động sâu sắc. Nhà tâm lý học Robert Zajonc từng phát hiện ra rằng, chúng ta có xu hướng yêu thích những gì lặp đi lặp lại chỉ vì bản năng luôn tìm kiếm sự yên tâm. Não bộ của mình ngây thơ lắm, nó cứ gom nhặt từng khoảnh khắc quen thuộc, từng lần tim lỡ nhịp rồi tự kết luận rằng mình đã yêu mất rồi. Thế nên những rung động đầu đời nhiều khi không phải là định mệnh, mà chỉ là cách tâm trí tìm kiếm một chỗ dựa ấm êm thôi. Nếu bạn cũng từng có một cơn say nắng kỳ lạ như thế, hãy lưu lại video này và tâm sự cùng mình dưới phần bình luận nhé.",
+    "stock_terms": [
+      "pensive girl sitting in cozy cafe looking out window",
+      "close up of hands holding warm coffee cup moody lighting",
+      "couple walking slowly on quiet city street at night",
+      "soft cinematic blur of rain on window glass",
+      "solitary person thinking under warm indoor lamp"
+    ],
+    "voice": "nhatphong",
+    "audio": "audio/3-hieu-ung-tinh-yeu-0928-162432.mp3"
+  }
+}

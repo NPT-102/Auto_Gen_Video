@@ -1,0 +1,66 @@
+"""Remotion: motion graphics nền tối, phụ đề kiểu TikTok (project React ở engines/remotion-academic).
+
+Giọng đọc và dòng thời gian dùng chung với engine HyperFrames (narration.build_timeline);
+ảnh nền theo câu được đặt tạm vào public/jobs/ vì Remotion chỉ đọc file qua staticFile().
+
+Remotion chỉ xuất khung hình JPEG (không kèm <Audio>), ffmpeg của hệ thống ghép thành video và gắn giọng đọc:
+từ 01/10/2026 Smart App Control của Windows chặn avfilter-10.dll mà ffmpeg.exe/ffprobe.exe đi kèm Remotion nạp
+(thoát mã 3236495362 = 0xC0E90002, "while piping frame 0" hoặc lúc đọc file audio).
+"""
+
+import json
+import re
+import shutil
+import uuid
+from pathlib import Path
+
+from ..beats import attach as attach_beats
+from ..config import CHROME, ENGINES_DIR
+from ..narration import build_audio, build_timeline
+from ..spec import Spec
+from .base import Engine, Log, run, utf8_env
+
+PROJECT = ENGINES_DIR / "remotion-academic"
+CLI = PROJECT / "node_modules" / "@remotion" / "cli" / "remotion-cli.js"
+FPS = 30                                                    # khớp src/index.tsx
+
+
+class Remotion(Engine):
+    key = "remotion"
+    label = "Remotion"
+    style = "Motion graphics nền tối trên ảnh đổi theo câu, phụ đề kiểu TikTok"
+
+    def check(self):
+        if not CLI.exists():
+            return False, "chưa cài: chạy cai-dat.cmd (npm ci trong engines/remotion-academic)"
+        return True, ""
+
+    def render(self, spec: Spec, workdir: Path, log: Log) -> Path:
+        log("tạo giọng đọc Edge TTS và dòng thời gian từng từ")
+        data, parts = build_timeline(spec, log)
+        job = uuid.uuid4().hex[:12]
+        beat_dir = PROJECT / "public" / "jobs" / job
+        attach_beats(spec, data, beat_dir, f"jobs/{job}/", log)
+        wav = workdir / "narration.wav"
+        build_audio(parts, wav, data, spec.title)
+        props = workdir / "props.json"
+        props.write_text(json.dumps({"data": data, "audio": ""}, ensure_ascii=False), encoding="utf-8")
+        out, frames = workdir / "video.mp4", workdir / "frames"
+        shutil.rmtree(frames, ignore_errors=True)
+        log(f"Remotion render {data['duration']:.0f}s video")
+        try:
+            run(["node", CLI, "render", "src/index.tsx", "Academic", frames, "--sequence", "--image-format=jpeg",
+                 "--jpeg-quality=92", f"--props={props}", "--concurrency=8", f"--browser-executable={CHROME}", "--log=info"],
+                cwd=PROJECT, log_file=workdir / "log.txt", env=utf8_env(REMOTION_DISABLE_TELEMETRY="1"), timeout=1800)
+            first = re.fullmatch(r"(.*?)(\d+)\.jpe?g", min(f.name for f in frames.glob("*.jp*g")))
+            log("ghép khung hình + giọng đọc bằng ffmpeg")
+            run(["ffmpeg", "-v", "error", "-y", "-framerate", str(FPS), "-start_number", str(int(first[2])),
+                 "-i", frames / f"{first[1]}%0{len(first[2])}d{Path(first[0]).suffix}", "-i", wav,
+                 "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p",
+                 "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", out],
+                cwd=workdir, log_file=workdir / "log.txt")
+        finally:
+            wav.unlink(missing_ok=True)
+            shutil.rmtree(beat_dir, ignore_errors=True)
+            shutil.rmtree(frames, ignore_errors=True)
+        return out

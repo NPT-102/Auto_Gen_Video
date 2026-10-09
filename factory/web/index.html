@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Factory</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="logo">▶</span> Video Factory</div>
+  <div id="engineChips" class="chips"></div>
+</header>
+
+<main class="layout">
+  <aside class="side">
+    <section class="card">
+      <h2>Tạo video mới</h2>
+      <div class="tabs">
+        <button class="tab active" data-tab="topic">Từ chủ đề</button>
+        <button class="tab" data-tab="content">Kịch bản có sẵn</button>
+      </div>
+
+      <div class="tabpane" id="pane-topic">
+        <label>Chủ đề</label>
+        <textarea id="topic" rows="2" placeholder="Ví dụ: Wifi truyền dữ liệu qua không khí bằng cách nào?"></textarea>
+        <div class="grid2">
+          <div>
+            <label>Độ dài</label>
+            <select id="level">
+              <option value="short">Ngắn · ~1 phút</option>
+              <option value="medium" selected>Vừa · ~2 phút</option>
+              <option value="deep">Chi tiết · ~3 phút</option>
+            </select>
+          </div>
+          <div>
+            <label>Kiểu mở đầu</label>
+            <select id="hook">
+              <option value="auto" selected>Để Gemini chọn</option>
+              <option value="curiosity">Tò mò: bằng cách nào?</option>
+              <option value="myth">Phá niềm tin: bạn nghĩ… sai rồi</option>
+              <option value="list">Danh sách: N điều…</option>
+              <option value="danger">Rủi ro: sai lầm khiến bạn…</option>
+              <option value="exam">Câu hỏi thi</option>
+            </select>
+          </div>
+        </div>
+        <label>Ghi chú thêm (không bắt buộc)</label>
+        <textarea id="notes" rows="2" placeholder="Ví dụ: dành cho người mới, dán thêm tài liệu gốc để Gemini dựa vào"></textarea>
+        <label class="check"><input id="check" type="checkbox" checked> Rà soát kiến thức (dùng Google Search nếu được)</label>
+        <label class="check"><input id="podcastDraft" type="checkbox"> Kèm bản podcast (văn nói) cho MoneyPrinterTurbo</label>
+        <label class="check"><input id="tournament" type="checkbox"> Chọn góc nhìn 3 vòng (12 góc → 3 mở đầu → giám khảo; thêm 3 lần gọi Gemini)</label>
+        <button id="btnDraft" class="btn">Nhờ Gemini viết nháp</button>
+      </div>
+
+      <div class="tabpane hidden" id="pane-content">
+        <label>Chọn kịch bản</label>
+        <select id="contentSelect"></select>
+        <button id="btnOpen" class="btn">Mở kịch bản</button>
+      </div>
+
+      <div id="specBox" class="specbox hidden">
+        <div class="spechead">
+          <div>
+            <div class="muted small" id="specPath"></div>
+            <div class="spectitle" id="specTitle"></div>
+          </div>
+          <button id="btnToggleJson" class="btn ghost small">Sửa JSON</button>
+        </div>
+        <ol id="sceneList" class="scenes"></ol>
+        <ul id="issues" class="issues hidden"></ul>
+        <div class="podcastbox">
+          <div class="spechead"><b>Bản podcast · MoneyPrinterTurbo</b>
+            <button id="btnPodcast" class="btn ghost small">Viết bản podcast</button></div>
+          <div id="podcastText" class="small muted">Chưa có. Bản MoneyPrinterTurbo sẽ đọc kịch bản thường.</div>
+          <label>Giọng podcast</label>
+          <select id="podcastVoice"></select>
+          <div id="podcastNote" class="small muted"></div>
+          <div class="row podcastbtns">
+            <button id="btnElevenWeb" class="btn small">Làm giọng trên ElevenLabs</button>
+            <label class="btn small ghost">Tải file giọng lên<input id="audioFile" type="file" accept="audio/*" hidden></label>
+          </div>
+          <div id="podcastAudio" class="small"></div>
+        </div>
+        <div id="jsonBox" class="hidden">
+          <textarea id="specJson" rows="16" spellcheck="false"></textarea>
+          <button id="btnSaveSpec" class="btn ghost">Lưu thay đổi</button>
+        </div>
+        <label>Engine</label>
+        <div id="engineChecks" class="checks"></div>
+        <button id="btnCreate" class="btn primary">Tạo video</button>
+      </div>
+      <div id="formMsg" class="msg"></div>
+    </section>
+
+    <section class="card">
+      <h2>Các lần tạo</h2>
+      <ul id="jobList" class="joblist"></ul>
+    </section>
+  </aside>
+
+  <section class="detail" id="detail">
+    <div class="empty">Chọn một lần tạo ở cột trái, hoặc tạo video mới.</div>
+  </section>
+</main>
+
+<dialog id="logDialog">
+  <div class="dialoghead"><b id="logTitle"></b><button class="btn ghost small" onclick="logDialog.close()">Đóng</button></div>
+  <pre id="logText"></pre>
+</dialog>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

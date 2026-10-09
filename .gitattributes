@@ -1,0 +1,9 @@
+* text=auto
+# file chạy trên Windows phải giữ CRLF dù clone trên máy nào
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+*.png binary
+*.jpg binary
+*.ttf binary
+*.docx binary

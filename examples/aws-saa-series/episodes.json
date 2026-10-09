@@ -1,0 +1,222 @@
+{
+  "series": "AWS SAA",
+  "episodes": [
+    {
+      "ep": 1,
+      "part": "Mở đầu",
+      "title": "Giới thiệu kỳ thi SAA-C03",
+      "script": "Chào mừng bạn đến với series luyện thi AWS Solutions Architect Associate, mã đề SAA-C03. Đây là chứng chỉ phổ biến nhất của AWS, chứng minh bạn biết thiết kế hệ thống trên cloud vừa an toàn, vừa bền bỉ, vừa hiệu quả, lại tiết kiệm chi phí. Đề thi có 65 câu trong 130 phút. Trong đó 50 câu được tính điểm và 15 câu dùng để thử nghiệm, nhưng bạn không biết câu nào là câu nào, nên hãy làm hết. Điểm tính theo thang từ 100 đến 1000, cần đạt 720 để đậu. Có hai dạng câu hỏi: chọn một đáp án đúng trong bốn, và chọn nhiều đáp án đúng trong năm lựa chọn trở lên. Không bị trừ điểm khi sai, nên đừng bỏ trống câu nào. Nội dung chia thành bốn mảng. Thiết kế bảo mật chiếm 30 phần trăm. Thiết kế có khả năng phục hồi chiếm 26 phần trăm. Thiết kế hiệu năng cao chiếm 24 phần trăm. Và tối ưu chi phí chiếm 20 phần trăm. Series này đi qua từng nhóm dịch vụ theo đúng bốn mảng đó, mỗi tập một chủ đề ngắn, kèm mẹo làm bài. Tập sau, chúng ta bắt đầu với nền móng của mọi thứ: hạ tầng toàn cầu của AWS.",
+      "terms": ["student studying laptop", "cloud computing", "data center", "exam writing", "success celebration"]
+    },
+    {
+      "ep": 2,
+      "part": "Nền tảng",
+      "title": "Hạ tầng toàn cầu: Region, AZ, Edge Location",
+      "script": "Tập 2: hạ tầng toàn cầu của AWS. Region là một vùng địa lý, ví dụ Singapore hay Tokyo. Mỗi Region gồm ít nhất ba Availability Zone, gọi tắt là AZ. Một AZ là một hoặc nhiều trung tâm dữ liệu độc lập, có nguồn điện, làm mát và mạng riêng, cách nhau đủ xa để một sự cố không kéo sập cả Region, nhưng đủ gần để kết nối với độ trễ rất thấp. Ngoài ra còn hàng trăm Edge Location, là các điểm đặt gần người dùng, được CloudFront và Route 53 dùng để phân phối nội dung nhanh hơn. Khi chọn Region, hãy xét bốn yếu tố. Một, yêu cầu pháp lý: dữ liệu có bắt buộc nằm trong một quốc gia hay không. Hai, độ trễ: đặt gần người dùng nhất. Ba, dịch vụ: không phải Region nào cũng có đủ mọi dịch vụ. Bốn, giá: cùng một dịch vụ nhưng giá ở mỗi Region có thể khác nhau. Mẹo thi: khi đề nói ứng dụng phải chịu được sự cố của một trung tâm dữ liệu, đáp án thường là triển khai trên nhiều AZ. Khi đề nói phải chịu được sự cố của cả một vùng, lúc đó mới cần nhiều Region. Tập sau: IAM, cửa ngõ bảo mật của mọi tài khoản AWS.",
+      "terms": ["earth from space", "world map", "data center", "server room", "city lights night"]
+    },
+    {
+      "ep": 3,
+      "part": "Bảo mật",
+      "title": "IAM: User, Group, Role, Policy",
+      "script": "Tập 3: IAM, dịch vụ quản lý danh tính và quyền truy cập. IAM có bốn khái niệm chính. User là một người hoặc một ứng dụng, có thông tin đăng nhập lâu dài. Group là nhóm các user để gán quyền cho cả nhóm cùng lúc. Role là một danh tính không có mật khẩu cố định, được dịch vụ hoặc người dùng tạm thời đảm nhận, và nhận về thông tin xác thực ngắn hạn. Policy là tài liệu JSON mô tả được phép hay bị cấm làm gì, trên tài nguyên nào. Khi AWS đánh giá quyền, mặc định mọi thứ đều bị từ chối. Một lệnh Allow sẽ mở quyền, nhưng chỉ cần có một lệnh Deny tường minh ở bất kỳ đâu, lệnh Deny luôn thắng. Các nguyên tắc bắt buộc nhớ: bật MFA cho tài khoản root và gần như không dùng root cho công việc hằng ngày. Luôn cấp quyền tối thiểu, chỉ đủ để làm việc. Và với ứng dụng chạy trên EC2 hay Lambda, dùng IAM Role, tuyệt đối không nhúng access key vào code. Mẹo thi: thấy đáp án lưu access key trong mã nguồn hoặc trên máy chủ, gần như chắc chắn là đáp án sai. Đáp án đúng thường là gán role cho dịch vụ. Tập sau: truy cập chéo tài khoản và AWS Organizations.",
+      "terms": ["door lock", "fingerprint scan", "password login", "security badge", "office employees"]
+    },
+    {
+      "ep": 4,
+      "part": "Bảo mật",
+      "title": "Truy cập chéo tài khoản, Organizations và SCP",
+      "script": "Tập 4: truy cập chéo tài khoản và quản trị nhiều tài khoản. Khi một ứng dụng ở tài khoản A cần đọc dữ liệu ở tài khoản B, ta tạo một role trong tài khoản B, trong đó trust policy cho phép tài khoản A đảm nhận role. Ứng dụng gọi dịch vụ STS để assume role và nhận thông tin xác thực tạm thời. Không cần tạo user hay chia sẻ mật khẩu. Với doanh nghiệp có nhiều tài khoản, dùng AWS Organizations để gom chúng lại, chia theo các đơn vị tổ chức gọi là OU, và gộp chung một hoá đơn. Organizations cho phép áp Service Control Policy, gọi tắt là SCP. SCP không cấp quyền, mà đặt ra giới hạn quyền tối đa cho cả tài khoản, áp dụng cả với root của tài khoản thành viên. Ví dụ cấm mọi tài khoản dùng Region ngoài châu Á. Muốn dựng nhanh một môi trường nhiều tài khoản chuẩn chỉnh, dùng AWS Control Tower. Còn để nhân viên đăng nhập một lần vào nhiều tài khoản, dùng IAM Identity Center. Mẹo thi: câu hỏi yêu cầu ngăn chặn một hành động trên toàn bộ tài khoản, kể cả với quản trị viên, thì đáp án là SCP. Tập sau: VPC, mạng riêng của bạn trên AWS.",
+      "terms": ["office building", "keys", "team meeting", "access control", "security guard"]
+    },
+    {
+      "ep": 5,
+      "part": "Mạng",
+      "title": "VPC: subnet, Internet Gateway, NAT Gateway",
+      "script": "Tập 5: VPC, mạng ảo riêng của bạn trên AWS. Khi tạo VPC, bạn chọn một dải địa chỉ IP riêng, gọi là khối CIDR. VPC nằm trong một Region và được chia thành các subnet, mỗi subnet nằm gọn trong một AZ. Subnet public là subnet có route table trỏ ra Internet Gateway, nên tài nguyên có IP public trong đó có thể liên lạc với Internet. Subnet private không có đường đó, dùng cho cơ sở dữ liệu và máy chủ ứng dụng. Mô hình kinh điển là ba tầng: load balancer ở subnet public, máy chủ ứng dụng ở subnet private, cơ sở dữ liệu ở một subnet private riêng, và mỗi tầng trải trên ít nhất hai AZ. Vậy máy chủ trong subnet private muốn tải bản cập nhật từ Internet thì sao? Ta đặt một NAT Gateway ở subnet public. NAT Gateway cho phép đi ra Internet nhưng không cho Internet chủ động kết nối vào. Lưu ý NAT Gateway nằm trong một AZ, nên để có tính sẵn sàng cao, hãy đặt mỗi AZ một NAT Gateway. Mẹo thi: yêu cầu máy chủ private tải bản vá mà không bị lộ ra Internet, đáp án là NAT Gateway. Tập sau: Security Group và Network ACL.",
+      "terms": ["network cables", "network switch", "server rack", "city aerial view", "highway interchange"]
+    },
+    {
+      "ep": 6,
+      "part": "Mạng",
+      "title": "Security Group và Network ACL",
+      "script": "Tập 6: hai lớp tường lửa trong VPC. Security Group gắn vào từng tài nguyên, chính xác là vào card mạng của EC2, RDS hay load balancer. Security Group chỉ có luật cho phép, không có luật cấm. Và nó là stateful: nếu một yêu cầu được phép đi vào, phản hồi của nó tự động được phép đi ra, không cần viết thêm luật. Một điểm rất mạnh: luật của Security Group có thể tham chiếu tới một Security Group khác, ví dụ chỉ cho phép cơ sở dữ liệu nhận kết nối từ Security Group của tầng ứng dụng. Network ACL, gọi tắt là NACL, hoạt động ở cấp subnet. NACL có cả luật cho phép lẫn luật cấm, được xét theo số thứ tự từ nhỏ đến lớn, luật khớp đầu tiên sẽ được áp dụng. NACL là stateless: bạn phải mở cả chiều vào lẫn chiều ra, kể cả dải cổng tạm thời dành cho phản hồi. Mẹo thi: cần chặn một địa chỉ IP cụ thể đang tấn công, hãy dùng NACL, vì Security Group không có luật cấm. Cần cho phép theo từng nhóm máy chủ, dùng Security Group. Tập sau: kết nối nhiều VPC với nhau và với các dịch vụ AWS.",
+      "terms": ["security guard", "gate", "padlock", "network cables", "cyber security"]
+    },
+    {
+      "ep": 7,
+      "part": "Mạng",
+      "title": "VPC Peering, Transit Gateway, VPC Endpoint",
+      "script": "Tập 7: kết nối VPC. Cách đơn giản nhất để nối hai VPC là VPC Peering. Nhưng peering không có tính bắc cầu: A nối với B, B nối với C, thì A vẫn không nói chuyện được với C. Ngoài ra dải IP của hai VPC không được chồng lấn. Khi có hàng chục VPC, nối từng cặp sẽ rối như mạng nhện. Lúc đó dùng Transit Gateway, một bộ định tuyến trung tâm theo mô hình hub and spoke, mọi VPC và cả kết nối về văn phòng chỉ cần nối vào một điểm. Còn khi máy chủ trong subnet private cần gọi các dịch vụ AWS như S3 mà không đi qua Internet, dùng VPC Endpoint. Có hai loại. Gateway Endpoint dành riêng cho S3 và DynamoDB, miễn phí, hoạt động bằng cách thêm một dòng vào route table. Interface Endpoint, dựa trên công nghệ PrivateLink, tạo một card mạng với IP riêng trong subnet, hỗ trợ hầu hết dịch vụ, và tính phí theo giờ cùng lượng dữ liệu. Mẹo thi: truy cập S3 từ subnet private với chi phí thấp nhất, chọn Gateway Endpoint thay vì NAT Gateway. Tập sau: kết nối trung tâm dữ liệu của bạn với AWS.",
+      "terms": ["bridge", "highway interchange", "airport terminal", "tunnel", "network cables"]
+    },
+    {
+      "ep": 8,
+      "part": "Mạng",
+      "title": "Site-to-Site VPN và Direct Connect",
+      "script": "Tập 8: kết nối hạ tầng tại chỗ với AWS. Lựa chọn thứ nhất là Site to Site VPN. VPN tạo đường hầm mã hoá IPsec đi qua Internet công cộng, dựng xong trong vài giờ, chi phí thấp. Nhược điểm là băng thông và độ trễ phụ thuộc vào Internet nên không ổn định. Lựa chọn thứ hai là Direct Connect, một đường truyền vật lý riêng từ trung tâm dữ liệu của bạn tới AWS. Direct Connect cho băng thông cao, độ trễ ổn định, và có thể giảm chi phí truyền dữ liệu ra. Nhưng thời gian triển khai thường mất nhiều tuần, thậm chí hàng tháng. Một điểm hay bị hỏi: bản thân Direct Connect không mã hoá dữ liệu. Muốn mã hoá, bạn chạy thêm VPN bên trên Direct Connect. Để có tính sẵn sàng cao, dùng hai đường Direct Connect ở hai địa điểm khác nhau, hoặc dùng VPN làm đường dự phòng. Mẹo thi: cần kết nối ngay trong hôm nay, chọn VPN. Cần băng thông lớn, ổn định, lâu dài, chọn Direct Connect. Cần cả hai, dùng VPN trong lúc chờ Direct Connect được lắp đặt. Tập sau: EC2, trái tim của dịch vụ tính toán.",
+      "terms": ["fiber optic", "tunnel", "office building", "data center", "cable"]
+    },
+    {
+      "ep": 9,
+      "part": "Tính toán",
+      "title": "EC2: AMI, họ máy, placement group",
+      "script": "Tập 9: EC2, máy chủ ảo trên AWS. Mỗi máy EC2 được tạo từ một AMI, là bản mẫu chứa hệ điều hành và phần mềm. Bạn có thể tự tạo AMI từ máy đang chạy để nhân bản nhanh, và sao chép AMI sang Region khác. Kiểu máy được chia theo họ. Họ T và M là đa dụng. Họ C tối ưu cho tính toán, hợp với xử lý hàng loạt hay máy chủ game. Họ R và X tối ưu bộ nhớ, hợp với cơ sở dữ liệu chạy trong bộ nhớ. Họ I tối ưu lưu trữ, cho tốc độ đọc ghi đĩa cực cao. Họ P và G có GPU cho học máy và đồ hoạ. User data là đoạn script chạy tự động ở lần khởi động đầu tiên, dùng để cài phần mềm. Còn instance metadata cho phép máy tự tra cứu thông tin của chính nó, như IP hay role đang gắn. Về vị trí đặt máy có placement group. Cluster đặt các máy sát nhau để có độ trễ mạng thấp nhất. Spread đặt mỗi máy trên phần cứng riêng để giảm rủi ro hỏng đồng loạt. Partition chia máy thành các nhóm tách biệt, hợp với Hadoop, Cassandra hay Kafka. Tập sau: các cách mua EC2 để tiết kiệm tới 90 phần trăm.",
+      "terms": ["server rack", "computer processor", "data center", "motherboard", "programmer coding"]
+    },
+    {
+      "ep": 10,
+      "part": "Tính toán",
+      "title": "Các cách mua EC2: On-Demand, Savings Plans, Spot",
+      "script": "Tập 10: các cách mua EC2. On Demand trả theo giây, không cam kết, hợp với tải ngắn hạn không đoán trước được. Savings Plans và Reserved Instances yêu cầu cam kết một hoặc ba năm, đổi lại giảm tới khoảng 72 phần trăm. Compute Savings Plans linh hoạt nhất, áp dụng cho mọi họ máy, mọi Region, cả Fargate và Lambda. Reserved Instances gắn với cấu hình cụ thể hơn, và có thể giữ chỗ dung lượng trong một AZ. Spot Instances tận dụng dung lượng dư của AWS, giảm tới 90 phần trăm, nhưng AWS có thể thu hồi máy với thông báo chỉ trước hai phút. Spot hợp với việc chịu được gián đoạn như xử lý ảnh, phân tích dữ liệu theo lô, hay chạy CI. Tuyệt đối không dùng Spot cho cơ sở dữ liệu quan trọng. Dedicated Host là nguyên một máy chủ vật lý dành riêng cho bạn, cần khi phần mềm tính bản quyền theo socket hay core. Còn On Demand Capacity Reservation giữ chỗ dung lượng trong một AZ mà không cần cam kết dài hạn. Mẹo thi: tải chạy ổn định quanh năm, chọn Savings Plans hoặc Reserved. Tải linh hoạt, chịu được ngắt quãng, chọn Spot. Mang bản quyền phần mềm cũ lên cloud, chọn Dedicated Host. Tập sau: lưu trữ khối và lưu trữ tệp.",
+      "terms": ["calculator", "coins", "price tag", "shopping", "server room"]
+    },
+    {
+      "ep": 11,
+      "part": "Lưu trữ",
+      "title": "EBS, Instance Store, EFS, FSx",
+      "script": "Tập 11: lưu trữ cho máy chủ. EBS là ổ đĩa mạng gắn vào EC2, tồn tại độc lập với máy, và chỉ dùng được trong cùng một AZ. Muốn chuyển sang AZ khác, bạn tạo snapshot rồi khôi phục. gp3 là loại SSD đa dụng, cho phép chỉnh IOPS độc lập với dung lượng. io2 dành cho cơ sở dữ liệu cần IOPS rất cao và ổn định. Còn st1 và sc1 là ổ cứng từ giá rẻ cho dữ liệu đọc tuần tự hoặc ít truy cập. Instance Store là ổ gắn trực tiếp trên máy chủ vật lý, nhanh nhất, nhưng dữ liệu mất khi dừng máy, chỉ dùng cho bộ đệm hay dữ liệu tạm. EFS là hệ thống tệp NFS dùng chung, nhiều máy EC2 Linux ở nhiều AZ cùng gắn vào được, tự co giãn dung lượng. FSx cung cấp các hệ thống tệp chuyên dụng. FSx for Windows File Server cho máy Windows dùng giao thức SMB và Active Directory. FSx for Lustre cho tính toán hiệu năng cao và học máy, có thể liên kết trực tiếp với S3. Mẹo thi: nhiều máy Linux cần dùng chung tệp, chọn EFS. Máy Windows cần thư mục dùng chung, chọn FSx for Windows. Cần tốc độ cực cao cho HPC, chọn FSx for Lustre. Tập sau: Load Balancer và Auto Scaling.",
+      "terms": ["hard drive", "data storage", "file cabinet", "server rack", "computer chip"]
+    },
+    {
+      "ep": 12,
+      "part": "Tính toán",
+      "title": "Load Balancer và Auto Scaling",
+      "script": "Tập 12: cân bằng tải và tự động co giãn. Elastic Load Balancing có ba loại chính. Application Load Balancer hoạt động ở tầng 7, hiểu HTTP, định tuyến theo đường dẫn, theo tên miền hay theo header, hợp với web và microservices. Network Load Balancer hoạt động ở tầng 4 với TCP và UDP, xử lý hàng triệu yêu cầu mỗi giây với độ trễ cực thấp, và có địa chỉ IP tĩnh cho mỗi AZ. Gateway Load Balancer dùng để chèn các thiết bị bảo mật của bên thứ ba như tường lửa vào luồng mạng. Load balancer liên tục kiểm tra sức khoẻ và chỉ gửi yêu cầu tới máy khoẻ mạnh. Auto Scaling Group giữ số lượng máy EC2 nằm trong khoảng tối thiểu và tối đa, tự thay thế máy hỏng, và thêm bớt máy theo chính sách. Target tracking giữ một chỉ số ở mức mục tiêu, ví dụ CPU trung bình 50 phần trăm. Scheduled scaling co giãn theo lịch biết trước. Predictive scaling dùng học máy để dự đoán tải. Mẹo thi: cần IP tĩnh hoặc giao thức không phải HTTP, chọn Network Load Balancer. Cần định tuyến theo đường dẫn URL, chọn Application Load Balancer. Tập sau: serverless với Lambda và API Gateway.",
+      "terms": ["traffic intersection", "highway traffic", "crowd walking", "balance", "server room"]
+    },
+    {
+      "ep": 13,
+      "part": "Tính toán",
+      "title": "Serverless: Lambda, API Gateway, Step Functions",
+      "script": "Tập 13: serverless. Với Lambda, bạn chỉ viết hàm, AWS lo toàn bộ máy chủ, tự co giãn, và bạn trả tiền theo số lần gọi cùng thời gian chạy tính tới từng mili giây. Lambda được kích hoạt bởi sự kiện: tệp mới được tải lên S3, tin nhắn trong hàng đợi SQS, lịch hẹn giờ của EventBridge, hay yêu cầu HTTP qua API Gateway. Giới hạn cần nhớ: mỗi lần chạy tối đa 15 phút, bộ nhớ tối đa khoảng 10 GB. Tác vụ dài hơn 15 phút thì Lambda không phù hợp, hãy cân nhắc ECS, Fargate hoặc AWS Batch. Khi cần phối hợp nhiều hàm theo quy trình có rẽ nhánh, chờ đợi và thử lại, dùng Step Functions. API Gateway là cửa ngõ để công khai API, hỗ trợ REST, HTTP và WebSocket, có sẵn giới hạn tốc độ, xác thực bằng Cognito, và bộ nhớ đệm. Bộ ba API Gateway, Lambda và DynamoDB là kiến trúc serverless kinh điển, gần như không tốn tiền khi không có người dùng. Mẹo thi: đề nhấn mạnh ít công sức vận hành nhất, không quản lý máy chủ, hãy nghĩ tới Lambda, Fargate và các dịch vụ được quản lý toàn phần. Tập sau: container trên AWS.",
+      "terms": ["lightning", "domino effect", "programmer coding", "smartphone app", "abstract technology"]
+    },
+    {
+      "ep": 14,
+      "part": "Tính toán",
+      "title": "Container: ECR, ECS, EKS, Fargate",
+      "script": "Tập 14: container trên AWS. Đầu tiên là ECR, kho lưu trữ image container riêng, giống Docker Hub nhưng nằm trong tài khoản của bạn. Để chạy container, có hai bộ điều phối. ECS là dịch vụ của riêng AWS, đơn giản, tích hợp sâu với các dịch vụ khác. EKS là Kubernetes được quản lý, phù hợp khi đội ngũ đã quen Kubernetes hoặc cần mang ứng dụng giữa nhiều nền tảng. Cả hai đều cần hạ tầng để chạy container, và bạn có hai lựa chọn. Chọn EC2 thì bạn tự quản lý các máy chủ trong cụm, đổi lại kiểm soát tối đa và có thể dùng Spot hay Savings Plans. Chọn Fargate thì không có máy chủ nào để quản lý, bạn chỉ khai báo CPU và bộ nhớ cho từng tác vụ, và trả tiền theo đúng tài nguyên dùng. Với ECS, mỗi tác vụ nên có một IAM role riêng để cấp quyền tối thiểu. Mẹo thi: đề nói đã dùng Kubernetes tại chỗ và muốn chuyển lên AWS, chọn EKS. Muốn chạy container mà không quản lý máy chủ, chọn Fargate. Cần một tác vụ chạy lâu hơn 15 phút mà không muốn quản lý máy chủ, Fargate cũng là câu trả lời. Tập sau: S3, dịch vụ lưu trữ đối tượng.",
+      "terms": ["shipping containers", "container port", "cargo ship", "crane", "programmer coding"]
+    },
+    {
+      "ep": 15,
+      "part": "Lưu trữ",
+      "title": "S3 cơ bản: bucket, versioning, replication",
+      "script": "Tập 15: Amazon S3. S3 lưu dữ liệu dưới dạng đối tượng nằm trong bucket. Tên bucket là duy nhất trên toàn cầu, nhưng bucket nằm trong một Region cụ thể. Mỗi đối tượng tối đa 5 TB, và khi tải lên tệp lớn hơn 100 MB, nên dùng multipart upload để tải song song từng phần, lỗi phần nào thì chỉ tải lại phần đó. S3 được thiết kế cho độ bền mười một số chín, gần như không thể mất dữ liệu, vì dữ liệu được sao chép qua nhiều AZ. S3 có tính nhất quán mạnh: ghi xong là đọc được ngay bản mới nhất. Bật Versioning để giữ mọi phiên bản của đối tượng, chống xoá nhầm hay ghi đè. Muốn sao chép dữ liệu tự động sang bucket khác, dùng Replication. Cross Region Replication để phục hồi thảm hoạ hoặc giảm độ trễ cho người dùng ở xa. Same Region Replication để gom log hay tách môi trường. Cả hai đều yêu cầu bật Versioning. Để tăng tốc tải lên từ xa, dùng S3 Transfer Acceleration, tận dụng mạng Edge Location. S3 còn có thể chạy website tĩnh. Mẹo thi: cần lưu trữ không giới hạn, bền và rẻ cho tệp, ảnh, video hay bản sao lưu, S3 gần như luôn là đáp án. Tập sau: các lớp lưu trữ của S3.",
+      "terms": ["cloud storage", "photo archive", "upload", "data center", "hard drive"]
+    },
+    {
+      "ep": 16,
+      "part": "Lưu trữ",
+      "title": "Các lớp lưu trữ S3 và Lifecycle",
+      "script": "Tập 16: các lớp lưu trữ S3. S3 Standard cho dữ liệu truy cập thường xuyên. S3 Intelligent Tiering tự động chuyển đối tượng giữa các tầng theo mức độ truy cập, không phí truy xuất, lý tưởng khi bạn không đoán được dữ liệu sẽ được dùng thế nào. Standard Infrequent Access cho dữ liệu ít truy cập nhưng cần lấy ngay khi cần, giá lưu trữ rẻ hơn nhưng tính phí mỗi lần đọc. One Zone Infrequent Access rẻ hơn nữa nhưng chỉ nằm trong một AZ, dùng cho dữ liệu có thể tạo lại. Nhóm Glacier dành cho lưu trữ dài hạn. Glacier Instant Retrieval lấy về trong mili giây, hợp với dữ liệu truy cập mỗi quý một lần. Glacier Flexible Retrieval lấy về trong vài phút tới vài giờ. Glacier Deep Archive rẻ nhất, lấy về mất từ mười hai tới bốn mươi tám giờ, hợp với dữ liệu phải lưu nhiều năm theo quy định. Để tự động hoá, dùng Lifecycle Rule: ví dụ sau 30 ngày chuyển sang Infrequent Access, sau 90 ngày chuyển sang Glacier, sau bảy năm thì xoá. Mẹo thi: đọc kỹ tần suất truy cập và thời gian chờ chấp nhận được. Dữ liệu hiếm khi dùng nhưng cần lấy ngay, chọn Glacier Instant Retrieval. Chấp nhận chờ nhiều giờ để có giá thấp nhất, chọn Deep Archive. Tập sau: bảo mật dữ liệu trên S3.",
+      "terms": ["warehouse shelves", "archive boxes", "library", "glacier ice", "calendar"]
+    },
+    {
+      "ep": 17,
+      "part": "Bảo mật",
+      "title": "Bảo mật S3: policy, mã hoá, Object Lock",
+      "script": "Tập 17: bảo mật S3. Mặc định mọi bucket đều riêng tư, và Block Public Access được bật sẵn để ngăn lỡ tay công khai dữ liệu. Quyền truy cập được kiểm soát bằng IAM policy gắn vào người dùng, và bucket policy gắn vào chính bucket. Bucket policy là cách chuẩn để cấp quyền cho tài khoản khác, hoặc bắt buộc mọi yêu cầu phải dùng HTTPS. Về mã hoá khi lưu trữ, có ba kiểu. SSE S3 do AWS quản lý khoá hoàn toàn, được bật mặc định. SSE KMS dùng khoá trong dịch vụ KMS, cho phép kiểm soát ai được dùng khoá và ghi lại mọi lần sử dụng trong CloudTrail. SSE C là bạn tự gửi khoá kèm mỗi yêu cầu. Ngoài ra bạn có thể mã hoá phía client trước khi tải lên. Muốn chia sẻ tạm thời một tệp riêng tư, tạo presigned URL có thời hạn. Muốn dữ liệu không thể bị xoá hay sửa trong một khoảng thời gian, kể cả bởi quản trị viên, bật Object Lock ở chế độ Compliance, theo mô hình ghi một lần đọc nhiều lần. Mẹo thi: cần nhật ký kiểm toán việc sử dụng khoá mã hoá, chọn SSE KMS. Cần phát nội dung riêng tư qua CloudFront, dùng Origin Access Control để chỉ CloudFront mới đọc được bucket. Tập sau: di chuyển dữ liệu lớn lên AWS.",
+      "terms": ["padlock", "safe vault", "keys", "security camera", "cyber security"]
+    },
+    {
+      "ep": 18,
+      "part": "Lưu trữ",
+      "title": "Di chuyển dữ liệu: Snowball, DataSync, Storage Gateway, DMS",
+      "script": "Tập 18: đưa dữ liệu lên AWS. Khi có hàng trăm terabyte mà đường truyền chậm, gửi qua mạng có thể mất nhiều tháng. Đáp án kinh điển trong đề là họ thiết bị Snow như Snowball: AWS gửi tới bạn một thiết bị lưu trữ vật lý, bạn chép dữ liệu vào rồi gửi trả, AWS nạp dữ liệu vào S3. Khi mạng đủ tốt, dùng DataSync để đồng bộ tự động từ máy chủ NFS, SMB hay các hệ thống lưu trữ tại chỗ lên S3, EFS hoặc FSx, có lên lịch và kiểm tra toàn vẹn dữ liệu. Nếu ứng dụng tại chỗ vẫn cần đọc ghi như ổ đĩa thông thường nhưng muốn dữ liệu nằm trên cloud, dùng Storage Gateway, một cầu nối lai. File Gateway cho giao thức tệp, Volume Gateway cho ổ đĩa iSCSI, và Tape Gateway thay thế băng từ sao lưu. Đối tác cần gửi tệp qua SFTP, dùng Transfer Family, đổ thẳng vào S3. Còn với cơ sở dữ liệu, dùng Database Migration Service, gọi là DMS, di chuyển gần như không gián đoạn. Nếu đổi loại cơ sở dữ liệu, ví dụ từ Oracle sang PostgreSQL, cần chuyển đổi cả lược đồ trước. Mẹo thi: băng thông hạn chế và dữ liệu cực lớn, chọn Snowball. Đồng bộ trực tuyến định kỳ, chọn DataSync. Tập sau: RDS và Aurora.",
+      "terms": ["delivery truck", "moving boxes", "cargo", "hard drive", "data transfer"]
+    },
+    {
+      "ep": 19,
+      "part": "Cơ sở dữ liệu",
+      "title": "RDS và Aurora: Multi-AZ, Read Replica",
+      "script": "Tập 19: cơ sở dữ liệu quan hệ được quản lý. RDS hỗ trợ MySQL, PostgreSQL, MariaDB, Oracle, SQL Server và Db2. AWS lo vá lỗi, sao lưu tự động và khôi phục về một thời điểm bất kỳ. Hai tính năng hay bị nhầm nhất. Multi AZ tạo một bản dự phòng đồng bộ ở AZ khác, tự động chuyển đổi khi có sự cố, mục đích là tính sẵn sàng cao. Read Replica là bản sao bất đồng bộ để chia tải đọc, mục đích là hiệu năng, và có thể đặt ở Region khác. Aurora là cơ sở dữ liệu do AWS phát triển, tương thích MySQL và PostgreSQL, nhanh hơn nhiều lần, lưu sáu bản sao dữ liệu trên ba AZ, và cho phép tới mười lăm bản sao đọc. Aurora Serverless tự co giãn theo tải, hợp với tải thất thường. Aurora Global Database nhân bản sang Region khác với độ trễ thường dưới một giây, dùng cho phục hồi thảm hoạ. Khi có quá nhiều kết nối ngắn từ Lambda, đặt RDS Proxy ở giữa để gom kết nối. Mẹo thi: yêu cầu chịu lỗi AZ, chọn Multi AZ. Báo cáo làm chậm hệ thống, cần giảm tải đọc, chọn Read Replica. Muốn mã hoá một RDS chưa mã hoá: tạo snapshot, sao chép snapshot có bật mã hoá, rồi khôi phục. Tập sau: DynamoDB.",
+      "terms": ["database", "spreadsheet", "server room", "backup", "data center"]
+    },
+    {
+      "ep": 20,
+      "part": "Cơ sở dữ liệu",
+      "title": "DynamoDB",
+      "script": "Tập 20: DynamoDB, cơ sở dữ liệu NoSQL dạng key value của AWS. DynamoDB hoàn toàn serverless, độ trễ tính bằng mili giây ở mọi quy mô. Mỗi bảng có partition key, có thể thêm sort key. Muốn truy vấn theo thuộc tính khác, tạo thêm chỉ mục phụ. Có hai chế độ dung lượng. On Demand trả theo số yêu cầu, hợp với tải khó đoán. Provisioned đặt trước năng lực đọc ghi, kết hợp Auto Scaling, rẻ hơn khi tải ổn định. Khi cần độ trễ micro giây cho các truy vấn đọc lặp lại, thêm DAX, bộ nhớ đệm chuyên cho DynamoDB. Global Tables nhân bản bảng sang nhiều Region, ghi được ở mọi nơi. DynamoDB Streams ghi lại mọi thay đổi để kích hoạt Lambda xử lý tiếp. TTL tự xoá dữ liệu hết hạn như phiên đăng nhập. Ngoài ra có sao lưu theo yêu cầu và khôi phục về thời điểm bất kỳ. Hạn chế cần nhớ: không có phép nối bảng như SQL, và mỗi mục tối đa 400 KB. Mẹo thi: đề nhắc tới dữ liệu phiên, giỏ hàng, bảng xếp hạng game, hay cần hàng triệu yêu cầu mỗi giây với độ trễ thấp, hãy nghĩ tới DynamoDB. Cần truy vấn phức tạp có phép nối, quay về RDS hay Aurora. Tập sau: bộ nhớ đệm và các cơ sở dữ liệu chuyên dụng.",
+      "terms": ["racing car", "speed", "smartphone app", "online shopping", "video game"]
+    },
+    {
+      "ep": 21,
+      "part": "Cơ sở dữ liệu",
+      "title": "ElastiCache và cơ sở dữ liệu chuyên dụng",
+      "script": "Tập 21: bộ nhớ đệm và cơ sở dữ liệu chuyên dụng. ElastiCache cung cấp bộ nhớ đệm được quản lý, với Valkey, Redis OSS hoặc Memcached. Đặt bộ đệm trước cơ sở dữ liệu giúp giảm tải và cho độ trễ dưới mili giây. Valkey và Redis hỗ trợ nhân bản, Multi AZ, lưu bền và nhiều cấu trúc dữ liệu như bảng xếp hạng. Memcached đơn giản, đa luồng, không lưu bền. Lưu phiên đăng nhập ra ElastiCache hay DynamoDB giúp máy chủ ứng dụng không cần giữ trạng thái, dễ co giãn. AWS còn có cơ sở dữ liệu riêng cho từng bài toán. Redshift là kho dữ liệu cho phân tích và báo cáo trên khối dữ liệu lớn. Neptune là cơ sở dữ liệu đồ thị, hợp với mạng xã hội hay phát hiện gian lận. DocumentDB tương thích MongoDB. Keyspaces tương thích Cassandra. Và MemoryDB là cơ sở dữ liệu chính chạy trong bộ nhớ, tương thích Redis, có lưu bền. Mẹo thi: nghe thấy MongoDB, chọn DocumentDB. Nghe thấy Cassandra, chọn Keyspaces. Nghe thấy quan hệ phức tạp giữa các đối tượng, chọn Neptune. Nghe thấy kho dữ liệu phân tích, chọn Redshift. Tập sau: Route 53.",
+      "terms": ["memory chip", "social network", "library", "network connections", "server rack"]
+    },
+    {
+      "ep": 22,
+      "part": "Mạng",
+      "title": "Route 53 và các chính sách định tuyến",
+      "script": "Tập 22: Route 53, dịch vụ DNS của AWS. Route 53 vừa đăng ký tên miền, vừa phân giải tên miền, vừa kiểm tra sức khoẻ của các điểm cuối. Các bản ghi cần nhớ: bản ghi A trỏ tên miền về địa chỉ IPv4, AAAA cho IPv6, CNAME trỏ tên này sang một tên khác. Riêng Alias là tính năng của Route 53, trỏ tới tài nguyên AWS như load balancer, CloudFront hay S3, dùng được cho cả tên miền gốc, và miễn phí truy vấn. Điểm mạnh là các chính sách định tuyến. Simple trả về một giá trị. Weighted chia tỷ lệ lưu lượng, hợp với triển khai thử phiên bản mới. Latency đưa người dùng tới Region có độ trễ thấp nhất. Failover chuyển sang hệ thống dự phòng khi kiểm tra sức khoẻ thất bại. Geolocation định tuyến theo vị trí của người dùng, ví dụ người dùng châu Âu vào máy chủ châu Âu để tuân thủ luật. Geoproximity định tuyến theo khoảng cách và cho phép dịch chuyển vùng phủ. Multivalue trả về nhiều IP đang khoẻ mạnh. Mẹo thi: tên miền gốc cần trỏ vào load balancer, chọn Alias, vì CNAME không dùng được ở tên miền gốc. Tập sau: CloudFront và Global Accelerator.",
+      "terms": ["road signs", "gps navigation", "map", "internet", "crossroads"]
+    },
+    {
+      "ep": 23,
+      "part": "Mạng",
+      "title": "CloudFront và Global Accelerator",
+      "script": "Tập 23: tăng tốc toàn cầu. CloudFront là mạng phân phối nội dung, lưu bộ đệm tại hàng trăm Edge Location gần người dùng. Nguồn gốc có thể là S3, load balancer, hay bất kỳ máy chủ HTTP nào. CloudFront giảm độ trễ, giảm tải cho máy chủ gốc, tích hợp WAF và Shield để chống tấn công, và hỗ trợ signed URL hay signed cookie để phát nội dung trả phí. Muốn chạy mã nhẹ ngay tại biên, như viết lại URL hay kiểm tra header, dùng CloudFront Functions hoặc Lambda at Edge. Global Accelerator thì khác. Nó không lưu bộ đệm, mà cấp cho bạn hai địa chỉ IP anycast tĩnh, đưa lưu lượng vào mạng xương sống riêng của AWS từ điểm gần người dùng nhất, rồi mới tới ứng dụng của bạn. Nó hỗ trợ TCP và UDP, và chuyển đổi dự phòng giữa các Region trong vài giây. Mẹo thi: nội dung tĩnh, ảnh, video, trang web cần bộ đệm, chọn CloudFront. Ứng dụng không phải HTTP như game hay gọi thoại, cần IP tĩnh toàn cầu, hoặc cần chuyển vùng dự phòng nhanh, chọn Global Accelerator. Tập sau: tách rời hệ thống với SQS, SNS và EventBridge.",
+      "terms": ["earth night lights", "global network", "fiber optic", "highway at night", "video streaming"]
+    },
+    {
+      "ep": 24,
+      "part": "Tích hợp",
+      "title": "SQS, SNS, EventBridge",
+      "script": "Tập 24: tách rời các thành phần. Hệ thống gắn chặt thì một phần chậm sẽ kéo sập cả hệ thống. SQS là hàng đợi tin nhắn: bên gửi đặt tin nhắn vào, bên xử lý kéo ra khi sẵn sàng, nhờ vậy hấp thụ được đột biến tải. SQS Standard gần như không giới hạn thông lượng, giao ít nhất một lần, thứ tự không được đảm bảo. SQS FIFO đảm bảo đúng thứ tự và xử lý đúng một lần. Visibility timeout ẩn tin nhắn trong lúc đang được xử lý, còn dead letter queue gom các tin nhắn lỗi nhiều lần để phân tích. SNS là mô hình xuất bản và đăng ký: một tin nhắn được đẩy tới nhiều nơi nhận cùng lúc như email, SMS, Lambda hay hàng đợi SQS. Kết hợp SNS với nhiều SQS gọi là fan out, mỗi hệ thống nhận một bản sao để xử lý độc lập. EventBridge là bus sự kiện, định tuyến sự kiện theo luật lọc nội dung, nhận sự kiện từ dịch vụ AWS và ứng dụng SaaS, và có bộ hẹn giờ thay cho cron. Mẹo thi: cần xử lý đơn hàng không bị mất khi hệ thống phía sau quá tải, chọn SQS. Cần đúng thứ tự, chọn FIFO. Một sự kiện cần nhiều hệ thống cùng xử lý, chọn SNS fan out. Tập sau: dữ liệu streaming và phân tích.",
+      "terms": ["queue of people", "post office", "mailbox", "conveyor belt", "smartphone notification"]
+    },
+    {
+      "ep": 25,
+      "part": "Phân tích",
+      "title": "Kinesis, Firehose, Athena, Glue",
+      "script": "Tập 25: dữ liệu thời gian thực và phân tích. Kinesis Data Streams thu nhận luồng dữ liệu liên tục như log, lượt click hay dữ liệu cảm biến, lưu lại một khoảng thời gian để nhiều ứng dụng cùng đọc và đọc lại. Amazon Data Firehose, trước đây gọi là Kinesis Data Firehose, là cách đơn giản nhất để đổ luồng dữ liệu vào S3, Redshift hay OpenSearch, có thể chuyển đổi định dạng, hoàn toàn không cần quản lý. Nếu doanh nghiệp đã dùng Kafka, chọn Amazon MSK. Khi dữ liệu đã nằm trên S3, có nhiều cách phân tích. Athena cho phép chạy SQL trực tiếp trên tệp trong S3, không cần máy chủ, trả tiền theo lượng dữ liệu quét. Glue là dịch vụ ETL serverless, và Glue Data Catalog lưu lược đồ dữ liệu. Lưu dữ liệu dạng Parquet và chia phân vùng giúp Athena quét ít hơn, nhanh hơn và rẻ hơn. EMR chạy Spark và Hadoop cho xử lý dữ liệu lớn. QuickSight vẽ báo cáo và dashboard. OpenSearch dùng cho tìm kiếm và phân tích log. Mẹo thi: truy vấn SQL tức thời trên dữ liệu S3 với ít công sức nhất, chọn Athena. Đổ dữ liệu streaming vào S3 gần thời gian thực mà không cần viết code xử lý, chọn Firehose. Tập sau: mã hoá và quản lý bí mật.",
+      "terms": ["river flowing", "stock market data", "analytics dashboard", "graph chart", "sensor"]
+    },
+    {
+      "ep": 26,
+      "part": "Bảo mật",
+      "title": "KMS, Secrets Manager, Parameter Store, ACM",
+      "script": "Tập 26: mã hoá và bí mật. KMS là dịch vụ quản lý khoá mã hoá, tích hợp với hầu hết dịch vụ AWS như S3, EBS, RDS. Có khoá do AWS quản lý, và khoá do khách hàng quản lý, cho phép bạn viết key policy, bật tự động xoay vòng, và mọi lần dùng khoá đều được ghi trong CloudTrail. Khoá KMS thuộc về một Region. Cần dùng cùng một khoá ở nhiều Region thì dùng multi Region key. Nếu quy định bắt buộc khoá nằm trên phần cứng chuyên dụng do bạn toàn quyền kiểm soát, dùng CloudHSM. Để lưu mật khẩu cơ sở dữ liệu hay API key, dùng Secrets Manager: mã hoá bằng KMS, và điểm ăn tiền là tự động xoay vòng mật khẩu, tích hợp sẵn với RDS. Systems Manager Parameter Store lưu cấu hình và bí mật đơn giản, rẻ hơn, nhưng không có xoay vòng tự động tích hợp sẵn như Secrets Manager. Còn chứng chỉ SSL và TLS thì dùng Certificate Manager, gọi tắt là ACM, miễn phí cho chứng chỉ public, tự gia hạn, gắn vào load balancer hay CloudFront. Mẹo thi: yêu cầu tự động xoay vòng mật khẩu cơ sở dữ liệu, chọn Secrets Manager. Chỉ cần lưu cấu hình với chi phí thấp, chọn Parameter Store. Tập sau: các dịch vụ bảo vệ và phát hiện mối đe doạ.",
+      "terms": ["keys", "safe vault", "lock", "encryption", "secret"]
+    },
+    {
+      "ep": 27,
+      "part": "Bảo mật",
+      "title": "WAF, Shield, GuardDuty, Inspector, Macie, Cognito",
+      "script": "Tập 27: dịch vụ bảo mật. WAF là tường lửa ứng dụng web, gắn vào CloudFront, Application Load Balancer hay API Gateway, chặn SQL injection, cross site scripting, và giới hạn số yêu cầu theo IP. Shield chống tấn công DDoS. Shield Standard miễn phí, tự động bật cho mọi khách hàng. Shield Advanced có phí, thêm đội phản ứng DDoS hỗ trợ trực tiếp và bảo vệ chi phí khi bị tấn công. GuardDuty dùng học máy phân tích CloudTrail, log luồng mạng VPC và DNS để phát hiện hành vi bất thường, như máy chủ bị chiếm để đào tiền ảo. Inspector quét lỗ hổng phần mềm trên EC2, image container và Lambda. Macie dùng học máy tìm dữ liệu nhạy cảm như thông tin cá nhân trong S3. Security Hub tổng hợp cảnh báo từ tất cả về một nơi. Còn để quản lý đăng nhập cho người dùng cuối của ứng dụng web và di động, dùng Cognito: User Pool để đăng ký, đăng nhập và liên kết Google hay Facebook, Identity Pool để cấp quyền AWS tạm thời. Mẹo thi: phân biệt rõ, GuardDuty phát hiện mối đe doạ, Inspector tìm lỗ hổng, Macie tìm dữ liệu nhạy cảm. Tập sau: giám sát và kiểm toán.",
+      "terms": ["cyber security", "hacker", "shield", "security camera", "alarm"]
+    },
+    {
+      "ep": 28,
+      "part": "Vận hành",
+      "title": "CloudWatch, CloudTrail, Config",
+      "script": "Tập 28: giám sát và kiểm toán. CloudWatch thu thập chỉ số như CPU, độ trễ, số lỗi, và log từ ứng dụng. Bạn đặt CloudWatch Alarm để cảnh báo qua SNS hoặc kích hoạt hành động, như Auto Scaling hay tự khởi động lại máy. Lưu ý: dung lượng RAM và ổ đĩa đã dùng của EC2 không có sẵn, bạn phải cài CloudWatch Agent để gửi lên. CloudTrail ghi lại mọi lời gọi API: ai đã làm gì, lúc nào, từ đâu. Đây là câu trả lời cho mọi câu hỏi kiểu ai đã xoá tài nguyên này. Nên bật trail cho mọi Region và lưu log vào S3 để giữ lâu dài. AWS Config ghi lại lịch sử cấu hình của tài nguyên và kiểm tra tuân thủ bằng các rule, ví dụ phát hiện bucket bị công khai hay ổ đĩa chưa mã hoá, và có thể tự động khắc phục. VPC Flow Logs ghi lại luồng lưu lượng mạng ra vào, phục vụ gỡ lỗi kết nối và điều tra bảo mật. Trusted Advisor đưa khuyến nghị về chi phí, bảo mật, hiệu năng và giới hạn dịch vụ. Mẹo thi: hỏi ai đã làm gì, chọn CloudTrail. Hỏi cấu hình đã thay đổi thế nào hay có tuân thủ không, chọn Config. Hỏi hiệu năng và cảnh báo, chọn CloudWatch. Tập sau: chiến lược phục hồi thảm hoạ.",
+      "terms": ["control room", "monitoring dashboard", "security camera", "graph chart", "magnifying glass"]
+    },
+    {
+      "ep": 29,
+      "part": "Phục hồi",
+      "title": "Phục hồi thảm hoạ: RPO, RTO và 4 chiến lược",
+      "script": "Tập 29: phục hồi thảm hoạ. Hai chỉ số cốt lõi: RPO là lượng dữ liệu tối đa bạn chấp nhận mất, tính bằng thời gian. RTO là thời gian tối đa để hệ thống hoạt động trở lại. RPO và RTO càng nhỏ thì chi phí càng cao. Có bốn chiến lược, từ rẻ tới đắt. Một, Backup and Restore: chỉ sao lưu dữ liệu sang Region khác, khi có sự cố mới dựng lại mọi thứ, mất nhiều giờ. Hai, Pilot Light: dữ liệu được nhân bản liên tục, các thành phần cốt lõi như cơ sở dữ liệu luôn chạy, còn máy chủ ứng dụng chỉ bật lên khi cần, mất hàng chục phút. Ba, Warm Standby: một bản thu nhỏ của toàn bộ hệ thống luôn chạy, khi có sự cố chỉ cần tăng quy mô, mất vài phút. Bốn, Multi Site Active Active: hệ thống chạy đầy đủ ở nhiều Region cùng phục vụ người dùng, thời gian phục hồi gần như bằng không, và đắt nhất. Công cụ hỗ trợ gồm AWS Backup để quản lý sao lưu tập trung, sao chép sang Region hay tài khoản khác, và Elastic Disaster Recovery để nhân bản liên tục máy chủ. Mẹo thi: đọc con số RTO, RPO và từ khoá chi phí thấp nhất. Chấp nhận vài giờ, chọn Backup and Restore. Cần vài phút, chọn Warm Standby. Không chấp nhận gián đoạn, chọn Active Active. Tập sau: tối ưu chi phí.",
+      "terms": ["storm", "flood", "fire", "backup generator", "emergency"]
+    },
+    {
+      "ep": 30,
+      "part": "Chi phí",
+      "title": "Tối ưu chi phí trên AWS",
+      "script": "Tập 30: tối ưu chi phí, mảng chiếm 20 phần trăm đề thi. Nguyên tắc đầu tiên là chọn đúng kích thước: dùng Compute Optimizer để phát hiện máy chủ thừa tài nguyên. Nguyên tắc thứ hai là chọn đúng cách mua: tải ổn định dùng Savings Plans, tải chịu được gián đoạn dùng Spot, tải thất thường dùng serverless. Thứ ba là tắt khi không dùng, ví dụ môi trường phát triển chỉ chạy trong giờ hành chính. Với lưu trữ, dùng Lifecycle Rule và Intelligent Tiering cho S3, chuyển EBS gp2 sang gp3, xoá snapshot và ổ đĩa không còn gắn vào máy nào. Với mạng, hãy nhớ dữ liệu đi vào AWS miễn phí, nhưng dữ liệu đi ra Internet và đi giữa các AZ, các Region đều tính phí. NAT Gateway tính phí theo lượng dữ liệu đi qua, nên truy cập S3 và DynamoDB qua Gateway Endpoint để tránh chi phí này. CloudFront cũng giúp giảm chi phí truyền dữ liệu ra. Để theo dõi, dùng Cost Explorer phân tích chi tiêu, AWS Budgets đặt ngân sách và cảnh báo khi vượt, và gắn tag cho tài nguyên để phân bổ chi phí theo dự án. Mẹo thi: khi đề hỏi phương án tiết kiệm nhất, loại ngay đáp án chạy máy chủ liên tục cho tải thỉnh thoảng mới có. Tập cuối: chiến thuật làm bài thi.",
+      "terms": ["piggy bank", "coins", "calculator", "saving money", "budget planning"]
+    },
+    {
+      "ep": 31,
+      "part": "Tổng kết",
+      "title": "Chiến thuật làm bài thi SAA",
+      "script": "Tập cuối: chiến thuật làm bài thi SAA. Thứ nhất, đọc câu hỏi cuối cùng trước, tìm từ khoá quyết định. Most cost effective nghĩa là rẻ nhất mà vẫn đáp ứng yêu cầu. Least operational overhead nghĩa là ưu tiên dịch vụ được quản lý và serverless. Highly available nghĩa là chạy trên nhiều AZ. Fault tolerant nghĩa là không gián đoạn kể cả khi có sự cố. Thứ hai, loại trừ đáp án. Thường có hai đáp án sai rõ ràng, như lưu access key trong code, dùng tính năng không tồn tại, hoặc tự dựng giải pháp phức tạp trong khi AWS đã có sẵn dịch vụ. Chọn giữa hai đáp án còn lại dựa vào từ khoá. Thứ ba, quản lý thời gian. Bạn có 130 phút cho 65 câu, tức khoảng hai phút mỗi câu. Câu nào phân vân quá hai phút, đánh dấu để xem lại rồi đi tiếp. Không bị trừ điểm nên tuyệt đối không bỏ trống. Thứ tư, khi ôn tập, hãy làm đề luyện tập và đọc kỹ lời giải thích cho cả các đáp án sai, vì đó là nơi bạn học được nhiều nhất. Và nếu có thể, hãy tự tay dựng thử một VPC, một Auto Scaling Group, một bucket S3 bằng tài khoản AWS của mình. Cảm ơn bạn đã theo dõi hết series. Chúc bạn thi đậu AWS Solutions Architect Associate!",
+      "terms": ["exam", "student writing", "clock", "success", "graduation"]
+    }
+  ]
+}

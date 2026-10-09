@@ -1,0 +1,5 @@
+{
+  "name": "hyperframes-academic",
+  "private": true,
+  "dependencies": { "hyperframes": "0.8.80" }
+}

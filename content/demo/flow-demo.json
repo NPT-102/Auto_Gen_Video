@@ -1,0 +1,77 @@
+{
+  "id": "demo-flow",
+  "title": "Chuyện gì xảy ra khi bạn mở một trang web?",
+  "voice": "vi-VN-HoaiMyNeural",
+  "description": "Một cú nhấp chuột, cả chục bước phía sau.",
+  "hashtags": ["kienthuc", "congnghe", "mangmaytinh"],
+  "stock_terms": ["web browser", "data center", "network cables", "server room", "typing laptop"],
+  "scenes": [
+    {
+      "type": "title",
+      "say": "Chỉ một cú nhấp chuột, nhưng phía sau là cả chục bước. Cùng xem điều gì thật sự xảy ra.",
+      "tag": "MẠNG MÁY TÍNH",
+      "headline": [["MỞ", false], ["WEB", true]],
+      "sub": "Chuyện gì xảy ra sau cú nhấp chuột"
+    },
+    {
+      "type": "flow",
+      "say": "Đầu tiên, trình duyệt hỏi máy chủ DNS địa chỉ IP của tên miền. Có địa chỉ rồi, nó mở kết nối an toàn tới máy chủ web qua HTTPS. Máy chủ web lấy dữ liệu từ cơ sở dữ liệu, rồi trả trang về cho bạn.",
+      "kicker": "TỪNG BƯỚC",
+      "heading": "Hành trình của một yêu cầu",
+      "nodes": [
+        {"id": "you", "label": "Bạn", "icon": "🧑‍💻"},
+        {"id": "dns", "label": "Máy chủ DNS", "icon": "📖"},
+        {"id": "web", "label": "Máy chủ web", "icon": "aws:ec2"},
+        {"id": "db", "label": "Cơ sở dữ liệu", "icon": "aws:rds"}
+      ],
+      "edges": [
+        {"from": "you", "to": "dns", "label": "hỏi IP"},
+        {"from": "you", "to": "web", "label": "HTTPS", "style": "flow"},
+        {"from": "web", "to": "db"}
+      ],
+      "steps": [
+        {"cue": "máy chủ DNS", "show": ["you", "dns"]},
+        {"cue": "máy chủ web qua", "show": ["web"]},
+        {"cue": "cơ sở dữ liệu", "show": ["db"], "focus": ["db"]}
+      ]
+    },
+    {
+      "type": "flow",
+      "say": "Trên AWS, kiến trúc chuẩn đặt load balancer ở subnet public, máy chủ ứng dụng ở subnet private, và cơ sở dữ liệu ở một subnet private riêng.",
+      "kicker": "TRÊN AWS",
+      "heading": "Kiến trúc ba tầng",
+      "groups": [
+        {"id": "vpc", "label": "VPC", "kind": "vpc"},
+        {"id": "pub", "label": "PUBLIC SUBNET", "kind": "public", "parent": "vpc"},
+        {"id": "app", "label": "PRIVATE · APP", "kind": "private", "parent": "vpc"},
+        {"id": "data", "label": "PRIVATE · DB", "kind": "private", "parent": "vpc"}
+      ],
+      "nodes": [
+        {"id": "users", "label": "Người dùng", "icon": "aws:users"},
+        {"id": "alb", "label": "Load Balancer", "icon": "aws:alb", "group": "pub"},
+        {"id": "ec2a", "label": "EC2 · AZ a", "icon": "aws:ec2", "group": "app"},
+        {"id": "ec2b", "label": "EC2 · AZ b", "icon": "aws:ec2", "group": "app"},
+        {"id": "rds", "label": "RDS Multi-AZ", "icon": "aws:rds", "group": "data"}
+      ],
+      "edges": [
+        {"from": "users", "to": "alb", "style": "flow"},
+        {"from": "alb", "to": "ec2a"},
+        {"from": "alb", "to": "ec2b"},
+        {"from": "ec2a", "to": "rds"},
+        {"from": "ec2b", "to": "rds"}
+      ],
+      "steps": [
+        {"cue": "load balancer", "show": ["users", "alb"]},
+        {"cue": "máy chủ ứng dụng", "show": ["ec2a", "ec2b"]},
+        {"cue": "cơ sở dữ liệu", "show": ["rds"], "focus": ["rds"]}
+      ]
+    },
+    {
+      "type": "next",
+      "say": "Lưu lại video này, và theo dõi để xem phần tiếp theo nhé.",
+      "label": "TIẾP THEO",
+      "title": "DNS hoạt động thế nào",
+      "sub": "Theo dõi để không bỏ lỡ"
+    }
+  ]
+}

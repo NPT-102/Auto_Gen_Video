@@ -1,0 +1,255 @@
+{
+  "id": "hanh-trinh-1-giay-messenger",
+  "title": "Chuyện gì xảy ra trong 1 giây khi bấm Gửi Messenger?",
+  "voice": "vi-VN-HoaiMyNeural",
+  "scenes": [
+    {
+      "type": "title",
+      "say": "Chuyện gì thực sự xảy ra bên trong điện thoại chỉ trong nửa giây khi bạn bấm nút Gửi? Một tin nhắn văn bản chỉ vài kilobyte sẽ bắt đầu một cuộc hành trình vòng quanh thế giới với tốc độ kinh ngạc.",
+      "tag": "CÔNG NGHỆ INTERNET",
+      "headline": [
+        [
+          "1 GIÂY",
+          true
+        ],
+        [
+          "MESSENGER",
+          false
+        ]
+      ],
+      "sub": "Hành trình siêu tốc của tin nhắn",
+      "chips": [
+        {
+          "text": "Nửa giây xử lý",
+          "cue": "chỉ trong nửa giây"
+        },
+        {
+          "text": "Vài kilobyte",
+          "cue": "chỉ vài kilobyte"
+        }
+      ]
+    },
+    {
+      "type": "tip",
+      "say": "Nhiều người nghĩ tin nhắn bay thẳng sang điện thoại người nhận qua sóng vô hình. Sự thật là dù bạn chat với người ngồi ngay cạnh, dữ liệu vẫn phải đi qua máy chủ trung tâm của Meta.",
+      "label": "SAI LẦM PHỔ BIẾN",
+      "q_label": "BẠN CÓ NGHĨ",
+      "a_label": "SỰ THẬT LÀ",
+      "question": "Tin nhắn bay thẳng sang máy bạn bên cạnh qua sóng vô hình?",
+      "answer": "Phải qua máy chủ Meta",
+      "answer_cue": "Sự thật là dù bạn chat với người ngồi ngay cạnh, dữ liệu vẫn"
+    },
+    {
+      "type": "flow",
+      "say": "Ngay khi bạn bấm gửi, điện thoại sẽ mã hóa đầu cuối bức thư như đóng dấu niêm phong tuyệt mật. Sau đó, nó chuyển thành sóng vô tuyến truyền tới trạm phát sóng 4G hoặc bộ định tuyến Wi-Fi gần nhất.",
+      "kicker": "MÃ HÓA & TRUYỀN SÓNG",
+      "heading": "Từ thiết bị ra thế giới",
+      "direction": "down",
+      "groups": [
+        {
+          "id": "g_phone",
+          "label": "Thiết bị gửi",
+          "kind": "box",
+          "tone": "blue",
+          "parent": null
+        }
+      ],
+      "nodes": [
+        {
+          "id": "n_app",
+          "label": "Soạn tin nhắn",
+          "icon": "📱",
+          "group": "g_phone"
+        },
+        {
+          "id": "n_enc",
+          "label": "Mã hóa đầu cuối",
+          "icon": "🔒",
+          "group": "g_phone"
+        },
+        {
+          "id": "n_tower",
+          "label": "Trạm thu phát sóng",
+          "icon": "📡"
+        }
+      ],
+      "edges": [
+        {
+          "from": "n_app",
+          "to": "n_enc",
+          "label": "Gói dữ liệu",
+          "style": "solid"
+        },
+        {
+          "from": "n_enc",
+          "to": "n_tower",
+          "label": "Sóng 4G Wi-Fi",
+          "style": "flow"
+        }
+      ],
+      "steps": [
+        {
+          "cue": "bạn bấm gửi",
+          "show": [
+            "n_app"
+          ],
+          "focus": [
+            "n_app"
+          ]
+        },
+        {
+          "cue": "mã hóa đầu cuối",
+          "show": [
+            "n_app",
+            "n_enc"
+          ],
+          "focus": [
+            "n_enc"
+          ]
+        },
+        {
+          "cue": "trạm phát sóng 4G",
+          "show": [
+            "n_app",
+            "n_enc",
+            "n_tower"
+          ],
+          "focus": [
+            "n_tower"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "say": "Từ trạm viễn thông, tín hiệu biến thành xung ánh sáng chạy trong cáp quang biển như APG hay AAG. Tốc độ ánh sáng trong sợi thủy tinh đạt 200.000 km mỗi giây, đưa dữ liệu vượt đại dương với độ trễ chỉ dưới 50 mili giây.",
+      "kicker": "CÁP QUANG BIỂN",
+      "heading": "Tốc độ ánh sáng đáy đại dương",
+      "stats": [
+        {
+          "value": "200k",
+          "label": "km mỗi giây",
+          "cue": "200.000 km mỗi giây"
+        },
+        {
+          "value": "50ms",
+          "label": "Độ trễ trung bình",
+          "cue": "dưới 50 mili giây"
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "say": "Tại máy chủ Meta xử lý hàng tỷ tin nhắn, hệ thống định tuyến chính xác tài khoản bạn bè. Tín hiệu lập tức gửi về thiết bị đích, giải mã và hiện lên màn hình người nhận chỉ trong chớp mắt.",
+      "kicker": "ĐÍCH ĐẾN",
+      "heading": "Định tuyến và hiển thị",
+      "direction": "down",
+      "groups": [
+        {
+          "id": "g_meta",
+          "label": "Trung tâm dữ liệu",
+          "kind": "box",
+          "tone": "purple",
+          "parent": null
+        },
+        {
+          "id": "g_recv",
+          "label": "Người nhận",
+          "kind": "box",
+          "tone": "green",
+          "parent": null
+        }
+      ],
+      "nodes": [
+        {
+          "id": "n_server",
+          "label": "Máy chủ Meta",
+          "icon": "🧠",
+          "group": "g_meta"
+        },
+        {
+          "id": "n_route",
+          "label": "Định tuyến đích",
+          "icon": "⚡",
+          "group": "g_meta"
+        },
+        {
+          "id": "n_recv",
+          "label": "Giải mã và thông báo",
+          "icon": "📱",
+          "group": "g_recv"
+        }
+      ],
+      "edges": [
+        {
+          "from": "n_server",
+          "to": "n_route",
+          "label": "Xử lý",
+          "style": "solid"
+        },
+        {
+          "from": "n_route",
+          "to": "n_recv",
+          "label": "Đẩy thông báo",
+          "style": "flow"
+        }
+      ],
+      "steps": [
+        {
+          "cue": "máy chủ Meta xử lý",
+          "show": [
+            "n_server"
+          ],
+          "focus": [
+            "n_server"
+          ]
+        },
+        {
+          "cue": "định tuyến chính xác",
+          "show": [
+            "n_server",
+            "n_route"
+          ],
+          "focus": [
+            "n_route"
+          ]
+        },
+        {
+          "cue": "màn hình người nhận",
+          "show": [
+            "n_server",
+            "n_route",
+            "n_recv"
+          ],
+          "focus": [
+            "n_recv"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "next",
+      "say": "Chỉ một cú chạm, bạn đã kích hoạt cả một hạ tầng viễn thông khổng lồ toàn cầu. Hãy lưu lại video, theo dõi kênh và bình luận xem bạn mất bao lâu để nhận tin nhắn từ người yêu nhé!",
+      "label": "GHI NHỚ",
+      "title": "Kỳ quan công nghệ trong 1 giây",
+      "sub": "Hàng ngàn cây số được kết nối trong tích tắc"
+    }
+  ],
+  "diagrams": {},
+  "stock_terms": [
+    "smartphone sending message",
+    "fiber optic cable underwater",
+    "data center server racks",
+    "digital network signal flow",
+    "global internet communication"
+  ],
+  "description": "Khám phá hành trình kỳ diệu chưa tới 1 giây của một tin nhắn Messenger đi xuyên đại dương. Bạn có bất ngờ trước tốc độ của hệ thống Internet toàn cầu?",
+  "hashtags": [
+    "congnghe",
+    "kienthuc",
+    "internet",
+    "messenger",
+    "khoahoc"
+  ],
+  "angle": "Hành trình siêu tốc chưa tới 1 giây của một tin nhắn Messenger từ điện thoại qua cáp quang biển đến người nhận"
+}

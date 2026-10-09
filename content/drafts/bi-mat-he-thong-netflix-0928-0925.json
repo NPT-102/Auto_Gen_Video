@@ -1,0 +1,240 @@
+{
+  "id": "bi-mat-he-thong-netflix",
+  "title": "Bạn nghĩ Netflix có máy chủ siêu mạnh? Sai hoàn toàn!",
+  "voice": "vi-VN-HoaiMyNeural",
+  "scenes": [
+    {
+      "type": "title",
+      "say": "Bạn nghĩ Netflix không bao giờ sập nhờ máy chủ xịn? 90 phần trăm người dùng đã hiểu sai bét. Thực tế, họ không hề sở hữu bất kỳ siêu máy chủ bất tử nào cả.",
+      "tag": "BÍ MẬT NETFLIX",
+      "headline": [
+        [
+          "MÁY CHỦ",
+          false
+        ],
+        [
+          "NETFLIX",
+          true
+        ]
+      ],
+      "sub": "Sự thật về hệ thống không bao giờ sập",
+      "chips": [
+        {
+          "text": "Không có siêu máy chủ",
+          "cue": "không hề sở hữu bất kỳ siêu máy chủ"
+        },
+        {
+          "text": "90 phần trăm hiểu sai",
+          "cue": "90 phần trăm người dùng đã hiểu sai"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "say": "Vào các giờ cao điểm, Netflix đóng góp khoảng 15 phần trăm tổng lưu lượng truy cập Internet toàn cầu. Đây là một con số khổng lồ nhưng họ vẫn duy trì trải nghiệm mượt mà cho hàng trăm triệu người dùng.",
+      "kicker": "LƯU LƯỢNG KHỦNG",
+      "heading": "Gánh nặng băng thông toàn cầu",
+      "stats": [
+        {
+          "value": "15%",
+          "label": "Băng thông Internet toàn cầu",
+          "cue": "15 phần trăm tổng lưu lượng"
+        }
+      ]
+    },
+    {
+      "type": "compare",
+      "say": "Nhiều người nghĩ Netflix sở hữu những trung tâm dữ liệu khổng lồ bất khả xâm phạm. Nhưng sự thật là từ năm 2016, họ đã chuyển toàn bộ hạ tầng sang chạy trên đám mây AWS của chính đối thủ Amazon.",
+      "kicker": "HẠ TẦNG THỰC TẾ",
+      "heading": "Netflix tự xây hay đi thuê?",
+      "left": {
+        "title": "Lầm tưởng",
+        "points": [
+          "Tự xây trung tâm dữ liệu",
+          "Sở hữu siêu máy chủ riêng"
+        ],
+        "cue": "trung tâm dữ liệu khổng lồ"
+      },
+      "right": {
+        "title": "Sự thật",
+        "points": [
+          "Thuê hoàn toàn đám mây AWS",
+          "Phân tán dữ liệu ra rìa"
+        ],
+        "cue": "chạy trên đám mây AWS"
+      }
+    },
+    {
+      "type": "bullets",
+      "say": "Thay vì tìm cách ngăn chặn lỗi, Netflix tạo ra văn hóa chủ động tự kích hoạt sự cố. Họ phát minh ra công cụ Chaos Monkey để tự động tắt ngẫu nhiên các máy chủ đang hoạt động bình thường ngay trên môi trường thực tế.",
+      "kicker": "VŨ KHÍ BÍ MẬT",
+      "heading": "Kỹ nghệ hỗn loạn - Chaos Engineering",
+      "items": [
+        {
+          "text": "Tự kích hoạt sự cố",
+          "cue": "chủ động tự kích hoạt sự cố"
+        },
+        {
+          "text": "Chaos Monkey phá hủy",
+          "cue": "tự động tắt ngẫu nhiên các máy chủ"
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "say": "Hãy xem cách hệ thống tự chữa lành khi Chaos Monkey tấn công. Đầu tiên, công cụ này tắt ngẫu nhiên một máy chủ EC2. Hệ thống giám sát lập tức phát hiện mất tín hiệu, lập tức điều hướng lưu lượng sang máy chủ dự phòng và tự động khởi tạo máy chủ mới thay thế.",
+      "kicker": "QUY TRÌNH TỰ SỬA LỖI",
+      "heading": "Cơ chế tự chữa lành của Netflix",
+      "direction": "down",
+      "groups": [
+        {
+          "id": "aws-env",
+          "label": "Môi trường AWS",
+          "kind": "vpc",
+          "tone": "orange",
+          "parent": null
+        }
+      ],
+      "nodes": [
+        {
+          "id": "monkey",
+          "label": "Chaos Monkey",
+          "icon": "🐒"
+        },
+        {
+          "id": "server-a",
+          "label": "Máy chủ EC2 chính",
+          "icon": "aws:ec2",
+          "group": "aws-env"
+        },
+        {
+          "id": "monitor",
+          "label": "Hệ thống giám sát",
+          "icon": "🕵️"
+        },
+        {
+          "id": "server-b",
+          "label": "Máy chủ dự phòng",
+          "icon": "aws:ec2",
+          "group": "aws-env"
+        }
+      ],
+      "edges": [
+        {
+          "from": "monkey",
+          "to": "server-a",
+          "label": "Tắt ngẫu nhiên",
+          "style": "blocked"
+        },
+        {
+          "from": "server-a",
+          "to": "monitor",
+          "label": "Mất tín hiệu",
+          "style": "solid"
+        },
+        {
+          "from": "monitor",
+          "to": "server-b",
+          "label": "Điều hướng tải",
+          "style": "flow"
+        }
+      ],
+      "steps": [
+        {
+          "cue": "tắt ngẫu nhiên một máy chủ EC2",
+          "show": [
+            "monkey",
+            "server-a"
+          ],
+          "focus": [
+            "server-a"
+          ]
+        },
+        {
+          "cue": "giám sát lập tức phát hiện mất tín hiệu",
+          "show": [
+            "monitor"
+          ],
+          "focus": [
+            "monitor"
+          ]
+        },
+        {
+          "cue": "điều hướng lưu lượng sang máy chủ dự phòng",
+          "show": [
+            "server-b"
+          ],
+          "focus": [
+            "server-b"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "bullets",
+      "say": "Netflix áp dụng chiến lược suy thoái nhẹ nhàng. Nếu cụm máy chủ chấm điểm phim bị chết, Netflix chỉ ẩn số sao đánh giá đi, còn video chính vẫn phát bình thường. Người dùng hầu như không hề nhận ra có lỗi xảy ra.",
+      "kicker": "CHIẾN LƯỢC THÔNG MINH",
+      "heading": "Suy thoái nhẹ nhàng - Graceful Degradation",
+      "items": [
+        {
+          "text": "Ẩn tính năng phụ khi lỗi",
+          "cue": "chỉ ẩn số sao đánh giá đi"
+        },
+        {
+          "text": "Giữ tính năng phát video chính",
+          "cue": "video chính vẫn phát bình thường"
+        }
+      ]
+    },
+    {
+      "type": "bullets",
+      "say": "Để tối ưu tốc độ, Netflix sử dụng mạng phân phối Open Connect. Họ mang các máy chủ lưu trữ đặt trực tiếp bên trong nhà mạng địa phương ngay tại Việt Nam, giúp truyền tải phim cực nhanh mà không cần đi qua cáp quang biển.",
+      "kicker": "MẠNG PHÂN PHỐI",
+      "heading": "Open Connect hoạt động thế nào?",
+      "items": [
+        {
+          "text": "Đặt máy chủ tại nhà mạng Việt Nam",
+          "cue": "đặt trực tiếp bên trong nhà mạng địa phương"
+        },
+        {
+          "text": "Không phụ thuộc cáp quang biển",
+          "cue": "không cần đi qua cáp quang biển"
+        }
+      ]
+    },
+    {
+      "type": "tip",
+      "say": "Rất nhiều lập trình viên luôn cố gắng xây dựng một hệ thống hoàn hảo không bao giờ lỗi. Nhưng tư duy đúng đắn của Netflix là chấp nhận lỗi sẽ xảy ra, và chủ động tạo ra lỗi để rèn luyện hệ thống tự thích nghi.",
+      "label": "SAI LẦM PHỔ BIẾN",
+      "q_label": "TƯ DUY TRUYỀN THỐNG",
+      "a_label": "TƯ DUY NETFLIX",
+      "question": "Cố gắng xây dựng một hệ thống hoàn hảo, tuyệt đối không bao giờ để xảy ra lỗi?",
+      "answer": "Chủ động tạo lỗi để tự thích nghi",
+      "answer_cue": "chủ động tạo ra lỗi để rèn luyện hệ thống tự thích nghi"
+    },
+    {
+      "type": "next",
+      "say": "Học từ Netflix, hãy đối mặt với thất bại để trở nên kiên cường hơn. Hãy lưu video này lại, nhấn theo dõi và bình luận bên dưới xem bạn muốn khám phá cách YouTube lưu trữ hàng triệu video mỗi ngày ở tập sau không nhé!",
+      "label": "BÀI HỌC TIẾP THEO",
+      "title": "Bí mật lưu trữ khổng lồ của YouTube",
+      "sub": "Lưu video, theo dõi và bình luận chủ đề tiếp theo"
+    }
+  ],
+  "diagrams": {},
+  "stock_terms": [
+    "server room",
+    "cloud computing",
+    "chaos monkey",
+    "network connection",
+    "software crash simulation"
+  ],
+  "description": "Bí mật đằng sau việc Netflix không bao giờ sập hóa ra không phải là những siêu máy chủ bất tử, mà là một hệ thống tự hủy diệt cực kỳ thông minh. Bạn nghĩ cách tiếp cận này có thể áp dụng cho các doanh nghiệp Việt Nam không?",
+  "hashtags": [
+    "netflix",
+    "chaosengineering",
+    "cloudcomputing",
+    "hethong",
+    "congnghe"
+  ],
+  "angle": "Netflix không hề có 'siêu máy chủ bất tử', mà họ tồn tại nhờ việc tự tạo phần mềm liên tục tự phá hủy hệ thống của chính mình mỗi ngày để tìm lỗi trước người dùng."
+}

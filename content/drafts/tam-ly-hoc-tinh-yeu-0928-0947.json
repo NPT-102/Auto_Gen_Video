@@ -1,0 +1,252 @@
+{
+  "id": "tam-ly-hoc-tinh-yeu",
+  "title": "3 hiệu ứng tâm lý khiến bạn vô tình phải lòng ai đó",
+  "voice": "vi-VN-HoaiMyNeural",
+  "scenes": [
+    {
+      "type": "title",
+      "say": "Bạn nghĩ mình tự chọn người để yêu? Thực ra não bộ đã bị thao túng bởi 3 hiệu ứng tâm lý này. Hãy cùng giải mã khoa học đằng sau rung động vô thức của bạn.",
+      "tag": "TÂM LÝ HỌC",
+      "headline": [
+        [
+          "BỊ THAO TÚNG",
+          true
+        ],
+        [
+          "BỞI NÃO BỘ",
+          false
+        ]
+      ],
+      "sub": "3 hiệu ứng tâm lý khiến bạn phải lòng ai đó",
+      "chips": [
+        {
+          "text": "tự chọn người để yêu",
+          "cue": "Bạn nghĩ mình tự chọn người để yêu"
+        },
+        {
+          "text": "não bộ đã bị thao túng",
+          "cue": "Thực ra não bộ đã bị thao túng"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "say": "Năm 1968, nhà tâm lý học Robert Zajonc công bố nghiên cứu về Hiệu ứng tiếp xúc đơn thuần. Kết quả cho thấy việc nhìn thấy một khuôn mặt lặp đi lặp lại nhiều lần sẽ tự động tạo ra cảm giác an toàn và thiện cảm.",
+      "kicker": "HIỆU ỨNG TIẾP XÚC ĐƠN THUẦN",
+      "heading": "Sự quen thuộc tạo nên thiện cảm vô thức",
+      "stats": [
+        {
+          "value": "1968",
+          "label": "Năm công bố nghiên cứu",
+          "cue": "Năm 1968, nhà tâm lý học"
+        },
+        {
+          "value": "An toàn",
+          "label": "Cảm giác não bộ tự tạo ra",
+          "cue": "tạo ra cảm giác an toàn"
+        }
+      ]
+    },
+    {
+      "type": "bullets",
+      "say": "Ví dụ thực tế là bạn bắt đầu thích một đồng nghiệp ngồi cạnh sau nhiều tuần làm việc chung dù ban đầu không ấn tượng. Sự lặp lại liên tục kích hoạt cơ chế nhận diện an toàn, khiến não bộ hiểu nhầm sự quen thuộc này thành tình cảm lãng mạn.",
+      "kicker": "VÍ DỤ THỰC TẾ",
+      "heading": "Từ quen thuộc đến rung động",
+      "items": [
+        {
+          "text": "Đồng nghiệp ngồi cạnh",
+          "cue": "thích một đồng nghiệp ngồi cạnh"
+        },
+        {
+          "text": "Cơ chế nhận diện an toàn",
+          "cue": "kích hoạt cơ chế nhận diện an toàn"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "say": "Một nghiên cứu kinh điển khác vào năm 1974 của Donald Dutton và Arthur Aron là thí nghiệm cây cầu lắc. Những người đàn ông đi qua cây cầu treo nguy hiểm có nhịp tim tăng cao, và họ đã nhầm lẫn sự kích thích thể chất này với sự hấp dẫn giới tính.",
+      "kicker": "THÍ NGHIỆM CÂY CẦU LẮC",
+      "heading": "Sự nhầm lẫn của não bộ",
+      "stats": [
+        {
+          "value": "1974",
+          "label": "Năm tiến hành thí nghiệm",
+          "cue": "vào năm 1974"
+        },
+        {
+          "value": "Nhịp tim",
+          "label": "Tăng cao do sợ hãi",
+          "cue": "có nhịp tim tăng cao"
+        }
+      ]
+    },
+    {
+      "type": "compare",
+      "say": "Khi bạn cùng ai đó xem phim kinh dị, tim đập nhanh do sợ hãi sẽ bị não bộ dịch sai tín hiệu. Thay vì nhận biết là do sợ, não lại gán nhãn rằng bạn đang rung động trước người đi cùng.",
+      "kicker": "NHẦM LẪN CẢM XÚC",
+      "heading": "Sợ hãi hay yêu thích?",
+      "left": {
+        "title": "Phản ứng vật lý",
+        "points": [
+          "Tim đập nhanh",
+          "Tăng adrenaline"
+        ],
+        "cue": "tim đập nhanh"
+      },
+      "right": {
+        "title": "Não bộ dịch sai",
+        "points": [
+          "Gán nhãn rung động",
+          "Tưởng là tình yêu"
+        ],
+        "cue": "não lại gán nhãn"
+      }
+    },
+    {
+      "type": "bullets",
+      "say": "Hiệu ứng thứ ba dựa trên câu chuyện lịch sử thế kỷ 18 gọi là Hiệu ứng Ben Franklin. Khi bạn giúp đỡ ai đó, não bộ sẽ tự thuyết phục rằng bạn giúp họ vì bạn thích họ. Muốn ai đó chú ý, hãy nhờ họ một việc nhỏ.",
+      "kicker": "HIỆU ỨNG BEN FRANKLIN",
+      "heading": "Lòng tốt tạo ra tình cảm",
+      "items": [
+        {
+          "text": "Nhờ giúp đỡ một việc nhỏ",
+          "cue": "hãy nhờ họ một việc nhỏ"
+        },
+        {
+          "text": "Não tự thuyết phục",
+          "cue": "não bộ sẽ tự thuyết phục"
+        }
+      ]
+    },
+    {
+      "type": "flow",
+      "say": "Hãy hình dung sơ đồ chuyển hóa cảm xúc này. Đầu tiên là tiếp xúc thường xuyên tạo cảm giác quen thuộc, tiếp theo là kích thích cơ thể làm tăng adrenaline, cuối cùng não bộ sẽ gán nhãn là yêu và kích hoạt hormone gắn kết lâu dài.",
+      "kicker": "SƠ ĐỒ CHUYỂN HÓA",
+      "heading": "Cơ chế rung động vô thức của não bộ",
+      "direction": "down",
+      "groups": [
+        {
+          "id": "g1",
+          "label": "Kích thích ban đầu",
+          "kind": "region",
+          "tone": "blue",
+          "parent": null
+        },
+        {
+          "id": "g2",
+          "label": "Xử lý trung tâm",
+          "kind": "region",
+          "tone": "purple",
+          "parent": null
+        }
+      ],
+      "nodes": [
+        {
+          "id": "n1",
+          "label": "Tiếp xúc thường xuyên",
+          "icon": "👥",
+          "group": "g1"
+        },
+        {
+          "id": "n2",
+          "label": "Tăng Adrenaline",
+          "icon": "⚡",
+          "group": "g1"
+        },
+        {
+          "id": "n3",
+          "label": "Não bộ gán nhãn Yêu",
+          "icon": "🧠",
+          "group": "g2"
+        },
+        {
+          "id": "n4",
+          "label": "Tiết Hormone gắn kết",
+          "icon": "🧬",
+          "group": "g2"
+        }
+      ],
+      "edges": [
+        {
+          "from": "n1",
+          "to": "n2",
+          "style": "flow"
+        },
+        {
+          "from": "n2",
+          "to": "n3",
+          "style": "flow"
+        },
+        {
+          "from": "n3",
+          "to": "n4",
+          "style": "solid"
+        }
+      ],
+      "steps": [
+        {
+          "cue": "tiếp xúc thường xuyên tạo cảm giác quen thuộc",
+          "show": [
+            "n1"
+          ],
+          "focus": [
+            "n1"
+          ]
+        },
+        {
+          "cue": "kích thích cơ thể làm tăng adrenaline",
+          "show": [
+            "n2"
+          ],
+          "focus": [
+            "n2"
+          ]
+        },
+        {
+          "cue": "não bộ sẽ gán nhãn là yêu",
+          "show": [
+            "n3",
+            "n4"
+          ],
+          "focus": [
+            "n3"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "tip",
+      "say": "Nhiều người nghĩ tiếng sét ái tình hoàn toàn là tâm linh. Nhưng sự thật là não bộ chỉ đang nhận diện cực nhanh các đặc điểm quen thuộc và giải phóng dopamine mà thôi.",
+      "label": "SAI LẦM PHỔ BIẾN",
+      "q_label": "BẢN CHẤT TIẾNG SÉT ÁI TÌNH",
+      "a_label": "NHẬN DIỆN VÀ DOPAMINE",
+      "question": "Tiếng sét ái tình có phải là do tâm linh siêu nhiên kết nối?",
+      "answer": "Là nhận diện nhanh và dopamine",
+      "answer_cue": "nhận diện cực nhanh các đặc điểm quen thuộc và giải phóng dopamine"
+    },
+    {
+      "type": "next",
+      "say": "Bộ não giống như hệ thống định vị tự động, luôn tìm kiếm sự an toàn để dẫn đường cho con tim. Hãy lưu video này lại, theo dõi kênh và để lại bình luận xem bạn đã từng rơi vào hiệu ứng nào nhé.",
+      "label": "GHI NHỚ",
+      "title": "Thấu hiểu khoa học tình yêu",
+      "sub": "Đừng để não bộ đánh lừa cảm xúc nhất thời"
+    }
+  ],
+  "diagrams": {},
+  "stock_terms": [
+    "brain scan",
+    "people walking on street",
+    "shaking bridge",
+    "helping hands",
+    "couple smiling"
+  ],
+  "description": "Bạn có thực sự làm chủ trái tim mình hay bộ não đang âm thầm thao túng? Khám phá ngay 3 hiệu ứng tâm lý học thần kinh cực kỳ thú vị lý giải cách chúng ta rung động.",
+  "hashtags": [
+    "tamlyhoc",
+    "khoahocthanhkinh",
+    "tinhyeu",
+    "khamphacuocsong"
+  ],
+  "angle": "Khám phá các hiệu ứng tâm lý vô thức khiến chúng ta yêu người khác dựa trên khoa học thần kinh và hành vi."
+}

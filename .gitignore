@@ -1,0 +1,25 @@
+# Key — không bao giờ đưa lên GitHub
+.env
+
+# Môi trường, cache, kết quả render
+.venv/
+.cache/
+runs/
+publish/
+anh-ve/
+__pycache__/
+node_modules/
+
+# Engine tải về bằng cai-dat.cmd / cai-comfyui.cmd (to, có giấy phép riêng); chỉ 2 project của repo này được giữ
+engines/*/
+!engines/hyperframes-academic/
+!engines/remotion-academic/
+engines/remotion-academic/public/jobs/
+
+# Giọng đọc làm sẵn (tải từ ElevenLabs / tự thu)
+content/audio/
+
+# Video đã render của ví dụ series AWS
+examples/aws-saa-series/output*/
+examples/aws-saa-series/studio/.cache/
+examples/aws-saa-series/studio/.preview/

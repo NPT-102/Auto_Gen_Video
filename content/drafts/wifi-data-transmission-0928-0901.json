@@ -1,0 +1,288 @@
+{
+  "id": "wifi-data-transmission",
+  "title": "Chuyện gì xảy ra trong 1 giây khi Wifi truyền dữ liệu?",
+  "voice": "vi-VN-HoaiMyNeural",
+  "scenes": [
+    {
+      "type": "title",
+      "say": "Trong một giây bạn lướt TikTok, cục Wifi đã biến đổi hình dạng sóng điện từ tới hàng tỷ lần. Không có dòng dữ liệu nào bay lơ lửng trong không khí cả, mà chỉ có các sóng vô tuyến thay đổi liên tục để truyền thông tin.",
+      "tag": "WIFI SECRETS",
+      "headline": [
+        [
+          "WIFI",
+          true
+        ],
+        [
+          "1 GIÂY",
+          false
+        ]
+      ],
+      "sub": "Bản chất thực sự của sóng vô tuyến",
+      "chips": [
+        {
+          "text": "Sóng điện từ",
+          "cue": "sóng điện từ"
+        },
+        {
+          "text": "Hàng tỷ lần",
+          "cue": "hàng tỷ lần"
+        }
+      ]
+    },
+    {
+      "type": "bullets",
+      "say": "Wifi sử dụng sóng vô tuyến ở hai tần số chính là 2.4 GHz và 5 GHz. Tần số 2.4 GHz có nghĩa là sóng dao động và đảo chiều khoảng 2.4 tỷ lần trong mỗi giây. Nó giúp phát đi các tín hiệu vô hình mắt thường không thể thấy.",
+      "kicker": "TẦN SỐ WIFI",
+      "heading": "Sóng vô tuyến 2.4 GHz và 5 GHz",
+      "items": [
+        {
+          "text": "Sóng vô tuyến",
+          "cue": "sóng vô tuyến"
+        },
+        {
+          "text": "Dao động 2.4 tỷ lần",
+          "cue": "dao động và đảo chiều khoảng 2.4 tỷ lần"
+        },
+        {
+          "text": "Tín hiệu vô hình",
+          "cue": "tín hiệu vô hình"
+        }
+      ]
+    },
+    {
+      "type": "compare",
+      "say": "Sóng 5 GHz truyền dữ liệu nhanh hơn nhưng có bước sóng ngắn hơn nên khả năng xuyên tường kém hơn nhiều so với 2.4 GHz. Giống như việc bạn dùng một chiếc đèn pin nhấp nháy bật tắt cực nhanh theo mã Morse để truyền tin.",
+      "kicker": "SO SÁNH TẦN SỐ",
+      "heading": "2.4 GHz khác gì 5 GHz?",
+      "left": {
+        "title": "2.4 GHz",
+        "points": [
+          "Xuyên tường tốt",
+          "Tốc độ thấp hơn"
+        ],
+        "cue": "so với 2.4 GHz"
+      },
+      "right": {
+        "title": "5 GHz",
+        "points": [
+          "Tốc độ cao hơn",
+          "Xuyên tường kém"
+        ],
+        "cue": "Sóng 5 GHz truyền dữ liệu nhanh"
+      }
+    },
+    {
+      "type": "flow",
+      "say": "Mọi dữ liệu như video hay hình ảnh đều được máy tính dịch thành chuỗi nhị phân chỉ gồm số 0 và 1. Dữ liệu số này sau đó được chuyển qua bộ điều chế để chuẩn bị phát ra ngoài không gian.",
+      "kicker": "LUỒNG DỮ LIỆU",
+      "heading": "Quy trình mã hóa dữ liệu số",
+      "direction": "down",
+      "groups": [
+        {
+          "id": "g1",
+          "label": "Xử lý dữ liệu",
+          "kind": "box",
+          "tone": "blue",
+          "parent": null
+        }
+      ],
+      "nodes": [
+        {
+          "id": "n1",
+          "label": "Dữ liệu gốc",
+          "icon": "🧠",
+          "group": "g1"
+        },
+        {
+          "id": "n2",
+          "label": "Mã nhị phân 0 và 1",
+          "icon": "🔢",
+          "group": "g1"
+        },
+        {
+          "id": "n3",
+          "label": "Bộ điều chế",
+          "icon": "🎛️",
+          "group": "g1"
+        }
+      ],
+      "edges": [
+        {
+          "from": "n1",
+          "to": "n2",
+          "label": "dịch",
+          "style": "solid"
+        },
+        {
+          "from": "n2",
+          "to": "n3",
+          "label": "chuyển",
+          "style": "flow"
+        }
+      ],
+      "steps": [
+        {
+          "cue": "chuỗi nhị phân chỉ gồm số 0 và 1",
+          "show": [
+            "n1",
+            "n2"
+          ],
+          "focus": [
+            "n2"
+          ]
+        },
+        {
+          "cue": "bộ điều chế để chuẩn bị",
+          "show": [
+            "n2",
+            "n3"
+          ],
+          "focus": [
+            "n3"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "compare",
+      "say": "Wifi truyền dữ liệu bằng cách thay đổi biên độ hoặc tần số của sóng để biểu diễn số 0 và 1. Công nghệ QAM hiện đại cho phép một đợt sóng mang theo nhiều bit dữ liệu cùng lúc bằng cách kết hợp thay đổi cả biên độ lẫn pha sóng.",
+      "kicker": "ĐIỀU CHẾ SÓNG",
+      "heading": "Cách sóng mang số 0 và 1",
+      "left": {
+        "title": "Biên độ & Tần số",
+        "points": [
+          "Thay đổi độ cao sóng",
+          "Biểu diễn 0 và 1"
+        ],
+        "cue": "thay đổi biên độ hoặc tần số"
+      },
+      "right": {
+        "title": "Công nghệ QAM",
+        "points": [
+          "Mang nhiều bit dữ liệu",
+          "Kết hợp pha sóng"
+        ],
+        "cue": "Công nghệ QAM trong Wifi"
+      }
+    },
+    {
+      "type": "stat",
+      "say": "Sóng Wifi truyền đi xấp xỉ tốc độ ánh sáng, khoảng gần 300000 km mỗi giây trong không khí. Khi bạn ấn gửi một tin nhắn Hi, điện thoại dịch chữ này thành mã nhị phân và phát sóng tương ứng qua anten.",
+      "kicker": "TỐC ĐỘ TRUYỀN",
+      "heading": "Tốc độ ánh sáng trong không gian",
+      "stats": [
+        {
+          "value": "300K",
+          "label": "km mỗi giây",
+          "cue": "khoảng gần 300000 km mỗi giây"
+        }
+      ]
+    },
+    {
+      "type": "tip",
+      "say": "Nhiều người lầm tưởng các file dữ liệu bay lơ lửng trong không khí. Thực chất, sóng Wifi chỉ làm rung động electron trong anten của thiết bị nhận, từ đó tạo ra tín hiệu điện.",
+      "label": "SAI LẦM PHỔ BIẾN",
+      "q_label": "TÌNH HUỐNG",
+      "a_label": "ĐÁP ÁN",
+      "question": "File dữ liệu có thực sự bay lơ lửng trong không khí không?",
+      "answer": "Không, chỉ có sóng điện từ",
+      "answer_cue": "Wifi chỉ làm rung động electron"
+    },
+    {
+      "type": "flow",
+      "say": "Anten trên điện thoại nhận sóng và chuyển đổi các dao động điện từ này ngược lại thành dòng điện. Chip xử lý sẽ giải mã chúng thành video hoặc hình ảnh mà bạn đang xem trên màn hình.",
+      "kicker": "THIẾT BỊ NHẬN",
+      "heading": "Giải mã tín hiệu tại điện thoại",
+      "direction": "down",
+      "groups": [
+        {
+          "id": "g2",
+          "label": "Xử lý nhận sóng",
+          "kind": "box",
+          "tone": "green",
+          "parent": null
+        }
+      ],
+      "nodes": [
+        {
+          "id": "n4",
+          "label": "Anten điện thoại",
+          "icon": "📡",
+          "group": "g2"
+        },
+        {
+          "id": "n5",
+          "label": "Dòng điện dao động",
+          "icon": "⚡",
+          "group": "g2"
+        },
+        {
+          "id": "n6",
+          "label": "Chip giải mã video",
+          "icon": "🧩",
+          "group": "g2"
+        }
+      ],
+      "edges": [
+        {
+          "from": "n4",
+          "to": "n5",
+          "label": "thu",
+          "style": "solid"
+        },
+        {
+          "from": "n5",
+          "to": "n6",
+          "label": "giải mã",
+          "style": "flow"
+        }
+      ],
+      "steps": [
+        {
+          "cue": "Anten trên điện thoại nhận sóng",
+          "show": [
+            "n4",
+            "n5"
+          ],
+          "focus": [
+            "n4"
+          ]
+        },
+        {
+          "cue": "Chip xử lý sẽ giải mã",
+          "show": [
+            "n5",
+            "n6"
+          ],
+          "focus": [
+            "n6"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "next",
+      "say": "Tương lai công nghệ có thể truyền dữ liệu bằng ánh sáng nhanh gấp hàng trăm lần Wifi truyền thống. Hãy bấm lưu video, theo dõi kênh và cho biết bạn đang dùng mạng mấy G nhé!",
+      "label": "TƯƠNG LAI CÔNG NGHỆ",
+      "title": "Li-Fi Truyền Bằng Ánh Sáng",
+      "sub": "Đăng ký kênh để khám phá thêm nhiều kiến thức công nghệ thú vị!"
+    }
+  ],
+  "diagrams": {},
+  "stock_terms": [
+    "wireless router electromagnetic waves",
+    "binary code data stream",
+    "smartphone internet connection",
+    "radio frequency spectrum",
+    "fiber optic speed"
+  ],
+  "description": "Bạn có tò mò cục Wifi nhà mình đang làm gì để truyền mạng đến điện thoại? Hãy để lại bình luận công nghệ bạn muốn khám phá tiếp nhé!",
+  "hashtags": [
+    "khoahocthuvi",
+    "congnghe",
+    "wifi",
+    "kienthuc",
+    "techshorts"
+  ],
+  "angle": "Wifi không phải là luồng dữ liệu chạy trong không khí, mà là hàng tỷ đợt biến đổi hình dạng sóng điện từ siêu tốc để dịch chuyển các số 0 và 1"
+}

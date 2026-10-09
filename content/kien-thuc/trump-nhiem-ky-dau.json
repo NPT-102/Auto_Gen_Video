@@ -1,0 +1,357 @@
+{
+  "id": "trump-nhiem-ky-dau",
+  "title": "Nhiệm kỳ đầu của Donald Trump (2017–2021): ông đã làm gì?",
+  "voice": "vi-VN-HoaiMyNeural",
+  "diagrams": {},
+  "image_source": "commons",
+  "stock_terms": [
+    "white house",
+    "us capitol",
+    "american flag"
+  ],
+  "description": "8 dấu mốc nhiệm kỳ đầu của Donald Trump (2017–2021): TPP, Hiệp định Paris, cải cách thuế, 3 thẩm phán Tòa án Tối cao, thuế quan với Trung Quốc và USMCA, thượng đỉnh Singapore, Hiệp định Abraham, Warp Speed — và hai lần bị luận tội.",
+  "hashtags": [
+    "lichsu",
+    "kienthuc",
+    "donaldtrump",
+    "nuocmy",
+    "chinhtri"
+  ],
+  "scenes": [
+    {
+      "type": "title",
+      "say": "Bốn năm đầu ở Nhà Trắng, từ 2017 đến 2021, Donald Trump đã làm những gì? Đây là những dấu mốc lớn nhất.",
+      "tag": "LỊCH SỬ NƯỚC MỸ",
+      "headline": [
+        [
+          "NHIỆM KỲ ĐẦU",
+          true
+        ],
+        [
+          "CỦA TRUMP",
+          false
+        ]
+      ],
+      "sub": "2017–2021: những dấu mốc lớn nhất"
+    },
+    {
+      "type": "bullets",
+      "say": "Ngay tuần đầu tiên, ông ký hàng loạt sắc lệnh, trong đó có quyết định rút Mỹ khỏi Hiệp định Đối tác xuyên Thái Bình Dương TPP. Tháng 6 năm 2017, tại Vườn Hồng của Nhà Trắng, ông tuyên bố rút khỏi Hiệp định khí hậu Paris.",
+      "kicker": "NĂM 2017",
+      "heading": "Rút khỏi hai hiệp định lớn",
+      "items": [
+        {
+          "text": "Rút khỏi TPP",
+          "cue": "rút Mỹ khỏi Hiệp định Đối tác xuyên Thái Bình Dương"
+        },
+        {
+          "text": "Rút khỏi Hiệp định Paris",
+          "cue": "rút khỏi Hiệp định khí hậu Paris"
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "say": "Cuối năm 2017, luật cải cách thuế lớn nhất kể từ năm 1986 được Quốc hội thông qua và ông ký ban hành, hạ thuế thu nhập doanh nghiệp từ 35 xuống 21 phần trăm.",
+      "kicker": "THUẾ",
+      "heading": "Cải cách thuế 2017",
+      "stats": [
+        {
+          "value": "35% → 21%",
+          "label": "thuế thu nhập doanh nghiệp",
+          "cue": "từ 35 xuống 21 phần trăm"
+        }
+      ]
+    },
+    {
+      "type": "bullets",
+      "say": "Ông bổ nhiệm ba thẩm phán Tòa án Tối cao: Neil Gorsuch, Brett Kavanaugh và Amy Coney Barrett.",
+      "kicker": "TÒA ÁN TỐI CAO",
+      "heading": "Ba thẩm phán",
+      "items": [
+        {
+          "text": "Neil Gorsuch (2017)",
+          "cue": "Neil Gorsuch"
+        },
+        {
+          "text": "Brett Kavanaugh (2018)",
+          "cue": "Brett Kavanaugh"
+        },
+        {
+          "text": "Amy Coney Barrett (2020)",
+          "cue": "Amy Coney Barrett"
+        }
+      ]
+    },
+    {
+      "type": "compare",
+      "say": "Về thương mại, ông áp thuế lên hàng trăm tỷ đô la hàng hóa Trung Quốc, rồi gặp Chủ tịch Tập Cận Bình để đàm phán. Ông cũng thay Hiệp định NAFTA bằng hiệp định USMCA với Mexico và Canada.",
+      "kicker": "THƯƠNG MẠI",
+      "heading": "Thuế quan và USMCA",
+      "left": {
+        "title": "Trung Quốc",
+        "points": [
+          "Thuế lên hàng trăm tỷ đô la hàng hóa"
+        ],
+        "cue": "áp thuế lên hàng trăm tỷ đô la"
+      },
+      "right": {
+        "title": "USMCA",
+        "points": [
+          "Thay NAFTA",
+          "Mexico và Canada"
+        ],
+        "cue": "thay Hiệp định NAFTA"
+      }
+    },
+    {
+      "type": "stat",
+      "say": "Tháng 6 năm 2018 tại Singapore, ông trở thành tổng thống Mỹ đương nhiệm đầu tiên gặp lãnh đạo Triều Tiên Kim Jong Un.",
+      "kicker": "NGOẠI GIAO",
+      "heading": "Thượng đỉnh Singapore",
+      "stats": [
+        {
+          "value": "12/6/2018",
+          "label": "gặp Kim Jong Un tại Singapore",
+          "cue": "Tháng 6 năm 2018"
+        }
+      ]
+    },
+    {
+      "type": "bullets",
+      "say": "Năm 2020, Hiệp định Abraham giúp Israel bình thường hóa quan hệ với Các Tiểu vương quốc Ả Rập Thống nhất và Bahrain. Cùng năm, chiến dịch Warp Speed rót tiền để tăng tốc phát triển vắc xin COVID-19.",
+      "kicker": "NĂM 2020",
+      "heading": "Abraham và Warp Speed",
+      "items": [
+        {
+          "text": "Hiệp định Abraham",
+          "cue": "Hiệp định Abraham"
+        },
+        {
+          "text": "Chiến dịch Warp Speed",
+          "cue": "chiến dịch Warp Speed"
+        }
+      ]
+    },
+    {
+      "type": "bullets",
+      "say": "Nhưng nhiệm kỳ cũng đầy tranh cãi: ông bị Hạ viện luận tội hai lần, năm 2019 và 2021, và đều được Thượng viện tuyên trắng án. Ông thua Joe Biden trong cuộc bầu cử năm 2020.",
+      "kicker": "TRANH CÃI",
+      "heading": "Hai lần bị luận tội",
+      "items": [
+        {
+          "text": "Bị luận tội 2019 và 2021",
+          "cue": "bị Hạ viện luận tội hai lần"
+        },
+        {
+          "text": "Thua bầu cử 2020",
+          "cue": "thua Joe Biden"
+        }
+      ]
+    },
+    {
+      "type": "next",
+      "say": "Năm 2024, ông tái đắc cử và trở lại Nhà Trắng từ tháng 1 năm 2025. Lưu video lại và cho mình biết bạn ấn tượng nhất với dấu mốc nào nhé.",
+      "label": "TIẾP THEO",
+      "title": "Nhiệm kỳ thứ hai từ 2025",
+      "sub": "Bạn ấn tượng nhất với dấu mốc nào?"
+    }
+  ],
+  "image_pins": [
+    {
+      "match": "Bốn năm đầu ở Nhà Trắng",
+      "files": [
+        "File:A rainbow is seen over the North Portico of the White House, Saturday, May 11, 2024.jpg"
+      ]
+    },
+    {
+      "match": "từ 2017 đến 2021",
+      "files": [
+        "File:Donald Trump swearing in ceremony.jpg"
+      ]
+    },
+    {
+      "match": "Donald Trump đã làm những gì",
+      "files": [
+        "File:Donald Trump official portrait.jpg"
+      ]
+    },
+    {
+      "match": "Đây là những dấu mốc lớn nhất",
+      "files": [
+        "File:Donald Trump in the Oval Office, June 2017.jpg"
+      ]
+    },
+    {
+      "match": "ông ký hàng loạt sắc lệnh",
+      "files": [
+        "File:President Donald Trump signs a series of Executive Orders and Presidential Memoranda in the Oval Office.jpg"
+      ]
+    },
+    {
+      "match": "rút Mỹ khỏi Hiệp định Đối tác xuyên Thái Bình Dương",
+      "files": [
+        "File:Trade Ministers from Trans-Pacific (TPP) Meeting in Vladivostok (7940097642).jpg",
+        "File:Secretary Kerry, U.S. Trade Representative Froman Prepare for the Trans-Pacific Partnership Discussion (10151813153).jpg"
+      ]
+    },
+    {
+      "match": "Tháng 6 năm 2017",
+      "files": [
+        "File:Photo of the Day- 6-2-17 (34984170241).jpg"
+      ]
+    },
+    {
+      "match": "tại Vườn Hồng của Nhà Trắng",
+      "files": [
+        "File:Donald Trump, speech with teleprompters, 2017 (cropped).jpg"
+      ]
+    },
+    {
+      "match": "ông tuyên bố rút khỏi Hiệp định khí hậu Paris",
+      "files": [
+        "File:COP21 participants - 30 Nov 2015 (23430273715).jpg"
+      ]
+    },
+    {
+      "match": "Cuối năm 2017",
+      "files": [
+        "File:Donald and Melania Trump's Christmas portrait.jpg"
+      ]
+    },
+    {
+      "match": "luật cải cách thuế lớn nhất",
+      "files": [
+        "File:President Donald J. Trump, Vice President Mike Pence, and Republican Legislators celebrate the passage of the Tax Cuts Act.jpg",
+        "File:Trump, Pence, Ryan, McConnell celebrate tax cut passage.jpg"
+      ]
+    },
+    {
+      "match": "hạ thuế thu nhập doanh nghiệp",
+      "files": [
+        "File:Pence, Cohn, and Mnuchin watch tax reform vote.jpg"
+      ]
+    },
+    {
+      "match": "Ông bổ nhiệm ba thẩm phán",
+      "files": [
+        "File:Supreme Court of the United States - Roberts Court 2022.jpg"
+      ]
+    },
+    {
+      "match": "Neil Gorsuch, Brett Kavanaugh và Amy Coney Barrett",
+      "files": [
+        "File:President Trump's First 100 Days- 75 (34224813582).jpg",
+        "File:Kavanaugh swearing in ceremony 01.jpg",
+        "File:The Swearing-in Ceremony of the Honorable Amy Coney Barrett (50547408416).jpg"
+      ]
+    },
+    {
+      "match": "hàng hóa Trung Quốc",
+      "files": [
+        "File:Port of Shanghai, Yangshan Deep-water Harbour Zone, 02.jpg",
+        "File:Shanghai-Yangshan-Port-Containers2013-01.JPG"
+      ]
+    },
+    {
+      "match": "gặp Chủ tịch Tập Cận Bình",
+      "files": [
+        "File:Donald Trump and Xi Jinping meets at 2018 G20 Summit.jpg"
+      ]
+    },
+    {
+      "match": "hiệp định USMCA",
+      "files": [
+        "File:President Trump at the Signing Ceremony of the USMCA (49461508121).jpg",
+        "File:President Trump at the Signing Ceremony for the USMCA (49461675627).jpg",
+        "File:President Trump at the Signing Ceremony for the USMCA (49461675947).jpg"
+      ]
+    },
+    {
+      "match": "Tháng 6 năm 2018 tại Singapore",
+      "files": [
+        "File:Kim and Trump shaking hands at the red carpet during the DPRK–USA Singapore Summit.jpg"
+      ]
+    },
+    {
+      "match": "gặp lãnh đạo Triều Tiên Kim Jong Un",
+      "files": [
+        "File:Trump and Kim walk to the Summit Room.jpg",
+        "File:Trump Kim Summit at the Capella Hotel (3).jpg"
+      ]
+    },
+    {
+      "match": "Năm 2020",
+      "files": [
+        "File:President Trump and The First Lady Participate in an Abraham Accords Signing Ceremony.jpg"
+      ]
+    },
+    {
+      "match": "Hiệp định Abraham",
+      "files": [
+        "File:President Trump and The First Lady Participate in an Abraham Accords Signing Ceremony - 50346838107.jpg",
+        "File:President Trump and The First Lady Participate in an Abraham Accords Signing Ceremony (50345635098).jpg",
+        "File:President Trump and The First Lady Participate in an Abraham Accords Signing Ceremony (50349055912).jpg"
+      ]
+    },
+    {
+      "match": "chiến dịch Warp Speed",
+      "files": [
+        "File:Operation Warp Speed Vaccine Event (50705630898).jpg",
+        "File:Operation Warp Speed Vaccine Event (50706451422).jpg",
+        "File:Operation Warp Speed Vaccine Event (50705630748).jpg"
+      ]
+    },
+    {
+      "match": "nhiệm kỳ cũng đầy tranh cãi",
+      "files": [
+        "File:Pelosi announcing the results of impeachment.jpg"
+      ]
+    },
+    {
+      "match": "ông bị Hạ viện luận tội hai lần",
+      "files": [
+        "File:House of Representatives Votes to Adopt the Articles of Impeachment Against Donald Trump.jpg"
+      ]
+    },
+    {
+      "match": "năm 2019 và 2021",
+      "files": [
+        "File:Patrick Leahy signs summons for the impeachment trial of Donald Trump 01.jpg"
+      ]
+    },
+    {
+      "match": "Thượng viện tuyên trắng án",
+      "files": [
+        "File:Chief Justice John Roberts presides over the impeachment trial of Donald Trump.jpg"
+      ]
+    },
+    {
+      "match": "Ông thua Joe Biden",
+      "files": [
+        "File:Joe Biden 2020 (cropped) 2.jpg",
+        "File:Biden takes presidential oath of office, 2021 (50911775498).jpg"
+      ]
+    },
+    {
+      "match": "Năm 2024",
+      "files": [
+        "File:Donald Trump rally Grappone Conference Center Concord NH January 2024 02.jpg"
+      ]
+    },
+    {
+      "match": "trở lại Nhà Trắng từ tháng 1 năm 2025",
+      "files": [
+        "File:Donald Trump takes the oath of office (2025).jpg",
+        "File:President Donald Trump is sworn in for a second term.jpg"
+      ]
+    },
+    {
+      "match": "Lưu video lại",
+      "files": [
+        "File:The White House North Portico in Washington, D.C.jpg",
+        "File:North Portico of the White House photo Don Ramey Logan.jpg"
+      ]
+    }
+  ]
+}

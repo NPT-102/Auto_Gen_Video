@@ -1,0 +1,129 @@
+{
+  "id": "s3-standard-vs-glacier",
+  "title": "Amazon S3 Glacier khác gì S3 Standard? Khi nào nên dùng",
+  "voice": "vi-VN-HoaiMyNeural",
+  "scenes": [
+    {
+      "type": "title",
+      "say": "Khi triển khai dự án trên đám mây Amazon Web Services, bạn nên chọn S3 Standard hay S3 Glacier để vừa chạy mượt vừa tiết kiệm ngân sách?",
+      "tag": "AWS STORAGE",
+      "headline": [
+        [
+          "S3",
+          true
+        ],
+        [
+          "GLACIER",
+          false
+        ]
+      ],
+      "sub": "So sánh S3 Standard và Glacier",
+      "chips": [
+        {
+          "text": "S3 Standard",
+          "cue": "S3 Standard"
+        },
+        {
+          "text": "S3 Glacier",
+          "cue": "S3 Glacier"
+        }
+      ]
+    },
+    {
+      "type": "compare",
+      "say": "S3 Standard được thiết kế cho dữ liệu cần truy cập thường xuyên với độ trễ thấp, trong khi S3 Glacier sinh ra để lưu trữ dữ liệu dạng kho lưu trữ lâu năm.",
+      "kicker": "MỤC ĐÍCH",
+      "heading": "Khác biệt cốt lõi",
+      "left": {
+        "title": "S3 Standard",
+        "points": [
+          "Dữ liệu dùng liên tục",
+          "Tốc độ phản hồi cao"
+        ],
+        "cue": "S3 Standard được thiết kế"
+      },
+      "right": {
+        "title": "S3 Glacier",
+        "points": [
+          "Lưu trữ dạng kho",
+          "Dữ liệu ít khi đụng"
+        ],
+        "cue": "S3 Glacier sinh ra"
+      }
+    },
+    {
+      "type": "stat",
+      "say": "Điểm hấp dẫn nhất của S3 Glacier nằm ở giá thành, khi chi phí lưu trữ mỗi tháng có thể rẻ hơn tới 80 phần trăm so với S3 Standard.",
+      "kicker": "CHI PHÍ",
+      "heading": "Tiết kiệm ngân sách",
+      "stats": [
+        {
+          "value": "80",
+          "label": "phần trăm rẻ hơn",
+          "cue": "80 phần trăm"
+        }
+      ]
+    },
+    {
+      "type": "bullets",
+      "say": "Tuy nhiên, Glacier không thể tải ngay, bạn mất từ vài phút đến cả chục tiếng để truy xuất, trong khi Standard tải dữ liệu chỉ trong mili giây.",
+      "kicker": "TRUY XUẤT",
+      "heading": "Thời gian phản hồi",
+      "items": [
+        {
+          "text": "Glacier: Vài phút đến vài giờ",
+          "cue": "mất từ vài phút"
+        },
+        {
+          "text": "Standard: Tính bằng mili giây",
+          "cue": "chỉ trong mili giây"
+        }
+      ]
+    },
+    {
+      "type": "bullets",
+      "say": "Vì vậy, hãy chọn Standard cho ảnh website và ứng dụng trực tiếp, và dùng Glacier cho bản sao lưu định kỳ cùng hồ sơ tài chính lâu năm.",
+      "kicker": "SỬ DỤNG",
+      "heading": "Khi nào nên dùng?",
+      "items": [
+        {
+          "text": "S3: Ảnh web và app",
+          "cue": "ảnh website"
+        },
+        {
+          "text": "Glacier: Bản backup và hồ sơ",
+          "cue": "sao lưu định kỳ"
+        }
+      ]
+    },
+    {
+      "type": "tip",
+      "say": "Làm sao kết hợp cả hai giải pháp một cách tự động? Câu trả lời là cấu hình S3 Lifecycle Rules.",
+      "question": "Làm sao tự động tối ưu chi phí giữa Standard và Glacier?",
+      "answer": "Bật S3 Lifecycle Rules",
+      "answer_cue": "Câu trả lời là"
+    },
+    {
+      "type": "next",
+      "say": "Theo dõi kênh ngay hôm nay để nhận thêm nhiều chiến lược tối ưu chi phí cloud thông minh và hiệu quả.",
+      "title": "Tối ưu chi phí Cloud",
+      "sub": "Đón xem các mẹo kiến trúc AWS tiếp theo"
+    }
+  ],
+  "diagrams": {},
+  "stock_terms": [
+    "cloud storage server room",
+    "cloud computing architecture",
+    "data backup archive",
+    "server racks datacenter",
+    "cloud migration network"
+  ],
+  "description": "So sánh Amazon S3 Standard và S3 Glacier để chọn đúng giải pháp lưu trữ và tối ưu tới 80 phần trăm chi phí AWS.",
+  "hashtags": [
+    "aws",
+    "cloudcomputing",
+    "amazons3",
+    "devops",
+    "cloudtips"
+  ]
+}
