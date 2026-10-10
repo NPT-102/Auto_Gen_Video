@@ -29,34 +29,41 @@ và Chrome/Chromium nếu máy chưa có. Installer chỉ kiểm tra các phần
 Từ thư mục repo, cấu hình nhẹ phù hợp máy chỉ có GPU tích hợp:
 
 ```bash
-python3 cai-dat.py --engines hyperframes remotion broll --with-whisper
+uv run --no-project --python 3.12 python cai-dat.py --engines hyperframes remotion broll
 # Mở .env bằng editor và điền GEMINI_API_KEY và PIXABAY_API_KEY (hoặc PEXELS_API_KEY).
-python3 chay-web.py
+source .venv/bin/activate
+python chay-web.py
 ```
 
 Web chạy ở **http://127.0.0.1:8600**, tự mở trình duyệt sau khi server sẵn sàng. **Ctrl+C** dừng server.
-Qua SSH hoặc không muốn mở trình duyệt: `python3 chay-web.py --no-browser`. Đổi cổng: `--port 8601` hoặc
+Qua SSH hoặc không muốn mở trình duyệt: `python chay-web.py --no-browser` (sau khi kích hoạt `.venv`). Đổi cổng: `--port 8601` hoặc
 `FACTORY_PORT=8601` trong `.env`. Chrome/Chromium được tìm trong `PATH`; có thể chỉ định `CHROME_PATH=/usr/bin/chromium`.
 
 Không cần GPU để dựng video hoặc dùng VieNeu trên CPU. Có thể đặt `FACTORY_PARALLEL=1` trong `.env` để giảm số render
 đồng thời. Thiếu key Pixabay/Pexels thì engine stock báo chưa sẵn sàng; video slide có `"images": false` không cần stock.
 Viết nháp tự động vẫn cần key Gemini. VieNeu chạy trong một server riêng: xem hướng dẫn giọng VieNeu bên dưới.
 
-Các lệnh Python:
+Các lệnh Python (sau khi kích hoạt `.venv`):
 
 | Lệnh | Công dụng |
 |---|---|
-| `python3 cai-dat.py` | Cài cả 6 engine; giữ nguyên checkout đã có, không xoá thay đổi của bạn |
-| `python3 cai-dat.py --check --engines hyperframes remotion` | Chỉ kiểm tra phần mềm và tình trạng; không cài hoặc tạo `.env` |
-| `python3 vf-python.py -m factory.status` | Chạy Python trong `.venv` từ thư mục gốc repo |
-| `python3 vf-python.py -m factory.try_engine hyperframes content/demo/flow-demo.json` | Thử một engine |
-| `python3 cai-comfyui.py --device cpu` | Cài ComfyUI riêng và model SDXL (~7 GB), tuỳ chọn |
-| `python3 chay-comfyui.py` | Bật ComfyUI bằng thiết bị đã chọn lúc cài |
+| `python cai-dat.py` | Cài cả 6 engine; giữ nguyên checkout đã có, không xoá thay đổi của bạn |
+| `python cai-dat.py --check --engines hyperframes remotion` | Chỉ kiểm tra phần mềm và tình trạng; không cài hoặc tạo `.env` |
+| `python vf-python.py -m factory.status` | Chạy Python trong `.venv` từ thư mục gốc repo |
+| `python vf-python.py -m factory.try_engine hyperframes content/demo/flow-demo.json` | Thử một engine |
+| `python cai-comfyui.py --device cpu` | Cài ComfyUI riêng và model SDXL (~7 GB), tuỳ chọn |
+| `python chay-comfyui.py` | Bật ComfyUI bằng thiết bị đã chọn lúc cài |
 
 Installer mặc định dùng Python 3.12 do uv quản lý. Nếu muốn dùng Python đã cài, thêm `--python /usr/bin/python3`
 (các engine bên ngoài có thể cần đúng phiên bản của chúng). Có thể chọn engine bằng `--engines`;
-`--with-whisper` cài faster-whisper vào môi trường factory cho căn phụ đề VieNeu. Dùng lại flag này khi chạy lại
-installer vì `uv sync` có thể gỡ thư viện cài bổ sung. Khi đã cài MoneyPrinterTurbo, Whisper có sẵn trong venv của engine đó.
+factory có sẵn **faster-whisper 1.2.1** và **PyAV < 19** cho căn phụ đề VieNeu. Các phụ thuộc này được khai báo
+trong `pyproject.toml` và ghim trong `uv.lock`; `uv sync --locked` giữ chúng trong `.venv`. Flag `--with-whisper`
+được chấp nhận để tương thích với các lệnh cài đặt cũ, không cần cho cài đặt thông thường.
+
+Sau khi cài, kích hoạt `.venv` trong mỗi terminal Linux bằng `source .venv/bin/activate`; từ đó dùng `python`
+thay cho `python3` trong các lệnh của repo. `python` trỏ tới interpreter của dự án. Có thể chạy không cần kích hoạt
+bằng `uv run --locked python chay-web.py`. Khi cập nhật các phụ thuộc đã ghim, chạy `uv sync --locked` từ thư mục gốc.
+Các môi trường engine bên ngoài, bao gồm VieNeu, được quản lý riêng.
 
 Pixelle cần Chromium riêng của Playwright; installer tải trình duyệt này. Nếu thiếu thư viện hệ thống của trình duyệt,
 chạy `engines/pixelle-video/.venv/bin/python -m playwright install-deps chromium` theo hướng dẫn Playwright (có thể cần sudo).
@@ -201,7 +208,8 @@ cd video-factory
 uv run --no-project --python 3.12 python cai-dat.py
 ```
 
-Trên Windows, dùng `uv run --no-project --python 3.12 python` thay cho `python3` trong các lệnh bên dưới.
+Installer chạy bằng `uv run --no-project --python 3.12 python cai-dat.py` trên cả Linux và Windows.
+Sau khi cài, các lệnh `python` dùng môi trường `.venv` đã kích hoạt (xem mục 6).
 Installer Python chạy lại được:
 
 1. kiểm tra Git, uv, Node.js, FFmpeg, Chrome — thiếu thì báo và dừng
@@ -212,7 +220,7 @@ Installer Python chạy lại được:
 5. chép key Gemini / Pexels từ `.env` sang `config.toml` của MoneyPrinterTurbo
 6. in tình trạng: key nào đã có, engine nào sẵn sàng
 
-Cuối cùng thấy `[ok]` ở cả 6 engine là xong. Chỉ xem lại tình trạng: `python3 cai-dat.py --check`.
+Cuối cùng thấy `[ok]` ở cả 6 engine là xong. Chỉ xem lại tình trạng: `python cai-dat.py --check`.
 
 ## 5. Điền key
 
@@ -228,8 +236,20 @@ Lưu file rồi **chạy lại `cai-dat.py`** để key được chép sang Mone
 
 ## 6. Chạy web
 
-Chạy **`python3 chay-web.py`** trong terminal. Trình duyệt tự mở <http://127.0.0.1:8600> khi server sẵn sàng.
-**Ctrl+C dừng web.** Báo cổng 8600 đang được dùng nghĩa là web đã chạy sẵn ở cửa sổ khác — cứ mở địa chỉ trên.
+Từ thư mục gốc repo, trên Linux:
+
+```bash
+source .venv/bin/activate
+python chay-web.py
+```
+
+Trên Windows PowerShell: `.venv\Scripts\Activate.ps1` rồi `python chay-web.py`.
+Hoặc trên cả hai hệ điều hành: `uv run --locked python chay-web.py`.
+Trình duyệt tự mở <http://127.0.0.1:8600> khi server sẵn sàng. **Ctrl+C dừng web.**
+Báo cổng 8600 đang được dùng nghĩa là web đã chạy ở cửa sổ khác — cứ mở địa chỉ trên.
+
+**Launcher chỉ bật Video Factory.** Nếu chọn giọng VieNeu, cần bật speech API trong terminal riêng theo hướng dẫn
+bên dưới và giữ cả hai server chạy trong lúc tạo video.
 
 Các ô engine ở đầu trang: chấm xanh lá là sẵn sàng, chấm vàng là chưa (rê chuột vào để xem lý do).
 
@@ -267,34 +287,52 @@ Factory gọi [speech API v3 Turbo của VieNeu](https://github.com/pnnbao97/Vie
 qua mạng cục bộ; không cài model VieNeu vào môi trường của factory. Server cục bộ không cần API key, trừ khi bạn
 tự bật xác thực. Việc này không thay thế key Gemini/Pexels cho viết nháp và lấy stock.
 
-1. Cài VieNeu trong **thư mục riêng** theo [hướng dẫn chính thức](https://github.com/pnnbao97/VieNeu-TTS).
-   Ví dụ CPU (không cần GPU), chạy trong terminal riêng và giữ cửa sổ mở:
+**Cài đặt một lần** từ thư mục gốc Video Factory:
 
-   ```powershell
-   git clone https://github.com/pnnbao97/VieNeu-TTS.git
-   cd VieNeu-TTS
-   uv sync
-   uv run python -m apps.openai_speech
-   ```
+```bash
+git clone https://github.com/pnnbao97/VieNeu-TTS.git engines/VieNeu-TTS
+cd engines/VieNeu-TTS
+uv sync
+cd ../..
+uv sync --locked
+```
 
-   Server mặc định ở `http://127.0.0.1:8000`; lần đầu tải và nạp model cần thời gian. Muốn dùng GPU, làm theo
-   hướng dẫn CUDA của VieNeu trước khi bật server.
+Nếu đã có checkout VieNeu, dùng thư mục đó thay cho `engines/VieNeu-TTS`; không cần clone lại.
+VieNeu có `.venv` riêng và dùng CPU/ONNX trong cấu hình dưới đây. Muốn dùng GPU, làm theo
+[hướng dẫn CUDA chính thức](https://github.com/pnnbao97/VieNeu-TTS) trước khi bật server.
 
-2. Factory dùng **faster-whisper** để căn mốc từng chữ trên giọng VieNeu. Nếu đã cài MoneyPrinterTurbo bằng
-   `cai-dat.py`, hệ thống dùng môi trường Whisper của engine đó. Nếu chỉ dùng engine slide và chưa cài
-   MoneyPrinterTurbo, cài thêm vào môi trường factory (chạy ở thư mục Video Factory):
+**Mỗi lần sử dụng**, mở hai terminal:
 
-   ```powershell
-   uv pip install --python .venv faster-whisper
-   ```
+Terminal 1 — từ thư mục gốc Video Factory, bật VieNeu trên Linux:
 
-   Lệnh `uv sync` sau này có thể gỡ thư viện cài bổ sung; khi đó cài lại lệnh trên. Hoặc đặt `ALIGN_PYTHON`
-   trong `.env` tới interpreter của một môi trường riêng đã cài faster-whisper. Whisper tải model `small`
-   khi dùng lần đầu, xử lý trên CPU; mốc các chữ không nhận diện được sẽ được nội suy từ chữ khớp gần nhất.
+```bash
+cd engines/VieNeu-TTS
+VIENEU_BACKEND=onnx uv run python -m apps.openai_speech
+```
 
-3. Trên web, mở kịch bản → **Giọng đọc video → VieNeu-TTS** → chọn tên giọng từ gợi ý (ví dụ `Mai Anh`).
-   Để trống dùng `VIENEU_VOICE` trong `.env`, mặc định `Hải Đăng`. Bấm **Tải lại danh sách giọng** nếu vừa bật server.
-   Bấm **Lưu thay đổi** để giữ lựa chọn trong kịch bản, rồi **Tạo video**.
+Trên Windows PowerShell, đặt `$env:VIENEU_BACKEND="onnx"` rồi chạy `uv run python -m apps.openai_speech`
+trong thư mục VieNeu. Server mặc định ở `http://127.0.0.1:8000`. Đợi server hoàn tất khởi động;
+lần đầu tải và nạp model cần thời gian. **Giữ terminal này mở** trong suốt quá trình tạo video.
+
+Terminal 2 — từ thư mục gốc Video Factory, bật web trên Linux:
+
+```bash
+source .venv/bin/activate
+python chay-web.py
+```
+
+Nếu web đã chạy, giữ nguyên terminal của web. Trên web, mở kịch bản → **Giọng đọc video → VieNeu-TTS** →
+**Tải lại danh sách giọng** → chọn tên giọng từ gợi ý (ví dụ `Mai Anh`) → **Lưu thay đổi** → **Tạo video**.
+Để trống tên giọng dùng `VIENEU_VOICE` trong `.env`, mặc định `Hải Đăng`.
+
+Có thể kiểm tra server từ terminal khác bằng `curl http://127.0.0.1:8000/v1/voices` (khi chưa bật Bearer auth).
+Nếu chỉ muốn dùng Edge TTS, chọn Edge trên web; không cần bật server VieNeu.
+
+**Phụ đề:** factory có sẵn faster-whisper và PyAV tương thích. Whisper tải model `small` khi dùng lần đầu,
+xử lý trên CPU; mốc các chữ không nhận diện được được nội suy từ chữ khớp gần nhất. Nếu MoneyPrinterTurbo
+đã cài, factory ưu tiên môi trường Whisper của engine đó; có thể đặt `ALIGN_PYTHON` trong `.env` tới interpreter
+của một môi trường riêng có faster-whisper và `av>=11,<19`. Khi server hoặc Whisper lỗi, sửa nguyên nhân rồi
+bấm **Chạy lại** ở engine bị lỗi.
 
 Thiết lập `.env` tuỳ chọn: `VIENEU_URL=http://127.0.0.1:8000`, `VIENEU_VOICE=Hải Đăng`,
 `VIENEU_API_KEY=<key server nếu đã bật Bearer auth>`. `VIENEU_URL` cũng nhận URL kết thúc bằng `/v1`.
@@ -315,8 +353,8 @@ cho máy GPU tích hợp, ảnh/clip Pexels là lựa chọn nhẹ hơn. Phần 
 ### 8.1 Cài (một lần)
 
 ```bash
-python3 cai-comfyui.py --device cpu
-python3 chay-comfyui.py
+python cai-comfyui.py --device cpu
+python chay-comfyui.py
 ```
 
 Installer tải ComfyUI v0.38.0 từ GitHub, cài PyTorch CPU và requirements trong venv riêng, rồi tải checkpoint
@@ -327,7 +365,7 @@ Launcher lưu và dùng lại thiết bị đã chọn. Bản portable Windows �
 
 ### 8.2 Dùng khi làm video
 
-1. Chạy **`python3 chay-comfyui.py`**, chờ dòng `To see the GUI go to: http://127.0.0.1:8188`. **Để cửa sổ này mở** suốt lúc
+1. Chạy **`python chay-comfyui.py`**, chờ dòng `To see the GUI go to: http://127.0.0.1:8188`. **Để cửa sổ này mở** suốt lúc
    tạo video (đóng là tắt ComfyUI).
 2. Chọn nguồn ảnh — một trong hai cách:
    - cho **một kịch bản**: thêm vào đầu file JSON (cùng cấp với `"title"`): `"image_source": "comfyui",`
@@ -363,8 +401,8 @@ về người thật dùng ảnh thật — [mục 9](#9-ảnh-thật-cho-ngư�
 Bật `chay-comfyui.py`, rồi ở thư mục gốc:
 
 ```powershell
-python3 vf-python.py -m factory.ve_anh "a misty lotus pond at dawn, soft golden light" -n 4
-python3 vf-python.py -m factory.ve_anh "hồ sen buổi sớm có sương" --dich -n 4
+python vf-python.py -m factory.ve_anh "a misty lotus pond at dawn, soft golden light" -n 4
+python vf-python.py -m factory.ve_anh "hồ sen buổi sớm có sương" --dich -n 4
 ```
 
 Ảnh dọc 768×1344 lưu ở `anh-ve\<ngày-giờ>-<mô-tả>\` kèm `prompt.txt`. SDXL hiểu tiếng Anh tốt hơn hẳn tiếng Việt —
@@ -541,10 +579,10 @@ Mở terminal ở thư mục gốc. `vf-python.py` chạy Python của dự án 
 launcher của venv — xem mục 16):
 
 ```powershell
-python3 vf-python.py -m factory.status                                          # tình trạng key, engine, ComfyUI
-python3 vf-python.py -m factory.try_engine hyperframes content/aws-saa/ep05.json # chạy thử một engine, không cần web
-python3 vf-python.py -m factory.preview content/demo/flow-demo.json             # xem nhanh vài khung hình (không render)
-python3 vf-python.py -m factory.ve_anh "a red fox in snow" -n 2                 # vẽ ảnh lẻ (cần ComfyUI)
+python vf-python.py -m factory.status                                          # tình trạng key, engine, ComfyUI
+python vf-python.py -m factory.try_engine hyperframes content/aws-saa/ep05.json # chạy thử một engine, không cần web
+python vf-python.py -m factory.preview content/demo/flow-demo.json             # xem nhanh vài khung hình (không render)
+python vf-python.py -m factory.ve_anh "a red fox in snow" -n 2                 # vẽ ảnh lẻ (cần ComfyUI)
 ```
 
 Tên engine: `mpt`, `broll`, `aiauto`, `hyperframes`, `pixelle`, `remotion`. Kết quả `try_engine` ở `.cache\try\<engine>\`.
@@ -558,6 +596,9 @@ Tên engine: `mpt`, `broll`, `aiauto`, `hyperframes`, `pixelle`, `remotion`. K�
 | Engine chấm vàng trên web | Rê chuột lên ô engine xem lý do; thường là chưa chạy hết `cai-dat.py` hoặc thiếu key |
 | Gemini báo 503 / 429, viết nháp lâu | Gói miễn phí quá tải hoặc hết hạn mức: hệ thống tự chờ / đổi model. Hết hạn mức ngày thì đợi hôm sau |
 | Pexels lỗi 429 | Quá 200 lượt/giờ — đợi một lúc rồi *Chạy lại* |
+| VieNeu báo `Connection refused` / "không phản hồi" | Bật speech API trong terminal riêng, đợi khởi động xong; kiểm tra `VIENEU_URL` trỏ tới đúng máy/cổng |
+| Whisper báo thiếu `faster_whisper` | Chạy `uv sync --locked` ở thư mục Video Factory; nếu đặt `ALIGN_PYTHON`, kiểm tra phụ thuộc trong môi trường đó |
+| Whisper báo `metadata_errors` | Môi trường Whisper cần `faster-whisper==1.2.1` và `av>=11,<19`; chạy `uv sync --locked` cho factory hoặc cài bộ phiên bản này trong môi trường `ALIGN_PYTHON`/MoneyPrinterTurbo đang dùng |
 | "không gọi được ComfyUI" | Chưa bật `chay-comfyui.py` (hoặc đã đóng cửa sổ của nó) |
 | ComfyUI báo lỗi CUDA / không thấy GPU | Driver NVIDIA < 580 → cập nhật driver, khởi động lại máy |
 | `chay-comfyui.py` báo `WinError 4551 … torch\lib\…dll` | Smart App Control chặn PyTorch — xem ghi chú bên dưới |

@@ -135,7 +135,7 @@ def main(argv=None) -> int:
     parser.add_argument("--engines", nargs="+", choices=ENGINES, default=list(ENGINES),
                         help="Engines to install; default: all six")
     parser.add_argument("--python", default="3.12", help="Python version/interpreter for factory and engine venvs")
-    parser.add_argument("--with-whisper", action="store_true", help="Install faster-whisper in factory for VieNeu alignment")
+    parser.add_argument("--with-whisper", action="store_true", help="Compatibility flag; Whisper is included in factory dependencies")
     args = parser.parse_args(argv)
     try:
         tools_ok = check_tools()
@@ -174,8 +174,6 @@ def main(argv=None) -> int:
                 else:
                     run([*venv_python(directory / ".venv"), "-m", "playwright", "install", "--only-shell", "chromium"],
                         cwd=directory, env=environment)
-        if args.with_whisper:
-            run(["uv", "pip", "install", "--python", python_path(ROOT / ".venv"), "faster-whisper"], env=environment)
         for key in ("GEMINI_API_KEY",):
             if not values.get(key):
                 print(f"{key} is not set; edit .env before using that service.")

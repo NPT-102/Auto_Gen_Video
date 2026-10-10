@@ -16,8 +16,8 @@ engines/*/
 !engines/remotion-academic/
 engines/remotion-academic/public/jobs/
 
-# Giọng đọc làm sẵn (tải từ ElevenLabs / tự thu)
-content/audio/
+# Nội dung cá nhân: kịch bản, bản nháp và giọng đọc; ví dụ đã được track vẫn giữ trong repo
+content/*
 
 # Video đã render của ví dụ series AWS
 examples/aws-saa-series/output*/
