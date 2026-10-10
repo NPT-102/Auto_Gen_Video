@@ -40,7 +40,7 @@ class Remotion(Engine):
         data, parts = build_timeline(spec, log)
         job = uuid.uuid4().hex[:12]
         beat_dir = PROJECT / "public" / "jobs" / job
-        attach_beats(spec, data, beat_dir, f"jobs/{job}/", log)
+        attach_beats(spec, data, beat_dir, f"jobs/{job}/", log, credits_out=workdir / "credits.txt")
         wav = workdir / "narration.wav"
         build_audio(parts, wav, data, spec.title)
         props = workdir / "props.json"

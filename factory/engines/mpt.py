@@ -26,7 +26,7 @@ from pathlib import Path
 from .. import align, eleven
 from ..beats import _source as image_source, sentence_clips
 from ..captions import esc, karaoke_ass
-from ..config import CONTENT_DIR, ENGINES_DIR, MPT_DIR
+from ..config import CONTENT_DIR, ENGINES_DIR, MPT_DIR, stock_api_key
 from ..narration import MUSIC_DIR, attach_punctuation, synthesize_spec
 from ..pyrun import python_path, venv_python
 from ..spec import Spec
@@ -119,14 +119,40 @@ class MoneyPrinterTurbo(Engine):
             "không chèn nhạc nền (kho nhạc của MoneyPrinterTurbo dính bản quyền; muốn có nhạc thì bỏ nhạc có quyền dùng "
             "vào assets/music/ hoặc thêm trong trình đăng của TikTok/YouTube)")
         local = None
-        if image_source(spec) in ("comfyui", "gemini", "commons"):
-            if pod:
+        if image_source(spec) == "pixabay" and (spec.model_extra or {}).get("images") is False:
+            from .broll import search, download
+            local = LOCAL / f"vf-{workdir.parent.name}"
+            shutil.rmtree(local, ignore_errors=True)
+            local.mkdir(parents=True, exist_ok=True)
+            materials, pages, seen = [], [], set()
+            for term in terms or [spec.title]:
+                candidates = search(term, stock_api_key("pixabay"), "landscape", "pixabay")
+                for clip in candidates[:2]:
+                    if clip["id"] in seen:
+                        continue
+                    seen.add(clip["id"])
+                    target = local / f"{len(materials):03d}.mp4"
+                    shutil.copy2(download(clip), target)
+                    materials.append({"provider": "local", "url": str(target), "duration": 0})
+                    pages.append(clip["page"])
+            if not materials:
+                shutil.rmtree(local, ignore_errors=True)
+                raise EngineError("Pixabay không có clip cho các từ khoá đã chọn.")
+            task.update(video_source="local", video_materials=materials)
+            task.pop("video_terms", None)
+            (workdir / "credits.txt").write_text("Video: Pixabay\n" + "\n".join(pages), encoding="utf-8")
+        elif image_source(spec) in ("comfyui", "gemini", "commons", "pixabay"):
+            if pod and image_source(spec) != "pixabay":
                 log("bản podcast: chưa ghép ảnh vẽ theo lời podcast → dùng clip Pexels")
             else:
                 local = LOCAL / f"vf-{workdir.parent.name}"
                 shutil.rmtree(local, ignore_errors=True)
-                text = spec.narration()
-                mp3, ws, dur = synthesize_spec(text, spec)
+                text = pod.get("say") or spec.narration()
+                if task.get("custom_audio_file"):
+                    mp3 = Path(task["custom_audio_file"])
+                    ws, dur = (words, dur) if words is not None else align.align(mp3, text, log)
+                else:
+                    mp3, ws, dur = synthesize_spec(text, spec)
                 attach_punctuation(text, ws)
                 clips = sentence_clips(spec, ws, dur, local, log, credits_out=workdir / "credits.txt")
                 if clips:
@@ -135,9 +161,9 @@ class MoneyPrinterTurbo(Engine):
                                 video_materials=[{"provider": "local", "url": str(p), "duration": 0} for p in clips],
                                 custom_audio_file=str(mp3), subtitle_enabled=False)
                     task.pop("video_terms", None)
-                elif image_source(spec) == "commons":   # video về người/sự kiện thật: clip Pexels sẽ sai nội dung
+                elif image_source(spec) in ("commons", "pixabay"):
                     shutil.rmtree(local, ignore_errors=True)
-                    raise EngineError("chưa lấy đủ ảnh Wikimedia Commons (thường do Wikimedia giới hạn tần suất) — "
+                    raise EngineError(f"chưa lấy đủ ảnh {image_source(spec)} — "
                                       "bấm Chạy lại sau vài phút; ảnh đã tải được giữ trong cache")
         # Never let MPT's internal Edge reader override an explicit VieNeu selection.
         # Uploaded podcast audio remains an intentional override.

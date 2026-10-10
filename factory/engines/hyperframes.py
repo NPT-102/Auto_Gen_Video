@@ -59,6 +59,8 @@ class HyperFrames(Engine):
         log(f"tạo giọng đọc {spec.tts_provider} và dòng thời gian từng từ")
         comp = workdir / "comp"
         data = build_composition(spec, comp, log)
+        if (comp / "credits.txt").exists():
+            shutil.copy2(comp / "credits.txt", workdir / "credits.txt")
 
         log(f"HyperFrames render {data['duration']:.0f}s video")
         out = workdir / "video.mp4"

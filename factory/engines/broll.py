@@ -18,7 +18,8 @@ import httpx
 
 from ..beats import _queries as beat_queries, plan as beat_plan
 from ..captions import esc, karaoke_ass
-from ..config import CACHE_DIR, ENGINES_DIR, pexels_api_key
+from ..config import CACHE_DIR, ENGINES_DIR, pexels_api_key, stock_api_key, stock_provider
+from .. import pixabay
 from ..narration import attach_punctuation, build_audio, build_timeline, synthesize_spec
 from ..spec import Spec
 from .base import Engine, EngineError, Log, run
@@ -45,7 +46,9 @@ def scene_terms(spec: Spec) -> list[list[str]]:
     return out
 
 
-def search(term: str, key: str, orientation: str = "portrait") -> list[dict]:
+def search(term: str, key: str, orientation: str = "portrait", provider: str = "pexels") -> list[dict]:
+    if provider == "pixabay":
+        return pixabay.search(term, key, "videos", orientation)
     f = STOCK / "search" / f"{hashlib.sha1(f'{orientation}|{term.lower()}'.encode()).hexdigest()[:16]}.json"
     if f.exists():
         return json.loads(f.read_text(encoding="utf-8"))
@@ -80,7 +83,7 @@ def search(term: str, key: str, orientation: str = "portrait") -> list[dict]:
 
 
 def download(clip: dict) -> Path:
-    dst = STOCK / "videos" / f"pexels-{clip['id']}.mp4"
+    dst = STOCK / "videos" / f"{clip.get('provider', 'pexels')}-{clip['id']}.mp4"
     if dst.exists() and dst.stat().st_size > 0:
         return dst
     dst.parent.mkdir(parents=True, exist_ok=True)
@@ -106,6 +109,7 @@ def plan(spec: Spec, data: dict, key: str, log: Log) -> list[dict]:
     Từ 01/10/2026 mỗi câu (beat của factory/beats.py: đổi sớm hơn lời BEAT_LEAD giây) tìm clip theo từ khoá riêng của
     câu — cùng từ khoá với ảnh theo câu của các engine khác; cảnh sơ đồ và lúc thiếu clip thì dùng từ khoá của cảnh."""
     used: set[int] = set()
+    provider = stock_provider(spec)
     cuts = []
     sentences = beat_plan(data)
     queries = beat_queries(spec, sentences, log) if sentences and (spec.model_extra or {}).get("images") is not False else []
@@ -118,13 +122,13 @@ def plan(spec: Spec, data: dict, key: str, log: Log) -> list[dict]:
             k = max(1, round((f1 - f0) / FPS / CUT))
             pool: dict[int, dict] = {}
             for term in ([query] if query else []) + terms:
-                pool.update((c["id"], c) for c in search(term, key) if c["id"] not in pool)
+                pool.update((c["id"], c) for c in search(term, key, provider=provider) if c["id"] not in pool)
                 if sum(cid not in used for cid in pool) >= k:
                     break
             if len(pool) < k:   # ít clip dọc: lấy thêm clip ngang, cắt giữa khung
-                pool.update((c["id"], c) for c in search(query or terms[0], key, "landscape") if c["id"] not in pool)
+                pool.update((c["id"], c) for c in search(query or terms[0], key, "landscape", provider) if c["id"] not in pool)
             if not pool:
-                raise EngineError(f"cảnh {i + 1}: Pexels không có clip cho {([query] if query else []) + terms[:2]}")
+                raise EngineError(f"cảnh {i + 1}: {provider.title()} không có clip cho {([query] if query else []) + terms[:2]}")
             fresh = [c for c in pool.values() if c["id"] not in used] or list(pool.values())
             log(f"cảnh {i + 1} @{t0:.1f}s: '{query or terms[0]}' → {k} clip")
             bounds = [f0 + (f1 - f0) * j // k for j in range(k + 1)]
@@ -171,22 +175,26 @@ def overlays(spec: Spec, data: dict) -> list[tuple[float, float, str, str]]:
 class StockBRoll(Engine):
     key = "broll"
     label = "Stock khớp lời"
-    style = "Clip Pexels đổi theo từng câu, chữ hiện đúng lúc đọc, phụ đề karaoke"
+    style = "Clip Pixabay/Pexels đổi theo từng câu, chữ hiện đúng lúc đọc, phụ đề karaoke"
 
     def check(self):
-        if not pexels_api_key():
-            return False, "chưa có key Pexels (PEXELS_API_KEY trong .env)"
+        provider = stock_provider()
+        if not (stock_api_key(provider) or stock_api_key("pixabay" if provider == "pexels" else "pexels")):
+            return False, f"chưa có key {provider.title()} ({provider.upper()}_API_KEY trong .env)"
         return True, ""
 
     def render(self, spec: Spec, workdir: Path, log: Log) -> Path:
-        key = pexels_api_key()
+        provider = stock_provider(spec)
+        key = stock_api_key(provider)
+        if not key:
+            raise EngineError(f"Missing {provider.upper()}_API_KEY in .env")
         data, parts = build_timeline(spec, log)
         log(f"{data['duration']:.1f} giây, {len(data['scenes'])} cảnh")
         build_audio(parts, workdir / "narration.wav", data, spec.title)
 
         cuts = plan(spec, data, key, log)
         clips = {c["clip"]["id"]: c["clip"] for c in cuts}
-        log(f"tải {len(clips)} clip Pexels (dùng lại clip đã tải ở video trước)")
+        log(f"tải {len(clips)} clip {provider.title()} (dùng lại clip đã tải ở video trước)")
         with cf.ThreadPoolExecutor(6) as pool:
             files = dict(zip(clips, pool.map(download, clips.values())))
 
@@ -216,7 +224,7 @@ class StockBRoll(Engine):
         (workdir / "captions.ass").write_text(karaoke_ass(words, overlays(spec, data)), encoding="utf-8")
         shutil.copytree(FONTS, workdir / "fonts", dirs_exist_ok=True)
         (workdir / "sources.txt").write_text(
-            "Video từ Pexels (miễn phí, không bắt buộc ghi nguồn):\n" + "\n".join(c["page"] for c in clips.values()), encoding="utf-8")
+            f"Video từ {provider.title()}:\n" + "\n".join(c["page"] for c in clips.values()), encoding="utf-8")
 
         log("ghép clip, giọng đọc, chữ và phụ đề")
         run(["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", "segments.txt", "-i", "narration.wav",

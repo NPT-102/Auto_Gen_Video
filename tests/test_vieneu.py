@@ -18,7 +18,7 @@ from factory.spec import Spec
 
 def script(**fields):
     return Spec.model_validate({
-        "id": "test", "title": "Thử giọng",
+        "id": "test", "title": "Thử giọng", "image_source": "pexels",
         "scenes": [{"type": "next", "title": "Kết", "say": "Xin chào."}],
         **fields,
     })

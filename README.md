@@ -3,7 +3,7 @@
 **Một kịch bản → 6 engine dựng 6 phiên bản video dọc 9:16 → xem song song trên web → chọn 1 bản để đăng TikTok / YouTube Shorts.**
 
 Chạy trên Linux và Windows bằng các script Python, giọng đọc tiếng Việt miễn phí (Edge TTS), phụ đề karaoke khớp từng chữ. Ảnh minh hoạ đổi theo từng câu,
-lấy từ một trong ba nguồn: Pexels (ảnh chụp, miễn phí), **tự vẽ bằng card đồ hoạ của máy** (ComfyUI + SDXL-Lightning),
+lấy từ Pixabay / Pexels (ảnh chụp, miễn phí), **tự vẽ bằng card đồ hoạ của máy** (ComfyUI + SDXL-Lightning),
 hoặc ảnh thật trên Wikimedia Commons cho video về người và sự kiện có thật. Gemini (miễn phí) viết nháp kịch bản từ một chủ đề.
 
 ![Cùng một kịch bản qua 6 engine](docs/so-sanh-01-10/0-cau-treo-6-engine.jpg)
@@ -11,7 +11,7 @@ hoặc ảnh thật trên Wikimedia Commons cho video về người và sự ki�
 | Engine | Phong cách | Thời gian render (video 1–2 phút, đo trên máy dựng hệ thống) |
 |---|---|---|
 | [MoneyPrinterTurbo](https://github.com/harry0703/MoneyPrinterTurbo) | Clip stock (hoặc ảnh tự vẽ) + phụ đề; tuỳ chọn **bản podcast** giọng ElevenLabs | ~8 phút (3–27) |
-| Stock khớp lời (viết riêng) | Clip Pexels đổi theo **từng câu**, chữ và số hiện đúng lúc đọc | ~2,5 phút |
+| Stock khớp lời (viết riêng) | Clip Pixabay / Pexels đổi theo **từng câu**, chữ và số hiện đúng lúc đọc | ~2,5 phút |
 | [AI-auto-generate-video](https://github.com/huytranvan2010/AI-auto-generate-video) | Template poster động trên ảnh đổi theo câu | ~3 phút |
 | [HyperFrames](https://www.npmjs.com/package/hyperframes) | Học thuật nền sáng: sơ đồ dựng dần, phụ đề karaoke | ~4 phút |
 | [Pixelle-Video](https://github.com/ATH-MaaS/Pixelle-Video) | Mỗi câu một khung: ảnh + chữ | ~2 phút |
@@ -30,7 +30,7 @@ Từ thư mục repo, cấu hình nhẹ phù hợp máy chỉ có GPU tích hợ
 
 ```bash
 python3 cai-dat.py --engines hyperframes remotion broll --with-whisper
-# Mở .env bằng editor và điền GEMINI_API_KEY / PEXELS_API_KEY.
+# Mở .env bằng editor và điền GEMINI_API_KEY và PIXABAY_API_KEY (hoặc PEXELS_API_KEY).
 python3 chay-web.py
 ```
 
@@ -39,7 +39,7 @@ Qua SSH hoặc không muốn mở trình duyệt: `python3 chay-web.py --no-brow
 `FACTORY_PORT=8601` trong `.env`. Chrome/Chromium được tìm trong `PATH`; có thể chỉ định `CHROME_PATH=/usr/bin/chromium`.
 
 Không cần GPU để dựng video hoặc dùng VieNeu trên CPU. Có thể đặt `FACTORY_PARALLEL=1` trong `.env` để giảm số render
-đồng thời. Thiếu key Pexels thì engine stock báo chưa sẵn sàng; video slide có `"images": false` không cần stock.
+đồng thời. Thiếu key Pixabay/Pexels thì engine stock báo chưa sẵn sàng; video slide có `"images": false` không cần stock.
 Viết nháp tự động vẫn cần key Gemini. VieNeu chạy trong một server riêng: xem hướng dẫn giọng VieNeu bên dưới.
 
 Các lệnh Python:
@@ -102,7 +102,7 @@ Thời gian cài: 15–30 phút cho phần thường, thêm 30–90 phút (tuỳ
 | Dịch vụ | Dùng để | Bắt buộc? | Chi phí |
 |---|---|---|---|
 | Google AI Studio (Gemini API) | Viết nháp kịch bản, đặt từ khoá / mô tả ảnh cho từng câu, soát ảnh | **Có** | Miễn phí (có hạn mức) |
-| Pexels API | Ảnh và clip stock | **Có** | Miễn phí |
+| Pixabay hoặc Pexels API | Ảnh và clip stock | **Có một trong hai** | Miễn phí |
 | GitHub | Tải mã về bằng `git clone` | Nên có | Miễn phí |
 | ElevenLabs | Giọng podcast (chỉ bản MoneyPrinterTurbo) | Không | Free (làm tay) / trả phí để tự động |
 | TikTok, YouTube | Kênh để đăng video | Tuỳ bạn | Miễn phí |
@@ -120,7 +120,29 @@ thống tự chờ và tự đổi sang model dự phòng, một bản nháp th�
 ảnh `gemini` cần bật thanh toán; nguồn `comfyui` thì miễn phí). Theo điều khoản của Google, dữ liệu gửi qua gói miễn phí
 có thể được dùng để cải thiện sản phẩm — đừng đưa thông tin nhạy cảm vào kịch bản.
 
-### Pexels API key (bắt buộc)
+### Pixabay API key (ảnh và clip stock)
+
+1. Đăng nhập hoặc đăng ký ở <https://pixabay.com/api/docs/> để lấy API key.
+2. Thêm vào `.env`:
+
+```ini
+PIXABAY_API_KEY=<key>
+IMAGE_SOURCE=pixabay
+```
+
+Bốn engine slide dùng ảnh Pixabay theo từng câu. MoneyPrinterTurbo dựng ảnh thành clip zoom,
+kể cả bản podcast; engine **Stock khớp lời** lấy video Pixabay (clip ngang được crop nếu thiếu clip dọc).
+Kịch bản có thể ghi `"image_source": "pixabay"` hoặc `"pexels"` để đổi nguồn riêng.
+Khi dùng ảnh vẽ AI, đặt `STOCK_SOURCE=pixabay` để chọn nguồn stock dự phòng.
+API search được cache 24 giờ; ảnh/video tải về máy. Nguồn ảnh được giữ cùng metadata của beat
+và `credits.txt`; clip stock có `sources.txt`.
+Không cần key Pexels khi chọn Pixabay. Tài khoản Pixabay thông thường cung cấp ảnh tối đa 1280px;
+repo dùng `largeImageURL` và không yêu cầu quyền full-resolution.
+
+### Pexels API key (nguồn thay thế)
+
+Pexels đang tạm dừng cấp API key mới; nếu chưa có key, dùng Pixabay ở trên.
+Key Pexels có sẵn vẫn dùng được khi đặt `IMAGE_SOURCE=pexels`.
 
 1. Tạo tài khoản ở <https://www.pexels.com/join> (miễn phí).
 2. Mở <https://www.pexels.com/api/>, bấm **Your API Key** (lần đầu phải điền mục đích dùng, ví dụ
@@ -288,7 +310,7 @@ file giọng tải lên được ưu tiên; nếu không có file, lựa chọn 
 [SDXL-Lightning 4 bước](https://huggingface.co/ByteDance/SDXL-Lightning). Bản cài Python dùng checkout native
 `engines/ComfyUI` và venv riêng, chạy được trên CPU hoặc NVIDIA CUDA. CPU tạo ảnh SDXL chậm;
 cho máy GPU tích hợp, ảnh/clip Pexels là lựa chọn nhẹ hơn. Phần này hoàn toàn tuỳ chọn, tách khỏi VieNeu.
-Áp dụng cho MoneyPrinterTurbo, AI-auto, HyperFrames, Pixelle, Remotion; engine stock luôn dùng clip Pexels.
+Áp dụng cho MoneyPrinterTurbo, AI-auto, HyperFrames, Pixelle, Remotion; engine stock dùng clip Pixabay hoặc Pexels theo nguồn đã chọn.
 
 ### 8.1 Cài (một lần)
 
@@ -311,7 +333,7 @@ Launcher lưu và dùng lại thiết bị đã chọn. Bản portable Windows �
    - cho **một kịch bản**: thêm vào đầu file JSON (cùng cấp với `"title"`): `"image_source": "comfyui",`
    - cho **mọi video**: thêm vào `.env`: `IMAGE_SOURCE=comfyui`
 3. Tạo video như bình thường. Ảnh đầu tiên mất ~10 giây (nạp model vào card), sau đó ~3 giây/ảnh (RTX 4060 8 GB).
-   ComfyUI chưa bật thì hệ thống tự quay về ảnh Pexels.
+   ComfyUI chưa bật thì hệ thống dùng nguồn stock dự phòng (`STOCK_SOURCE`).
 
 Cách hệ thống vẽ: Gemini đọc từng câu và viết một mô tả cảnh tiếng Anh → ComfyUI vẽ ảnh dọc 768×1344 (4 bước, cfg 1,
 euler, sgm_uniform) → ảnh được phóng thành nền 1080×1920, zoom chậm, đổi sớm hơn lời 0,35 giây. Bản MoneyPrinterTurbo
@@ -470,11 +492,12 @@ Mẹo: viết số và thuật ngữ đúng như muốn thấy trên phụ đề
 | Biến | Mặc định | Ý nghĩa |
 |---|---|---|
 | `GEMINI_API_KEY` | — | **Bắt buộc**. Key Gemini |
-| `PEXELS_API_KEY` | — | **Bắt buộc**. Key Pexels |
+| `PIXABAY_API_KEY` | — | Key Pixabay; dùng cùng `IMAGE_SOURCE=pixabay` |
+| `PEXELS_API_KEY` | — | Key Pexels; dùng nếu chọn Pexels |
 | `GEMINI_MODEL` | `gemini-flash-latest` | Model Gemini; quá tải thì tự thử model dự phòng |
 | `ELEVENLABS_API_KEY` | — | Giọng podcast qua API (gói trả phí) |
 | `ELEVENLABS_VOICE` | `mai` | `mai`, `nhatphong` hoặc một `voice_id` trong thư viện ElevenLabs |
-| `IMAGE_SOURCE` | `pexels` | Nguồn ảnh cho mọi video: `pexels`, `comfyui`, `gemini`, `commons` (kịch bản đặt `image_source` thì kịch bản thắng) |
+| `IMAGE_SOURCE` | `pexels` | Nguồn ảnh cho mọi video: `pixabay`, `pexels`, `comfyui`, `gemini`, `commons` (kịch bản đặt `image_source` thì kịch bản thắng) |
 | `COMFYUI_URL` | `http://127.0.0.1:8188` | Địa chỉ ComfyUI (đổi nếu chạy ComfyUI ở máy khác trong mạng) |
 | `FACTORY_PARALLEL` | `2` | Số engine render cùng lúc (RAM 8 GB nên để `1`) |
 | `MPT_DIR` | `engines\MoneyPrinterTurbo` | Chỗ cài MoneyPrinterTurbo nếu bạn đã có sẵn ở nơi khác |

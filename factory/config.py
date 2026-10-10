@@ -114,3 +114,17 @@ def pexels_api_key() -> str | None:
 
 def gemini_model() -> str:
     return setting("GEMINI_MODEL", "gemini-flash-latest")
+
+
+def stock_provider(spec=None) -> str:
+    own = (spec.model_extra or {}).get("image_source") if spec else None
+    source = (own or setting("IMAGE_SOURCE")).strip().lower()
+    if source in ("pexels", "pixabay"):
+        return source
+    return setting("STOCK_SOURCE", "pexels" if pexels_api_key() else "pixabay" if setting("PIXABAY_API_KEY") else "pexels").strip().lower()
+
+
+def stock_api_key(provider: str) -> str | None:
+    if provider == "pixabay":
+        return setting("PIXABAY_API_KEY") or None
+    return pexels_api_key()

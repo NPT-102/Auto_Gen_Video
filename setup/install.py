@@ -47,7 +47,7 @@ def ensure_env() -> None:
     target = ROOT / ".env"
     if not target.exists():
         shutil.copy2(ROOT / ".env.example", target)
-        print("Created .env. Edit it to enter GEMINI_API_KEY and PEXELS_API_KEY.")
+        print("Created .env. Enter GEMINI_API_KEY and PIXABAY_API_KEY or PEXELS_API_KEY.")
 
 
 def ensure_repo(directory: Path, url: str, revision: str) -> None:
@@ -176,9 +176,11 @@ def main(argv=None) -> int:
                         cwd=directory, env=environment)
         if args.with_whisper:
             run(["uv", "pip", "install", "--python", python_path(ROOT / ".venv"), "faster-whisper"], env=environment)
-        for key in ("GEMINI_API_KEY", "PEXELS_API_KEY"):
+        for key in ("GEMINI_API_KEY",):
             if not values.get(key):
                 print(f"{key} is not set; edit .env before using that service.")
+        if not (values.get("PIXABAY_API_KEY") or values.get("PEXELS_API_KEY")):
+            print("Enter PIXABAY_API_KEY or PEXELS_API_KEY in .env to use stock media.")
         result = show_status(args.engines)
         print("Start the web app: python3 chay-web.py")
         return result
