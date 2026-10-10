@@ -123,6 +123,16 @@ def podcast_voices():
     return {"configured": bool(eleven.api_key()), "voices": eleven.voices(), "default": eleven.DEFAULT_VOICE}
 
 
+@app.get("/api/tts/vieneu/voices")
+def vieneu_voices():
+    from . import vieneu
+
+    try:
+        return {"ready": True, "voices": vieneu.voices(), "default": vieneu.default_voice()}
+    except RuntimeError as exc:
+        return {"ready": False, "voices": [], "default": vieneu.default_voice(), "reason": str(exc)}
+
+
 @app.post("/api/podcast")
 def podcast(body: dict = Body(...)):
     """Nhờ Gemini viết bản podcast (văn nói) cho kịch bản đang mở; chạy nền như viết nháp."""

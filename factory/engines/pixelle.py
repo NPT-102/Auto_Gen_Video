@@ -1,4 +1,4 @@
-"""Pixelle-Video: mỗi câu một khung (template của Pixelle), giọng Edge TTS.
+"""Pixelle-Video: mỗi câu một khung (template của Pixelle), giọng Edge TTS hoặc VieNeu làm sẵn.
 
 Từ 01/10/2026 mỗi câu kèm một ảnh (bộ ảnh theo câu dùng chung với HyperFrames/Remotion, factory/beats.py), dựng bằng
 template image_modern. Pipeline chuẩn của Pixelle chạy trong venv của nó qua pixelle_driver.py: chế độ "fixed" + tiêu
@@ -14,7 +14,7 @@ from pathlib import Path
 
 from ..beats import attach as attach_beats
 from ..config import ENGINES_DIR
-from ..narration import build_timeline
+from ..narration import build_timeline, synthesize_spec
 from ..pyrun import venv_python
 from ..spec import Spec
 from .base import Engine, EngineError, Log, run, utf8_env
@@ -102,6 +102,12 @@ class PixelleVideo(Engine):
                                 "background": _background(),
                                 "tagline": f"Tập {spec.ep}/{spec.total}" if spec.ep and spec.total else "Lưu lại để ôn tập"},
         }
+        if spec.tts_provider == "vieneu":
+            log(f"tạo giọng VieNeu cho {len(sents)} khung")
+            job["audio"] = []
+            for _, text in sents:
+                audio, _, duration = synthesize_spec(text, spec)
+                job["audio"].append({"path": str(audio), "duration": duration})
         job_file = workdir / "pixelle-job.json"
         job_file.write_text(json.dumps(job, ensure_ascii=False), encoding="utf-8")
         log(f"Pixelle dựng {len(sents)} khung " + ("có ảnh theo câu" if photo else "thẻ chữ (không có ảnh)"))

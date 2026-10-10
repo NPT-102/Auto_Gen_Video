@@ -19,7 +19,7 @@ import httpx
 from ..beats import _queries as beat_queries, plan as beat_plan
 from ..captions import esc, karaoke_ass
 from ..config import CACHE_DIR, ENGINES_DIR, pexels_api_key
-from ..narration import attach_punctuation, build_audio, build_timeline, synthesize
+from ..narration import attach_punctuation, build_audio, build_timeline, synthesize_spec
 from ..spec import Spec
 from .base import Engine, EngineError, Log, run
 
@@ -210,7 +210,7 @@ class StockBRoll(Engine):
 
         words = []
         for i, (sc, s) in enumerate(zip(spec.scenes, data["scenes"])):
-            _, ws, _ = synthesize(sc.say, spec.voice)
+            _, ws, _ = synthesize_spec(sc.say, spec)
             attach_punctuation(sc.say, ws)
             words += [dict(w, start=w["start"] + s["audio_at"], end=w["end"] + s["audio_at"], scene=i) for w in ws]
         (workdir / "captions.ass").write_text(karaoke_ass(words, overlays(spec, data)), encoding="utf-8")

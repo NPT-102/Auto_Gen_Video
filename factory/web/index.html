@@ -69,6 +69,18 @@
         </div>
         <ol id="sceneList" class="scenes"></ol>
         <ul id="issues" class="issues hidden"></ul>
+        <label>Giọng đọc video</label>
+        <select id="ttsProvider">
+          <option value="edge">Microsoft Edge TTS</option>
+          <option value="vieneu">VieNeu-TTS (server cục bộ)</option>
+        </select>
+        <div id="vieneuBox" class="hidden">
+          <label>Giọng VieNeu</label>
+          <input id="vieneuVoice" list="vieneuVoices" placeholder="Giọng mặc định của cấu hình">
+          <datalist id="vieneuVoices"></datalist>
+          <button id="btnTTSVoices" class="btn ghost small">Tải lại danh sách giọng</button>
+        </div>
+        <div id="ttsNote" class="small muted"></div>
         <div class="podcastbox">
           <div class="spechead"><b>Bản podcast · MoneyPrinterTurbo</b>
             <button id="btnPodcast" class="btn ghost small">Viết bản podcast</button></div>

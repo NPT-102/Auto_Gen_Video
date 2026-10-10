@@ -3,7 +3,9 @@
     engines/pixelle-video/.venv/Scripts/python.exe factory/engines/pixelle_driver.py job.json   (cwd = engines/pixelle-video)
 
 job.json: {text, title, frame_template, voice_id, template_params, images: [đường dẫn ảnh | null, ...]} — text có các câu
-cách nhau bởi dòng trống (chế độ "fixed": mỗi đoạn một khung), images cùng thứ tự. Dòng cuối stdout: {"video": "..."}.
+cách nhau bởi dòng trống (chế độ "fixed": mỗi đoạn một khung), images cùng thứ tự.
+audio (tuỳ chọn): [{path, duration}] cùng thứ tự; có audio thì Pixelle không gọi Edge TTS.
+Dòng cuối stdout: {"video": "..."}.
 File này chỉ import pixelle_video và thư viện chuẩn (chạy trong venv khác với factory).
 """
 
@@ -21,9 +23,10 @@ from pixelle_video.utils.template_util import resolve_template_path
 class PhotoPipeline(StandardPipeline):
     """Bỏ bước viết mô tả ảnh và vẽ ảnh: frame_processor thấy khung đã có image_path thì dùng luôn ảnh đó."""
 
-    def __init__(self, core, images: list[str | None]):
+    def __init__(self, core, images: list[str | None], audio: list[dict] | None = None):
         super().__init__(core)
         self.images = images
+        self.audio = audio
 
     async def plan_visuals(self, ctx):
         ctx.image_prompts = [None] * len(ctx.narrations)
@@ -31,6 +34,11 @@ class PhotoPipeline(StandardPipeline):
     async def initialize_storyboard(self, ctx):
         await super().initialize_storyboard(ctx)
         frames = ctx.storyboard.frames
+        if self.audio is not None:
+            if len(frames) != len(self.audio):
+                raise ValueError(f"{len(frames)} khung nhưng {len(self.audio)} đoạn giọng VieNeu")
+            for frame, audio in zip(frames, self.audio):
+                frame.audio_path, frame.duration = audio["path"], audio["duration"]
         if len(frames) != len(self.images):
             print(f"cảnh báo: {len(frames)} khung nhưng {len(self.images)} ảnh", file=sys.stderr)
         for i, frame in enumerate(frames):
@@ -45,7 +53,7 @@ async def main(job_file: str) -> None:
     await core.initialize()
     try:
         width, height = HTMLFrameGenerator(resolve_template_path(job["frame_template"])).get_media_size()
-        result = await PhotoPipeline(core, job["images"])(
+        result = await PhotoPipeline(core, job["images"], job.get("audio"))(
             text=job["text"], mode="fixed", title=job["title"], media_width=width, media_height=height, video_fps=30,
             frame_template=job["frame_template"], voice_id=job["voice_id"], template_params=job["template_params"],
             bgm_path=None)

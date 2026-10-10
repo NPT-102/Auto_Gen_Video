@@ -2,7 +2,7 @@
 
 Kịch bản có phần "podcast" (văn nói, Gemini viết thêm) thì bản này thành podcast tâm sự: đọc lời podcast, clip nền
 theo từ khoá podcast. Nguồn giọng, theo thứ tự: file giọng làm sẵn (podcast.audio — tải từ web ElevenLabs hoặc tự thu,
-Whisper căn mốc từng chữ) → API ElevenLabs (cần gói trả phí cho giọng thư viện) → giọng Edge mặc định.
+Whisper căn mốc từng chữ) → VieNeu (nếu đã chọn) hoặc API ElevenLabs (cần gói trả phí cho giọng thư viện) → Edge mặc định.
 Giọng được đưa vào MoneyPrinterTurbo dưới dạng custom_audio_file, phụ đề karaoke gắn sau.
 
 Nhạc nền: KHÔNG dùng kho nhạc có sẵn của MoneyPrinterTurbo (resource/songs: 29 bản không rõ nguồn; 28/09 một bản
@@ -27,7 +27,7 @@ from .. import align, eleven
 from ..beats import _source as image_source, sentence_clips
 from ..captions import esc, karaoke_ass
 from ..config import CONTENT_DIR, ENGINES_DIR, MPT_DIR
-from ..narration import MUSIC_DIR, attach_punctuation, synthesize
+from ..narration import MUSIC_DIR, attach_punctuation, synthesize_spec
 from ..pyrun import venv_python
 from ..spec import Spec
 from .base import Engine, EngineError, Log, run
@@ -101,8 +101,10 @@ class MoneyPrinterTurbo(Engine):
                     task.update(custom_audio_file=str(audio), subtitle_enabled=False)
                     log(f"dùng file giọng {audio.name} ({dur:.0f} giây)")
                 except (RuntimeError, OSError) as exc:
-                    log(f"không căn được file giọng ({exc}) → đọc bằng giọng {spec.voice}")
+                    log(f"không căn được file giọng ({exc}) → dùng provider {spec.tts_provider}")
                     words = None
+            elif spec.tts_provider == "vieneu":
+                log("bản podcast dùng giọng VieNeu đã chọn")
             elif eleven.api_key():
                 try:
                     audio, words, dur = eleven.synthesize(pod["say"], pod.get("voice"), log)
@@ -124,7 +126,7 @@ class MoneyPrinterTurbo(Engine):
                 local = LOCAL / f"vf-{workdir.parent.name}"
                 shutil.rmtree(local, ignore_errors=True)
                 text = spec.narration()
-                mp3, ws, dur = synthesize(text, spec.voice)
+                mp3, ws, dur = synthesize_spec(text, spec)
                 attach_punctuation(text, ws)
                 clips = sentence_clips(spec, ws, dur, local, log, credits_out=workdir / "credits.txt")
                 if clips:
@@ -137,6 +139,14 @@ class MoneyPrinterTurbo(Engine):
                     shutil.rmtree(local, ignore_errors=True)
                     raise EngineError("chưa lấy đủ ảnh Wikimedia Commons (thường do Wikimedia giới hạn tần suất) — "
                                       "bấm Chạy lại sau vài phút; ảnh đã tải được giữ trong cache")
+        # Never let MPT's internal Edge reader override an explicit VieNeu selection.
+        # Uploaded podcast audio remains an intentional override.
+        if spec.tts_provider == "vieneu" and not task.get("custom_audio_file"):
+            text = pod.get("say") or spec.narration()
+            mp3, words, dur = synthesize_spec(text, spec)
+            attach_punctuation(text, words)
+            task.update(custom_audio_file=str(mp3), subtitle_enabled=False)
+            log(f"giọng VieNeu {dur:.0f} giây; phụ đề karaoke căn bằng Whisper")
         manifest = workdir / "mpt-manifest.json"
         manifest.write_text(json.dumps([task], ensure_ascii=False), encoding="utf-8")
 

@@ -197,6 +197,50 @@ cùng lúc); cột *Các lần tạo* hiện tiến độ. Nút **Log** xem nh�
 ăn, cảm xúc người), kém với khái niệm trừu tượng ("load balancer" ra… xe tải). Muốn ảnh khớp lời hơn: tự vẽ ([mục 8](#8-tự-tạo-ảnh-bằng-ai-trên-máy));
 muốn đúng người thật: Wikimedia Commons ([mục 9](#9-ảnh-thật-cho-người-và-sự-kiện-có-thật)).
 
+### Giọng VieNeu-TTS (tuỳ chọn, chạy trên máy)
+
+Ngoài Edge TTS, bạn có thể chọn **VieNeu-TTS** cho cả 6 engine: video slide/sơ đồ và video ảnh/footage đều dùng được.
+Factory gọi [speech API v3 Turbo của VieNeu](https://github.com/pnnbao97/VieNeu-TTS/blob/main/apps/openai_speech.py)
+qua mạng cục bộ; không cài model VieNeu vào môi trường của factory. Server cục bộ không cần API key, trừ khi bạn
+tự bật xác thực. Việc này không thay thế key Gemini/Pexels cho viết nháp và lấy stock.
+
+1. Cài VieNeu trong **thư mục riêng** theo [hướng dẫn chính thức](https://github.com/pnnbao97/VieNeu-TTS).
+   Ví dụ CPU (không cần GPU), chạy trong terminal riêng và giữ cửa sổ mở:
+
+   ```powershell
+   git clone https://github.com/pnnbao97/VieNeu-TTS.git
+   cd VieNeu-TTS
+   uv sync
+   uv run python -m apps.openai_speech
+   ```
+
+   Server mặc định ở `http://127.0.0.1:8000`; lần đầu tải và nạp model cần thời gian. Muốn dùng GPU, làm theo
+   hướng dẫn CUDA của VieNeu trước khi bật server.
+
+2. Factory dùng **faster-whisper** để căn mốc từng chữ trên giọng VieNeu. Nếu đã cài MoneyPrinterTurbo bằng
+   `cai-dat.cmd`, hệ thống dùng môi trường Whisper của engine đó. Nếu chỉ dùng engine slide và chưa cài
+   MoneyPrinterTurbo, cài thêm vào môi trường factory (chạy ở thư mục Video Factory):
+
+   ```powershell
+   uv pip install --python .venv faster-whisper
+   ```
+
+   Lệnh `uv sync` sau này có thể gỡ thư viện cài bổ sung; khi đó cài lại lệnh trên. Hoặc đặt `ALIGN_PYTHON`
+   trong `.env` tới interpreter của một môi trường riêng đã cài faster-whisper. Whisper tải model `small`
+   khi dùng lần đầu, xử lý trên CPU; mốc các chữ không nhận diện được sẽ được nội suy từ chữ khớp gần nhất.
+
+3. Trên web, mở kịch bản → **Giọng đọc video → VieNeu-TTS** → chọn tên giọng từ gợi ý (ví dụ `Mai Anh`).
+   Để trống dùng `VIENEU_VOICE` trong `.env`, mặc định `Hải Đăng`. Bấm **Tải lại danh sách giọng** nếu vừa bật server.
+   Bấm **Lưu thay đổi** để giữ lựa chọn trong kịch bản, rồi **Tạo video**.
+
+Thiết lập `.env` tuỳ chọn: `VIENEU_URL=http://127.0.0.1:8000`, `VIENEU_VOICE=Hải Đăng`,
+`VIENEU_API_KEY=<key server nếu đã bật Bearer auth>`. `VIENEU_URL` cũng nhận URL kết thúc bằng `/v1`.
+Đổi server/giọng tạo cache audio riêng. Nếu server hoặc Whisper lỗi, job báo lỗi để bạn sửa và chạy lại.
+
+Kịch bản JSON có thể thêm `"tts_provider": "vieneu", "vieneu_voice": "Mai Anh"`; trường `voice` vẫn giữ giọng Edge
+để chuyển lại. Kịch bản cũ không có `tts_provider` tiếp tục dùng Edge. Với podcast MoneyPrinterTurbo,
+file giọng tải lên được ưu tiên; nếu không có file, lựa chọn VieNeu được dùng thay ElevenLabs.
+
 ## 8. Tự tạo ảnh bằng AI trên máy
 
 Ảnh được **vẽ ngay trên card đồ hoạ của bạn** bằng [ComfyUI](https://github.com/Comfy-Org/ComfyUI) (bản portable, không cần

@@ -15,6 +15,51 @@ async function api(path, opts = {}) {
 
 function msg(text, kind = "") { const m = $("formMsg"); m.textContent = text; m.className = "msg " + kind; }
 
+// ---------- giọng đọc video ----------
+async function loadTTSVoices() {
+  $("ttsNote").textContent = "Đang kết nối server VieNeu…";
+  try {
+    const info = await api("/api/tts/vieneu/voices");
+    $("vieneuVoices").innerHTML = info.voices.map((v) => `<option value="${esc(v.key)}">${esc(v.label)}</option>`).join("");
+    $("vieneuVoice").placeholder = info.default;
+    if ($("ttsProvider").value === "vieneu") $("ttsNote").textContent = info.ready
+      ? `VieNeu sẵn sàng. Để trống để dùng ${info.default}. Phụ đề căn bằng Whisper; file podcast tải lên được ưu tiên.`
+      : info.reason;
+  } catch (e) {
+    if ($("ttsProvider").value === "vieneu") $("ttsNote").textContent = e.message;
+  }
+}
+
+function renderTTS(s) {
+  $("ttsProvider").value = s.tts_provider || "edge";
+  $("vieneuVoice").value = s.vieneu_voice || "";
+  const vieneu = $("ttsProvider").value === "vieneu";
+  $("vieneuBox").classList.toggle("hidden", !vieneu);
+  if (vieneu) return loadTTSVoices();
+  else $("ttsNote").textContent = "Giọng Edge theo kịch bản. Bản podcast ưu tiên file tải lên hoặc ElevenLabs nếu đã cấu hình.";
+}
+
+$("ttsProvider").onchange = async () => {
+  try {
+    const s = JSON.parse($("specJson").value);
+    s.tts_provider = $("ttsProvider").value;
+    $("specJson").value = JSON.stringify(s, null, 2);
+    spec = s;
+    await renderTTS(s);
+  } catch (e) { msg("JSON sai cú pháp: " + e.message, "err"); }
+};
+
+$("vieneuVoice").oninput = () => {
+  try {
+    const s = JSON.parse($("specJson").value);
+    const voice = $("vieneuVoice").value.trim();
+    if (voice) s.vieneu_voice = voice; else delete s.vieneu_voice;
+    $("specJson").value = JSON.stringify(s, null, 2);
+    spec = s;
+  } catch (e) { msg("JSON sai cú pháp: " + e.message, "err"); }
+};
+$("btnTTSVoices").onclick = loadTTSVoices;
+
 // ---------- engine ----------
 async function loadEngines() {
   engines = await api("/api/engines");
@@ -29,8 +74,8 @@ async function loadPodcastVoices() {
   podcastInfo = await api("/api/podcast/voices").catch(() => podcastInfo);
   $("podcastVoice").innerHTML = podcastInfo.voices.map((v) => `<option value="${esc(v.key)}">${esc(v.label)}</option>`).join("");
   $("podcastNote").textContent = podcastInfo.configured
-    ? "Gói trả phí: hệ thống tự đọc bằng giọng đã chọn. Gói Free: bấm Làm giọng trên ElevenLabs hoặc Tải file giọng lên (không có file thì tạm đọc bằng HoaiMy)."
-    : "Chưa có ELEVENLABS_API_KEY trong video-factory/.env → tạm đọc bằng giọng HoaiMy.";
+    ? "Khi chọn Edge: dùng ElevenLabs nếu có key, hoặc file tải lên. Khi chọn VieNeu: dùng giọng VieNeu, trừ khi đã tải file giọng lên."
+    : "Chưa có ELEVENLABS_API_KEY: dùng giọng đọc video đã chọn hoặc file tải lên.";
 }
 
 function renderPodcast(s) {
@@ -138,6 +183,7 @@ function showSpec(s, path) {
   $("sceneList").innerHTML = s.scenes.map((sc) => `<li><span class="type">${esc(sc.type)}</span>${esc(sc.say.slice(0, 90))}${sc.say.length > 90 ? "…" : ""}</li>`).join("");
   $("issues").classList.add("hidden");
   $("specJson").value = JSON.stringify(s, null, 2);
+  renderTTS(s);
   renderPodcast(s);
 }
 
