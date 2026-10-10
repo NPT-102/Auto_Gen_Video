@@ -1,21 +1,26 @@
 """In tình trạng cài đặt: key nào đã có, engine nào sẵn sàng, tự vẽ ảnh đã cài / đang bật chưa.
 
-    vf-python.cmd -m factory.status
-(cai-dat.cmd tự chạy lệnh này ở bước cuối.)
+    python3 vf-python.py -m factory.status
+(python3 cai-dat.py tự chạy lệnh này ở bước cuối.)
 """
 
+import argparse
 import sys
 
 import httpx
 
 from .beats import _source, comfyui_url
-from .config import CHROME, ENGINES_DIR, MPT_DIR, gemini_api_key, pexels_api_key, setting
+from .config import CHROME, COMFY_SOURCE, MPT_DIR, gemini_api_key, pexels_api_key, setting
 from .engines import ENGINES
 
-CKPT = ENGINES_DIR / "ComfyUI_windows_portable" / "ComfyUI" / "models" / "checkpoints" / "sdxl_lightning_4step.safetensors"
+CKPT = COMFY_SOURCE / "models" / "checkpoints" / "sdxl_lightning_4step.safetensors"
 
 
-def main() -> int:
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(description="Inspect Video Factory engine readiness")
+    parser.add_argument("--engines", nargs="+", choices=list(ENGINES), default=list(ENGINES),
+                        help="Only these engines determine the exit code; all engines are listed")
+    args = parser.parse_args(argv)
     sys.stdout.reconfigure(encoding="utf-8")
     print("Key (.env):")
     print(f"  Gemini      : {'có' if gemini_api_key() else 'CHƯA CÓ - điền GEMINI_API_KEY trong .env'}")
@@ -27,16 +32,16 @@ def main() -> int:
     ready = 0
     for e in ENGINES.values():
         ok, why = e.check()
-        ready += ok
+        ready += bool(ok and e.key in args.engines)
         print(f"  [{'ok' if ok else '--'}] {e.label}" + ("" if ok else f": {why}"))
     try:
         running = httpx.get(f"{comfyui_url()}/system_stats", timeout=2).status_code == 200
     except httpx.HTTPError:
         running = False
-    print(f"Tự vẽ ảnh     : {'đã cài' if CKPT.exists() else 'chưa cài (cai-comfyui.cmd)'}"
-          f", ComfyUI {'đang chạy' if running else 'chưa bật (chay-comfyui.cmd)'}")
+    print(f"Tự vẽ ảnh     : {'đã cài' if CKPT.exists() else 'chưa cài (python3 cai-comfyui.py)'}"
+          f", ComfyUI {'đang chạy' if running else 'chưa bật (python3 chay-comfyui.py)'}")
     print(f"Nguồn ảnh mặc định: {_source()}  (đổi bằng IMAGE_SOURCE trong .env hoặc \"image_source\" trong kịch bản)")
-    return 0 if ready == len(ENGINES) else 1
+    return 0 if ready == len(set(args.engines)) else 1
 
 
 if __name__ == "__main__":

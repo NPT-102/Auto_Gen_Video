@@ -1,9 +1,9 @@
 """Tạo video cho series AWS SAA bằng chế độ batch của MoneyPrinterTurbo (cli.py).
 
-Chạy trong thư mục này, bằng Python của MoneyPrinterTurbo (trong repo video-factory: ..\\..\\engines\\MoneyPrinterTurbo):
-    ..\\MoneyPrinterTurbo\\.venv\\Scripts\\python.exe make_series.py 1
-    ..\\MoneyPrinterTurbo\\.venv\\Scripts\\python.exe make_series.py 2-5 9
-    ..\\MoneyPrinterTurbo\\.venv\\Scripts\\python.exe make_series.py all
+Chạy từ thư mục gốc Video Factory:
+    python3 vf-python.py examples/aws-saa-series/make_series.py 1
+    python3 vf-python.py examples/aws-saa-series/make_series.py 2-5 9
+    python3 vf-python.py examples/aws-saa-series/make_series.py all
 
 Kịch bản và từ khoá lấy từ episodes.json nên không gọi Gemini; chỉ cần key Pexels.
 Video xong được chép vào output/ với tên "Tap-01 - <tiêu đề>.mp4".
@@ -20,12 +20,13 @@ import tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parents[1]))
+from factory.pyrun import venv_python
 # MoneyPrinterTurbo: MPT_DIR → engines/MoneyPrinterTurbo của repo video-factory (thư mục này là examples/aws-saa-series)
 # → thư mục nằm cạnh (cách bố trí ban đầu)
 MPT_DIR = Path(os.environ.get("MPT_DIR") or next(
     (p for p in (HERE.parents[1] / "engines" / "MoneyPrinterTurbo", HERE.parent / "MoneyPrinterTurbo") if (p / "cli.py").exists()),
     HERE.parent / "MoneyPrinterTurbo"))
-MPT_PYTHON = MPT_DIR / ".venv" / "Scripts" / "python.exe"
 OUTPUT_DIR = HERE / "output"
 
 # Cài đặt chung cho mọi tập. Đổi ở đây nếu muốn khác giọng, khung hình, font...
@@ -103,7 +104,7 @@ def main() -> int:
     env = {**os.environ, "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}
     try:
         proc = subprocess.run(
-            [str(MPT_PYTHON), "cli.py", "--batch-file", manifest.name],
+            [*venv_python(MPT_DIR / ".venv"), "cli.py", "--batch-file", manifest.name],
             cwd=MPT_DIR,
             env=env,
             stdout=subprocess.PIPE,

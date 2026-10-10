@@ -16,7 +16,6 @@ from .config import CACHE_DIR, MPT_DIR, setting
 from .pyrun import venv_python
 from .narration import PUNCT, norm
 
-PYTHON = MPT_DIR / ".venv" / "Scripts" / "python.exe"
 MODEL = "small"          # đủ để lấy mốc thời gian; lời hiển thị lấy từ kịch bản nên không cần model lớn
 CACHE = CACHE_DIR / "align"
 WHISPER = r"""
@@ -40,12 +39,12 @@ def whisper_words(audio: Path) -> tuple[list[dict], float]:
             command = (python,)
         elif (MPT_DIR / ".venv" / "pyvenv.cfg").exists():
             venv = MPT_DIR / ".venv"
-            command = (str(venv / "bin" / "python"),) if (venv / "bin" / "python").exists() else venv_python(venv)
+            command = venv_python(venv)
         elif (Path(sys.prefix) / "pyvenv.cfg").exists():
             # pyrun.py injects the venv into a base interpreter. Reuse its bootstrap
             # so a child process sees the same site-packages on Windows.
             venv = Path(sys.prefix)
-            command = (str(venv / "bin" / "python"),) if (venv / "bin" / "python").exists() else venv_python(venv)
+            command = venv_python(venv)
         else:
             command = (sys.executable,)
         p = subprocess.run([*command, "-c", WHISPER, str(audio), MODEL], capture_output=True, text=True,

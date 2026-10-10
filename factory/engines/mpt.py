@@ -28,11 +28,11 @@ from ..beats import _source as image_source, sentence_clips
 from ..captions import esc, karaoke_ass
 from ..config import CONTENT_DIR, ENGINES_DIR, MPT_DIR
 from ..narration import MUSIC_DIR, attach_punctuation, synthesize_spec
-from ..pyrun import venv_python
+from ..pyrun import python_path, venv_python
 from ..spec import Spec
 from .base import Engine, EngineError, Log, run
 
-PYTHON = MPT_DIR / ".venv" / "Scripts" / "python.exe"
+PYTHON = python_path(MPT_DIR / ".venv")
 LOCAL = MPT_DIR / "storage" / "local_videos"   # MoneyPrinterTurbo chặn tư liệu cục bộ nằm ngoài thư mục này
 FONTS = ENGINES_DIR / "hyperframes-academic" / "fonts"
 PODCAST_MUSIC = MUSIC_DIR / "podcast"
@@ -73,7 +73,7 @@ class MoneyPrinterTurbo(Engine):
 
     def check(self):
         if not PYTHON.exists():
-            return False, f"chưa cài: chạy cai-dat.cmd (không thấy {PYTHON})"
+            return False, f"chưa cài: chạy python3 cai-dat.py (không thấy {PYTHON})"
         return True, ""
 
     def render(self, spec: Spec, workdir: Path, log: Log) -> Path:

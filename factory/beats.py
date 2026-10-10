@@ -7,7 +7,7 @@ lúc câu bắt đầu (sớm hơn lời BEAT_LEAD giây), mờ chuyển và zoo
 Nguồn ảnh (IMAGE_SOURCE trong .env):
 - pexels (mặc định): ảnh chụp thật, miễn phí — Gemini đặt từ khoá tìm ảnh cho từng câu trong một lần gọi.
 - comfyui: vẽ bằng ComfyUI chạy trên GPU của máy (SDXL-Lightning 4 bước, ~3 giây/ảnh, miễn phí) — bật bằng
-  chay-comfyui.cmd; Gemini viết mô tả cảnh cho từng câu.
+  python3 chay-comfyui.py; Gemini viết mô tả cảnh cho từng câu.
 - gemini: vẽ bằng Gemini (cần bật thanh toán: gói miễn phí không có hạn mức vẽ ảnh).
 Vẽ lỗi (ComfyUI chưa bật, hết hạn mức…) thì quay về Pexels theo từ khoá clip của cảnh.
 """
@@ -251,7 +251,7 @@ def _comfyui(prompt: str, log, variant: int = 0) -> Path | None:
             png = httpx.get(f"{base}/view", params={k: img[k] for k in ("filename", "subfolder", "type")}, timeout=60)
             png.raise_for_status()
         except httpx.HTTPError as exc:
-            log(f"không gọi được ComfyUI ở {base} ({type(exc).__name__}) — đã bật chay-comfyui.cmd chưa?")
+            log(f"không gọi được ComfyUI ở {base} ({type(exc).__name__}) — đã bật python3 chay-comfyui.py chưa?")
             return None
         dst.parent.mkdir(parents=True, exist_ok=True)
         tmp = dst.with_suffix(".png")

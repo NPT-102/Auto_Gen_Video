@@ -15,12 +15,12 @@ from pathlib import Path
 from ..beats import attach as attach_beats
 from ..config import ENGINES_DIR
 from ..narration import build_timeline, synthesize_spec
-from ..pyrun import venv_python
+from ..pyrun import python_path, venv_python
 from ..spec import Spec
 from .base import Engine, EngineError, Log, run, utf8_env
 
 REPO = ENGINES_DIR / "pixelle-video"
-PYTHON = REPO / ".venv" / "Scripts" / "python.exe"
+PYTHON = python_path(REPO / ".venv")
 DRIVER = Path(__file__).with_name("pixelle_driver.py")
 TEMPLATE = "1080x1920/static_factory.html"   # bản sao static_default, nhãn góc lấy từ biến {{tagline}}
 PHOTO_TEMPLATE = "1080x1920/image_modern.html"
@@ -78,7 +78,7 @@ class PixelleVideo(Engine):
 
     def check(self):
         if not PYTHON.exists():
-            return False, "chưa cài: chạy cai-dat.cmd (clone Pixelle-Video vào engines/pixelle-video + uv sync)"
+            return False, "chưa cài: chạy python3 cai-dat.py (clone Pixelle-Video vào engines/pixelle-video + uv sync)"
         return True, ""
 
     def render(self, spec: Spec, workdir: Path, log: Log) -> Path:

@@ -1,6 +1,6 @@
 """Server của video-factory: giao diện chọn video + API.
 
-    chay-web.cmd   (hoặc: vf-python.cmd -m uvicorn factory.app:app --port 8600)
+    python3 chay-web.py   (hoặc: python3 vf-python.py -m uvicorn factory.app:app --port 8600)
 """
 
 import json

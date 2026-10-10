@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Callable
 
 from ..spec import Spec
+from ..pyrun import npm_command
 
 Log = Callable[[str], None]
 

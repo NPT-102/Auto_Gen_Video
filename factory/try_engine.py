@@ -1,4 +1,4 @@
-"""Chạy thử một engine ngoài server:  vf-python.cmd -m factory.try_engine hyperframes content/aws-saa/ep05.json"""
+"""Chạy thử một engine ngoài server:  python3 vf-python.py -m factory.try_engine hyperframes content/aws-saa/ep05.json"""
 
 import shutil
 import sys

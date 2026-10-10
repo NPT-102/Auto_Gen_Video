@@ -25,6 +25,8 @@ import unicodedata
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+
 HERE = Path(__file__).resolve().parent
 SERIES_DIR = HERE.parent
 OUT_DIR = SERIES_DIR / "output-v2"
@@ -206,7 +208,8 @@ def build_audio(parts: list[tuple[Path, float, float]], out_wav: Path) -> None:
 
 
 def open_page(pw, data: dict):
-    browser = pw.chromium.launch(channel="chrome")
+    from factory.config import CHROME
+    browser = pw.chromium.launch(executable_path=str(CHROME))
     page = browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=1)
     page.goto(TEMPLATE.as_uri())
     page.evaluate("d => setup(d)", data)

@@ -27,7 +27,7 @@ from ..captions import karaoke_ass
 from ..config import CHROME, ENGINES_DIR
 from ..narration import attach_punctuation, synthesize_spec
 from ..spec import Spec
-from .base import Engine, EngineError, Log, run, utf8_env
+from .base import Engine, EngineError, Log, npm_command, run, utf8_env
 
 REPO = ENGINES_DIR / "ai-auto-generate-video"
 TEMPLATES = REPO / "templates"
@@ -278,7 +278,7 @@ class AIAutoGenerateVideo(Engine):
 
     def check(self):
         if not (REPO / "node_modules").exists():
-            return False, "chưa cài: chạy cai-dat.cmd (clone repo vào engines/ai-auto-generate-video + npm ci)"
+            return False, "chưa cài: chạy python3 cai-dat.py (clone repo vào engines/ai-auto-generate-video + npm ci)"
         return True, ""
 
     def render(self, spec: Spec, workdir: Path, log: Log) -> Path:
@@ -301,7 +301,7 @@ class AIAutoGenerateVideo(Engine):
             env = utf8_env(TTS_PROVIDER="omnivoice", OMNIVOICE_ENDPOINT=tts.url, TTS_CONCURRENCY="1",
                            HYPERFRAMES_BROWSER_PATH=str(CHROME), HYPERFRAMES_NO_TELEMETRY="1", DO_NOT_TRACK="1",
                            HYPERFRAMES_NO_UPDATE_CHECK="1", NPM_CONFIG_UPDATE_NOTIFIER="false")
-            run(["npm.cmd", "run", "pipeline", "--", script_path], cwd=REPO, log_file=workdir / "log.txt", env=env, timeout=3600)
+            run([npm_command(), "run", "pipeline", "--", script_path], cwd=REPO, log_file=workdir / "log.txt", env=env, timeout=3600)
         finally:
             tts.close()
             for folder in temp:

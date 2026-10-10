@@ -4,6 +4,8 @@ Mọi thiết lập đọc theo thứ tự: biến môi trường → file .env 
 """
 
 import os
+import shutil
+import sys
 import tomllib
 from pathlib import Path
 
@@ -32,11 +34,16 @@ def setting(name: str, default: str = "") -> str:
     return os.environ.get(name) or _read_dotenv().get(name) or default
 
 
+def resolve_path(value: str) -> Path:
+    path = Path(value).expanduser()
+    return path if path.is_absolute() else ROOT / path
+
+
 def _mpt_dir() -> Path:
-    """MoneyPrinterTurbo: MPT_DIR → engines/MoneyPrinterTurbo (cai-dat.cmd clone vào đây) → thư mục nằm cạnh
+    """MoneyPrinterTurbo: MPT_DIR → engines/MoneyPrinterTurbo (python3 cai-dat.py clone vào đây) → thư mục nằm cạnh
     video-factory (cách bố trí trên máy dựng hệ thống lần đầu)."""
     if setting("MPT_DIR"):
-        return Path(setting("MPT_DIR"))
+        return resolve_path(setting("MPT_DIR"))
     inside, beside = ENGINES_DIR / "MoneyPrinterTurbo", ROOT.parent / "MoneyPrinterTurbo"
     return beside if beside.exists() and not inside.exists() else inside
 
@@ -44,7 +51,13 @@ def _mpt_dir() -> Path:
 def _chrome() -> Path:
     """Chrome cho HyperFrames, Remotion, AI-auto và xem nhanh: CHROME_PATH → chỗ cài thường gặp → Edge (cùng nhân Chromium)."""
     if setting("CHROME_PATH"):
-        return Path(setting("CHROME_PATH"))
+        return Path(setting("CHROME_PATH")).expanduser()
+    for name in ("google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "microsoft-edge"):
+        executable = shutil.which(name)
+        if executable:
+            return Path(executable)
+    if sys.platform != "win32":
+        return Path("/usr/bin/google-chrome")
     dirs = [os.environ.get(k) for k in ("ProgramFiles", "ProgramFiles(x86)", "LOCALAPPDATA")]
     found = [Path(d) / "Google" / "Chrome" / "Application" / "chrome.exe" for d in dirs if d]
     found += [Path(d) / "Microsoft" / "Edge" / "Application" / "msedge.exe" for d in dirs[:2] if d]
@@ -59,6 +72,12 @@ PORT = int(setting("FACTORY_PORT", "8600"))
 MAX_PARALLEL = int(setting("FACTORY_PARALLEL", "2"))
 
 DEFAULT_VOICE = "vi-VN-HoaiMyNeural"
+
+# Native ComfyUI checkout; keep support for an existing Windows portable installation.
+COMFY_DIR = ENGINES_DIR / "ComfyUI"
+COMFY_PORTABLE = ENGINES_DIR / "ComfyUI_windows_portable"
+COMFY_SOURCE = COMFY_DIR if (COMFY_DIR / "main.py").exists() else (
+    COMFY_PORTABLE / "ComfyUI" if (COMFY_PORTABLE / "ComfyUI" / "main.py").exists() else COMFY_DIR)
 
 for d in (CONTENT_DIR, RUNS_DIR, PUBLISH_DIR, CACHE_DIR):
     d.mkdir(parents=True, exist_ok=True)
