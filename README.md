@@ -2,8 +2,8 @@
 
 **Một kịch bản → 6 engine dựng 6 phiên bản video dọc 9:16 → xem song song trên web → chọn 1 bản để đăng TikTok / YouTube Shorts.**
 
-Chạy trên Windows, giọng đọc tiếng Việt miễn phí (Edge TTS), phụ đề karaoke khớp từng chữ. Ảnh minh hoạ đổi theo từng câu,
-lấy từ một trong ba nguồn: Pexels (ảnh chụp, miễn phí), **tự vẽ bằng card đồ hoạ của máy** (ComfyUI + SDXL-Lightning),
+Chạy trên Linux và Windows bằng các script Python, giọng đọc tiếng Việt miễn phí (Edge TTS), phụ đề karaoke khớp từng chữ. Ảnh minh hoạ đổi theo từng câu,
+lấy từ Pixabay / Pexels (ảnh chụp, miễn phí), **tự vẽ bằng card đồ hoạ của máy** (ComfyUI + SDXL-Lightning),
 hoặc ảnh thật trên Wikimedia Commons cho video về người và sự kiện có thật. Gemini (miễn phí) viết nháp kịch bản từ một chủ đề.
 
 ![Cùng một kịch bản qua 6 engine](docs/so-sanh-01-10/0-cau-treo-6-engine.jpg)
@@ -11,13 +11,64 @@ hoặc ảnh thật trên Wikimedia Commons cho video về người và sự ki�
 | Engine | Phong cách | Thời gian render (video 1–2 phút, đo trên máy dựng hệ thống) |
 |---|---|---|
 | [MoneyPrinterTurbo](https://github.com/harry0703/MoneyPrinterTurbo) | Clip stock (hoặc ảnh tự vẽ) + phụ đề; tuỳ chọn **bản podcast** giọng ElevenLabs | ~8 phút (3–27) |
-| Stock khớp lời (viết riêng) | Clip Pexels đổi theo **từng câu**, chữ và số hiện đúng lúc đọc | ~2,5 phút |
+| Stock khớp lời (viết riêng) | Clip Pixabay / Pexels đổi theo **từng câu**, chữ và số hiện đúng lúc đọc | ~2,5 phút |
 | [AI-auto-generate-video](https://github.com/huytranvan2010/AI-auto-generate-video) | Template poster động trên ảnh đổi theo câu | ~3 phút |
 | [HyperFrames](https://www.npmjs.com/package/hyperframes) | Học thuật nền sáng: sơ đồ dựng dần, phụ đề karaoke | ~4 phút |
 | [Pixelle-Video](https://github.com/ATH-MaaS/Pixelle-Video) | Mỗi câu một khung: ảnh + chữ | ~2 phút |
 | [Remotion](https://www.remotion.dev) | Nền tối, phụ đề kiểu TikTok | ~7 phút |
 
 Hệ thống **không tự đăng** video: bạn xem, chọn bản ưng ý, rồi tự tải lên kênh.
+
+## Chạy trên Linux
+
+Cần Python **≥ 3.11**, Git, `uv`, Node.js **≥ 22** (kèm npm), FFmpeg/ffprobe và Chrome hoặc Chromium.
+Trên Debian/Ubuntu, cài công cụ nền: `sudo apt install python3 git ffmpeg`. Cài
+[uv](https://docs.astral.sh/uv/getting-started/installation/), [Node.js](https://nodejs.org/en/download)
+và Chrome/Chromium nếu máy chưa có. Installer chỉ kiểm tra các phần mềm hệ thống; không tự chạy sudo.
+
+Từ thư mục repo, cấu hình nhẹ phù hợp máy chỉ có GPU tích hợp:
+
+```bash
+uv run --no-project --python 3.12 python cai-dat.py --engines hyperframes remotion broll
+# Mở .env bằng editor và điền GEMINI_API_KEY và PIXABAY_API_KEY (hoặc PEXELS_API_KEY).
+source .venv/bin/activate
+python chay-web.py
+```
+
+Web chạy ở **http://127.0.0.1:8600**, tự mở trình duyệt sau khi server sẵn sàng. **Ctrl+C** dừng server.
+Qua SSH hoặc không muốn mở trình duyệt: `python chay-web.py --no-browser` (sau khi kích hoạt `.venv`). Đổi cổng: `--port 8601` hoặc
+`FACTORY_PORT=8601` trong `.env`. Chrome/Chromium được tìm trong `PATH`; có thể chỉ định `CHROME_PATH=/usr/bin/chromium`.
+
+Không cần GPU để dựng video hoặc dùng VieNeu trên CPU. Có thể đặt `FACTORY_PARALLEL=1` trong `.env` để giảm số render
+đồng thời. Thiếu key Pixabay/Pexels thì engine stock báo chưa sẵn sàng; video slide có `"images": false` không cần stock.
+Viết nháp tự động vẫn cần key Gemini. VieNeu chạy trong một server riêng: xem hướng dẫn giọng VieNeu bên dưới.
+
+Các lệnh Python (sau khi kích hoạt `.venv`):
+
+| Lệnh | Công dụng |
+|---|---|
+| `python cai-dat.py` | Cài cả 6 engine; giữ nguyên checkout đã có, không xoá thay đổi của bạn |
+| `python cai-dat.py --check --engines hyperframes remotion` | Chỉ kiểm tra phần mềm và tình trạng; không cài hoặc tạo `.env` |
+| `python vf-python.py -m factory.status` | Chạy Python trong `.venv` từ thư mục gốc repo |
+| `python vf-python.py -m factory.try_engine hyperframes content/demo/flow-demo.json` | Thử một engine |
+| `python cai-comfyui.py --device cpu` | Cài ComfyUI riêng và model SDXL (~7 GB), tuỳ chọn |
+| `python chay-comfyui.py` | Bật ComfyUI bằng thiết bị đã chọn lúc cài |
+
+Installer mặc định dùng Python 3.12 do uv quản lý. Nếu muốn dùng Python đã cài, thêm `--python /usr/bin/python3`
+(các engine bên ngoài có thể cần đúng phiên bản của chúng). Có thể chọn engine bằng `--engines`;
+factory có sẵn **faster-whisper 1.2.1** và **PyAV < 19** cho căn phụ đề VieNeu. Các phụ thuộc này được khai báo
+trong `pyproject.toml` và ghim trong `uv.lock`; `uv sync --locked` giữ chúng trong `.venv`. Flag `--with-whisper`
+được chấp nhận để tương thích với các lệnh cài đặt cũ, không cần cho cài đặt thông thường.
+
+Sau khi cài, kích hoạt `.venv` trong mỗi terminal Linux bằng `source .venv/bin/activate`; từ đó dùng `python`
+thay cho `python3` trong các lệnh của repo. `python` trỏ tới interpreter của dự án. Có thể chạy không cần kích hoạt
+bằng `uv run --locked python chay-web.py`. Khi cập nhật các phụ thuộc đã ghim, chạy `uv sync --locked` từ thư mục gốc.
+Các môi trường engine bên ngoài, bao gồm VieNeu, được quản lý riêng.
+
+Pixelle cần Chromium riêng của Playwright; installer tải trình duyệt này. Nếu thiếu thư viện hệ thống của trình duyệt,
+chạy `engines/pixelle-video/.venv/bin/python -m playwright install-deps chromium` theo hướng dẫn Playwright (có thể cần sudo).
+Các repo engine được ghim theo commit trong `setup/install.py`; môi trường Python và Node của mỗi engine tách riêng.
+Cache uv/npm và Python uv tải nằm trong `.cache/`.
 
 ## Mục lục
 
@@ -45,7 +96,7 @@ Hệ thống **không tự đăng** video: bạn xem, chọn bản ưng ý, rồ
 
 | | Tối thiểu | Máy đã dùng để dựng hệ thống |
 |---|---|---|
-| Hệ điều hành | Windows 10 hoặc 11, 64-bit | Windows 11 |
+| Hệ điều hành | Linux hoặc Windows 10/11, 64-bit | Windows 11 |
 | RAM | 8 GB (đặt `FACTORY_PARALLEL=1`) | 16 GB trở lên, CPU 32 luồng |
 | Ổ đĩa trống | ~10 GB (cài thường) — thêm ~25 GB nếu tự vẽ ảnh | |
 | Card đồ hoạ | Không cần — **trừ khi tự vẽ ảnh**: NVIDIA RTX, ≥ 8 GB VRAM, driver ≥ 580 | RTX 4060 Laptop 8 GB: ~3 giây/ảnh |
@@ -58,7 +109,7 @@ Thời gian cài: 15–30 phút cho phần thường, thêm 30–90 phút (tuỳ
 | Dịch vụ | Dùng để | Bắt buộc? | Chi phí |
 |---|---|---|---|
 | Google AI Studio (Gemini API) | Viết nháp kịch bản, đặt từ khoá / mô tả ảnh cho từng câu, soát ảnh | **Có** | Miễn phí (có hạn mức) |
-| Pexels API | Ảnh và clip stock | **Có** | Miễn phí |
+| Pixabay hoặc Pexels API | Ảnh và clip stock | **Có một trong hai** | Miễn phí |
 | GitHub | Tải mã về bằng `git clone` | Nên có | Miễn phí |
 | ElevenLabs | Giọng podcast (chỉ bản MoneyPrinterTurbo) | Không | Free (làm tay) / trả phí để tự động |
 | TikTok, YouTube | Kênh để đăng video | Tuỳ bạn | Miễn phí |
@@ -76,7 +127,29 @@ thống tự chờ và tự đổi sang model dự phòng, một bản nháp th�
 ảnh `gemini` cần bật thanh toán; nguồn `comfyui` thì miễn phí). Theo điều khoản của Google, dữ liệu gửi qua gói miễn phí
 có thể được dùng để cải thiện sản phẩm — đừng đưa thông tin nhạy cảm vào kịch bản.
 
-### Pexels API key (bắt buộc)
+### Pixabay API key (ảnh và clip stock)
+
+1. Đăng nhập hoặc đăng ký ở <https://pixabay.com/api/docs/> để lấy API key.
+2. Thêm vào `.env`:
+
+```ini
+PIXABAY_API_KEY=<key>
+IMAGE_SOURCE=pixabay
+```
+
+Bốn engine slide dùng ảnh Pixabay theo từng câu. MoneyPrinterTurbo dựng ảnh thành clip zoom,
+kể cả bản podcast; engine **Stock khớp lời** lấy video Pixabay (clip ngang được crop nếu thiếu clip dọc).
+Kịch bản có thể ghi `"image_source": "pixabay"` hoặc `"pexels"` để đổi nguồn riêng.
+Khi dùng ảnh vẽ AI, đặt `STOCK_SOURCE=pixabay` để chọn nguồn stock dự phòng.
+API search được cache 24 giờ; ảnh/video tải về máy. Nguồn ảnh được giữ cùng metadata của beat
+và `credits.txt`; clip stock có `sources.txt`.
+Không cần key Pexels khi chọn Pixabay. Tài khoản Pixabay thông thường cung cấp ảnh tối đa 1280px;
+repo dùng `largeImageURL` và không yêu cầu quyền full-resolution.
+
+### Pexels API key (nguồn thay thế)
+
+Pexels đang tạm dừng cấp API key mới; nếu chưa có key, dùng Pixabay ở trên.
+Key Pexels có sẵn vẫn dùng được khi đặt `IMAGE_SOURCE=pexels`.
 
 1. Tạo tài khoản ở <https://www.pexels.com/join> (miễn phí).
 2. Mở <https://www.pexels.com/api/>, bấm **Your API Key** (lần đầu phải điền mục đích dùng, ví dụ
@@ -117,7 +190,6 @@ winget install --id 7zip.7zip -e
 | Node.js LTS (≥ 22) | HyperFrames, Remotion, AI-auto-generate-video |
 | FFmpeg | Ghép video, gắn phụ đề, chuẩn hoá âm lượng |
 | Google Chrome | HyperFrames, Remotion, AI-auto chụp khung hình bằng Chrome |
-| 7-Zip | Giải nén ComfyUI (chỉ cần nếu tự vẽ ảnh) |
 
 Cài xong **đóng PowerShell và mở cửa sổ mới** (để Windows nhận đường dẫn mới), kiểm tra:
 
@@ -133,23 +205,22 @@ Chọn thư mục **không có dấu cách, không có chữ có dấu, không n
 cd C:\
 git clone https://github.com/<tài-khoản>/video-factory.git
 cd video-factory
-.\cai-dat.cmd
+uv run --no-project --python 3.12 python cai-dat.py
 ```
 
-(Hoặc mở thư mục bằng File Explorer và bấm đúp `cai-dat.cmd`.) Nếu tải bằng nút *Download ZIP* trên GitHub: trước khi giải
-nén, chuột phải file zip → *Properties* → tick *Unblock* → *OK*, không thì Windows có thể chặn các file `.cmd` / `.ps1`.
+Installer chạy bằng `uv run --no-project --python 3.12 python cai-dat.py` trên cả Linux và Windows.
+Sau khi cài, các lệnh `python` dùng môi trường `.venv` đã kích hoạt (xem mục 6).
+Installer Python chạy lại được:
 
-`cai-dat.cmd` làm lần lượt (chạy lại bao nhiêu lần cũng được — phần đã xong sẽ bỏ qua):
-
-1. kiểm tra Git, uv, Node.js, FFmpeg, Chrome — thiếu thì in lệnh `winget` cần chạy rồi dừng
-2. tạo file `.env` từ `.env.example` và mở bằng Notepad để bạn điền key
+1. kiểm tra Git, uv, Node.js, FFmpeg, Chrome — thiếu thì báo và dừng
+2. tạo file `.env` từ `.env.example`; mở bằng editor để điền key
 3. cài thư viện Python của web (`uv sync`) và thư viện Node của HyperFrames, Remotion, ELK (`npm ci`)
 4. tải 3 repo engine **đúng commit đã chạy thử** vào `engines\` rồi cài thư viện của từng repo:
    MoneyPrinterTurbo (`uv sync`), AI-auto-generate-video (`npm ci`), Pixelle-Video (`uv sync` + Chromium cho Playwright)
 5. chép key Gemini / Pexels từ `.env` sang `config.toml` của MoneyPrinterTurbo
 6. in tình trạng: key nào đã có, engine nào sẵn sàng
 
-Cuối cùng thấy `[ok]` ở cả 6 engine là xong. Chỉ xem lại tình trạng: `.\cai-dat.cmd -KiemTra`.
+Cuối cùng thấy `[ok]` ở cả 6 engine là xong. Chỉ xem lại tình trạng: `python cai-dat.py --check`.
 
 ## 5. Điền key
 
@@ -160,13 +231,25 @@ GEMINI_API_KEY=AIza...
 PEXELS_API_KEY=...
 ```
 
-Lưu file rồi **chạy lại `cai-dat.cmd`** để key được chép sang MoneyPrinterTurbo (lần này chỉ mất vài giây).
+Lưu file rồi **chạy lại `cai-dat.py`** để key được chép sang MoneyPrinterTurbo (lần này chỉ mất vài giây).
 `.env` chỉ nằm trên máy bạn và đã có trong `.gitignore` — không bao giờ bị đưa lên GitHub. Các thiết lập khác: [mục 13](#13-mọi-thiết-lập-trong-env).
 
 ## 6. Chạy web
 
-Bấm đúp **`chay-web.cmd`**. Một cửa sổ đen hiện ra (server), sau 5 giây trình duyệt tự mở <http://127.0.0.1:8600>.
-**Đóng cửa sổ đen là tắt web.** Báo cổng 8600 đang được dùng nghĩa là web đã chạy sẵn ở cửa sổ khác — cứ mở địa chỉ trên.
+Từ thư mục gốc repo, trên Linux:
+
+```bash
+source .venv/bin/activate
+python chay-web.py
+```
+
+Trên Windows PowerShell: `.venv\Scripts\Activate.ps1` rồi `python chay-web.py`.
+Hoặc trên cả hai hệ điều hành: `uv run --locked python chay-web.py`.
+Trình duyệt tự mở <http://127.0.0.1:8600> khi server sẵn sàng. **Ctrl+C dừng web.**
+Báo cổng 8600 đang được dùng nghĩa là web đã chạy ở cửa sổ khác — cứ mở địa chỉ trên.
+
+**Launcher chỉ bật Video Factory.** Nếu chọn giọng VieNeu, cần bật speech API trong terminal riêng theo hướng dẫn
+bên dưới và giữ cả hai server chạy trong lúc tạo video.
 
 Các ô engine ở đầu trang: chấm xanh lá là sẵn sàng, chấm vàng là chưa (rê chuột vào để xem lý do).
 
@@ -197,44 +280,98 @@ cùng lúc); cột *Các lần tạo* hiện tiến độ. Nút **Log** xem nh�
 ăn, cảm xúc người), kém với khái niệm trừu tượng ("load balancer" ra… xe tải). Muốn ảnh khớp lời hơn: tự vẽ ([mục 8](#8-tự-tạo-ảnh-bằng-ai-trên-máy));
 muốn đúng người thật: Wikimedia Commons ([mục 9](#9-ảnh-thật-cho-người-và-sự-kiện-có-thật)).
 
+### Giọng VieNeu-TTS (tuỳ chọn, chạy trên máy)
+
+Ngoài Edge TTS, bạn có thể chọn **VieNeu-TTS** cho cả 6 engine: video slide/sơ đồ và video ảnh/footage đều dùng được.
+Factory gọi [speech API v3 Turbo của VieNeu](https://github.com/pnnbao97/VieNeu-TTS/blob/main/apps/openai_speech.py)
+qua mạng cục bộ; không cài model VieNeu vào môi trường của factory. Server cục bộ không cần API key, trừ khi bạn
+tự bật xác thực. Việc này không thay thế key Gemini/Pexels cho viết nháp và lấy stock.
+
+**Cài đặt một lần** từ thư mục gốc Video Factory:
+
+```bash
+git clone https://github.com/pnnbao97/VieNeu-TTS.git engines/VieNeu-TTS
+cd engines/VieNeu-TTS
+uv sync
+cd ../..
+uv sync --locked
+```
+
+Nếu đã có checkout VieNeu, dùng thư mục đó thay cho `engines/VieNeu-TTS`; không cần clone lại.
+VieNeu có `.venv` riêng và dùng CPU/ONNX trong cấu hình dưới đây. Muốn dùng GPU, làm theo
+[hướng dẫn CUDA chính thức](https://github.com/pnnbao97/VieNeu-TTS) trước khi bật server.
+
+**Mỗi lần sử dụng**, mở hai terminal:
+
+Terminal 1 — từ thư mục gốc Video Factory, bật VieNeu trên Linux:
+
+```bash
+cd engines/VieNeu-TTS
+VIENEU_BACKEND=onnx uv run python -m apps.openai_speech
+```
+
+Trên Windows PowerShell, đặt `$env:VIENEU_BACKEND="onnx"` rồi chạy `uv run python -m apps.openai_speech`
+trong thư mục VieNeu. Server mặc định ở `http://127.0.0.1:8000`. Đợi server hoàn tất khởi động;
+lần đầu tải và nạp model cần thời gian. **Giữ terminal này mở** trong suốt quá trình tạo video.
+
+Terminal 2 — từ thư mục gốc Video Factory, bật web trên Linux:
+
+```bash
+source .venv/bin/activate
+python chay-web.py
+```
+
+Nếu web đã chạy, giữ nguyên terminal của web. Trên web, mở kịch bản → **Giọng đọc video → VieNeu-TTS** →
+**Tải lại danh sách giọng** → chọn tên giọng từ gợi ý (ví dụ `Mai Anh`) → **Lưu thay đổi** → **Tạo video**.
+Để trống tên giọng dùng `VIENEU_VOICE` trong `.env`, mặc định `Hải Đăng`.
+
+Có thể kiểm tra server từ terminal khác bằng `curl http://127.0.0.1:8000/v1/voices` (khi chưa bật Bearer auth).
+Nếu chỉ muốn dùng Edge TTS, chọn Edge trên web; không cần bật server VieNeu.
+
+**Phụ đề:** factory có sẵn faster-whisper và PyAV tương thích. Whisper tải model `small` khi dùng lần đầu,
+xử lý trên CPU; mốc các chữ không nhận diện được được nội suy từ chữ khớp gần nhất. Nếu MoneyPrinterTurbo
+đã cài, factory ưu tiên môi trường Whisper của engine đó; có thể đặt `ALIGN_PYTHON` trong `.env` tới interpreter
+của một môi trường riêng có faster-whisper và `av>=11,<19`. Khi server hoặc Whisper lỗi, sửa nguyên nhân rồi
+bấm **Chạy lại** ở engine bị lỗi.
+
+Thiết lập `.env` tuỳ chọn: `VIENEU_URL=http://127.0.0.1:8000`, `VIENEU_VOICE=Hải Đăng`,
+`VIENEU_API_KEY=<key server nếu đã bật Bearer auth>`. `VIENEU_URL` cũng nhận URL kết thúc bằng `/v1`.
+Đổi server/giọng tạo cache audio riêng. Nếu server hoặc Whisper lỗi, job báo lỗi để bạn sửa và chạy lại.
+
+Kịch bản JSON có thể thêm `"tts_provider": "vieneu", "vieneu_voice": "Mai Anh"`; trường `voice` vẫn giữ giọng Edge
+để chuyển lại. Kịch bản cũ không có `tts_provider` tiếp tục dùng Edge. Với podcast MoneyPrinterTurbo,
+file giọng tải lên được ưu tiên; nếu không có file, lựa chọn VieNeu được dùng thay ElevenLabs.
+
 ## 8. Tự tạo ảnh bằng AI trên máy
 
-Ảnh được **vẽ ngay trên card đồ hoạ của bạn** bằng [ComfyUI](https://github.com/Comfy-Org/ComfyUI) (bản portable, không cần
-cài Python) và model [SDXL-Lightning 4 bước](https://huggingface.co/ByteDance/SDXL-Lightning) của ByteDance. Miễn phí, không
-giới hạn, không gửi gì lên mạng ngoài lời mô tả cho Gemini. Mỗi câu một ảnh khớp đúng nội dung câu đó (bản
-MoneyPrinterTurbo: mỗi vế câu). Áp dụng cho MoneyPrinterTurbo, AI-auto, HyperFrames, Pixelle, Remotion; *Stock khớp lời*
-luôn dùng clip Pexels.
+Ảnh được tạo bằng [ComfyUI](https://github.com/Comfy-Org/ComfyUI) và model
+[SDXL-Lightning 4 bước](https://huggingface.co/ByteDance/SDXL-Lightning). Bản cài Python dùng checkout native
+`engines/ComfyUI` và venv riêng, chạy được trên CPU hoặc NVIDIA CUDA. CPU tạo ảnh SDXL chậm;
+cho máy GPU tích hợp, ảnh/clip Pexels là lựa chọn nhẹ hơn. Phần này hoàn toàn tuỳ chọn, tách khỏi VieNeu.
+Áp dụng cho MoneyPrinterTurbo, AI-auto, HyperFrames, Pixelle, Remotion; engine stock dùng clip Pixabay hoặc Pexels theo nguồn đã chọn.
 
 ### 8.1 Cài (một lần)
 
-1. Kiểm tra driver NVIDIA: mở PowerShell, gõ `nvidia-smi` — số *Driver Version* phải **≥ 580** (bản ComfyUI này dùng
-   CUDA 13). Thấp hơn thì tải driver mới ở <https://www.nvidia.com/Download/index.aspx> (Game Ready hoặc Studio đúng
-   card), cài xong khởi động lại máy.
-2. Bấm đúp **`cai-comfyui.cmd`**. Script kiểm tra card / ổ đĩa / 7-Zip, tải 2 file (~9 GB) vào `engines\_downloads\`,
-   **so mã SHA-256** với bản đã thử, giải nén ComfyUI vào `engines\ComfyUI_windows_portable\` và đặt model vào
-   `ComfyUI\models\checkpoints\`. Rớt mạng thì chạy lại — file đang tải dở được tải tiếp.
+```bash
+python cai-comfyui.py --device cpu
+python chay-comfyui.py
+```
 
-| File | Nguồn | Dung lượng |
-|---|---|---|
-| `ComfyUI_windows_portable_nvidia.7z` (v0.38.0) | github.com/Comfy-Org/ComfyUI/releases | 1,9 GB (giải nén ~12 GB) |
-| `sdxl_lightning_4step.safetensors` | huggingface.co/ByteDance/SDXL-Lightning | 6,5 GB |
-
-> **Máy bật Smart App Control** (Windows 11): ngày 09/10/2026, trên máy dựng hệ thống, Smart App Control bắt đầu chặn
-> `torch_cpu.dll` của PyTorch trong ComfyUI (bấm `chay-comfyui.cmd` thì báo `WinError 4551 … torch\lib\shm.dll`). Đây
-> là thư viện bắt buộc, không có bản ký số để thay. Trên máy như vậy, chọn một trong các cách: tắt Smart App Control
-> (*Windows Security → App & browser control → Smart App Control*; đọc kỹ hướng dẫn của Microsoft trước — nhiều bản
-> Windows tắt rồi không bật lại được nếu không cài lại máy), hoặc chạy ComfyUI ở chỗ khác — WSL2 hay một máy khác trong
-> mạng — rồi trỏ `COMFYUI_URL` tới đó, hoặc dùng ảnh Pexels / Wikimedia Commons. Máy tắt Smart App Control (đa số máy) không bị.
+Installer tải ComfyUI v0.38.0 từ GitHub, cài PyTorch CPU và requirements trong venv riêng, rồi tải checkpoint
+`sdxl_lightning_4step.safetensors` (~7 GB) vào `engines/ComfyUI/models/checkpoints/`. File tải dở được tải tiếp;
+installer so kích thước và SHA-256 trước khi đưa model vào dùng. Không cần 7-Zip hoặc bản portable Windows.
+Dùng `--skip-model` nếu chỉ muốn cài ComfyUI; dùng `--device cuda` khi có NVIDIA và driver tương thích CUDA 13.
+Launcher lưu và dùng lại thiết bị đã chọn. Bản portable Windows đã cài từ trước vẫn được launcher hỗ trợ.
 
 ### 8.2 Dùng khi làm video
 
-1. Bấm đúp **`chay-comfyui.cmd`**, chờ dòng `To see the GUI go to: http://127.0.0.1:8188`. **Để cửa sổ này mở** suốt lúc
+1. Chạy **`python chay-comfyui.py`**, chờ dòng `To see the GUI go to: http://127.0.0.1:8188`. **Để cửa sổ này mở** suốt lúc
    tạo video (đóng là tắt ComfyUI).
 2. Chọn nguồn ảnh — một trong hai cách:
    - cho **một kịch bản**: thêm vào đầu file JSON (cùng cấp với `"title"`): `"image_source": "comfyui",`
    - cho **mọi video**: thêm vào `.env`: `IMAGE_SOURCE=comfyui`
 3. Tạo video như bình thường. Ảnh đầu tiên mất ~10 giây (nạp model vào card), sau đó ~3 giây/ảnh (RTX 4060 8 GB).
-   ComfyUI chưa bật thì hệ thống tự quay về ảnh Pexels.
+   ComfyUI chưa bật thì hệ thống dùng nguồn stock dự phòng (`STOCK_SOURCE`).
 
 Cách hệ thống vẽ: Gemini đọc từng câu và viết một mô tả cảnh tiếng Anh → ComfyUI vẽ ảnh dọc 768×1344 (4 bước, cfg 1,
 euler, sgm_uniform) → ảnh được phóng thành nền 1080×1920, zoom chậm, đổi sớm hơn lời 0,35 giây. Bản MoneyPrinterTurbo
@@ -261,11 +398,11 @@ về người thật dùng ảnh thật — [mục 9](#9-ảnh-thật-cho-ngư�
 
 ### 8.4 Vẽ ảnh lẻ, không làm video
 
-Bật `chay-comfyui.cmd`, rồi ở thư mục gốc:
+Bật `chay-comfyui.py`, rồi ở thư mục gốc:
 
 ```powershell
-.\vf-python.cmd -m factory.ve_anh "a misty lotus pond at dawn, soft golden light" -n 4
-.\vf-python.cmd -m factory.ve_anh "hồ sen buổi sớm có sương" --dich -n 4
+python vf-python.py -m factory.ve_anh "a misty lotus pond at dawn, soft golden light" -n 4
+python vf-python.py -m factory.ve_anh "hồ sen buổi sớm có sương" --dich -n 4
 ```
 
 Ảnh dọc 768×1344 lưu ở `anh-ve\<ngày-giờ>-<mô-tả>\` kèm `prompt.txt`. SDXL hiểu tiếng Anh tốt hơn hẳn tiếng Việt —
@@ -274,7 +411,7 @@ viết tiếng Việt thì thêm `--dich` để Gemini viết lại thành mô t
 Hoặc dùng giao diện của ComfyUI: mở <http://127.0.0.1:8188> → workflow mặc định → ở nút *Load Checkpoint* chọn
 `sdxl_lightning_4step.safetensors` → *KSampler*: steps **4**, cfg **1.0**, sampler **euler**, scheduler **sgm_uniform** →
 *Empty Latent Image*: 768 × 1344 (dọc) hoặc 1344 × 768 (ngang) → gõ mô tả vào ô prompt dương → **Queue / Run**.
-Ảnh nằm trong `engines\ComfyUI_windows_portable\ComfyUI\output\`.
+Ảnh nằm trong `engines/ComfyUI/output/` (hoặc `engines/ComfyUI_windows_portable/ComfyUI/output/` nếu dùng bản portable đã cài trước).
 
 ## 9. Ảnh thật cho người và sự kiện có thật
 
@@ -393,28 +530,29 @@ Mẹo: viết số và thuật ngữ đúng như muốn thấy trên phụ đề
 | Biến | Mặc định | Ý nghĩa |
 |---|---|---|
 | `GEMINI_API_KEY` | — | **Bắt buộc**. Key Gemini |
-| `PEXELS_API_KEY` | — | **Bắt buộc**. Key Pexels |
+| `PIXABAY_API_KEY` | — | Key Pixabay; dùng cùng `IMAGE_SOURCE=pixabay` |
+| `PEXELS_API_KEY` | — | Key Pexels; dùng nếu chọn Pexels |
 | `GEMINI_MODEL` | `gemini-flash-latest` | Model Gemini; quá tải thì tự thử model dự phòng |
 | `ELEVENLABS_API_KEY` | — | Giọng podcast qua API (gói trả phí) |
 | `ELEVENLABS_VOICE` | `mai` | `mai`, `nhatphong` hoặc một `voice_id` trong thư viện ElevenLabs |
-| `IMAGE_SOURCE` | `pexels` | Nguồn ảnh cho mọi video: `pexels`, `comfyui`, `gemini`, `commons` (kịch bản đặt `image_source` thì kịch bản thắng) |
+| `IMAGE_SOURCE` | `pexels` | Nguồn ảnh cho mọi video: `pixabay`, `pexels`, `comfyui`, `gemini`, `commons` (kịch bản đặt `image_source` thì kịch bản thắng) |
 | `COMFYUI_URL` | `http://127.0.0.1:8188` | Địa chỉ ComfyUI (đổi nếu chạy ComfyUI ở máy khác trong mạng) |
 | `FACTORY_PARALLEL` | `2` | Số engine render cùng lúc (RAM 8 GB nên để `1`) |
 | `MPT_DIR` | `engines\MoneyPrinterTurbo` | Chỗ cài MoneyPrinterTurbo nếu bạn đã có sẵn ở nơi khác |
 | `CHROME_PATH` | tự tìm Chrome, không có thì Edge | Đường dẫn `chrome.exe` |
 
-Đổi `.env` xong: tắt web (đóng cửa sổ) rồi bật lại `chay-web.cmd`; đổi key Gemini / Pexels thì chạy lại `cai-dat.cmd`.
+Đổi `.env` xong: tắt web (đóng cửa sổ) rồi bật lại `chay-web.py`; đổi key Gemini / Pexels thì chạy lại `cai-dat.py`.
 
 ## 14. Cấu trúc thư mục
 
 ```
 video-factory/
-├─ cai-dat.cmd           cài đặt (setup\cai-dat.ps1)
-├─ cai-comfyui.cmd       cài công cụ tự vẽ ảnh (setup\cai-comfyui.ps1)
-├─ chay-web.cmd          bật web, cổng 8600
-├─ chay-comfyui.cmd      bật ComfyUI, cổng 8188
-├─ vf-python.cmd         chạy Python của dự án (mục 15)
-├─ .env.example          mẫu thiết lập — cai-dat.cmd chép thành .env
+├─ cai-dat.py           cài đặt (setup/install.py)
+├─ cai-comfyui.py       cài công cụ tự vẽ ảnh (setup/comfy.py)
+├─ chay-web.py          bật web, cổng 8600
+├─ chay-comfyui.py      bật ComfyUI, cổng 8188
+├─ vf-python.py         chạy Python của dự án (mục 15)
+├─ .env.example          mẫu thiết lập — cai-dat.py chép thành .env
 ├─ factory/              mã chính: web, hàng đợi, kịch bản, giọng đọc, ảnh, phụ đề
 │  ├─ engines/           6 engine (mỗi engine một file)
 │  └─ web/               giao diện
@@ -422,9 +560,9 @@ video-factory/
 │  ├─ hyperframes-academic/   template HyperFrames (trong repo)
 │  ├─ remotion-academic/      project Remotion (trong repo)
 │  ├─ MoneyPrinterTurbo/      ┐
-│  ├─ ai-auto-generate-video/ │ cai-dat.cmd tải về (không nằm trong repo)
+│  ├─ ai-auto-generate-video/ │ cai-dat.py tải về (không nằm trong repo)
 │  ├─ pixelle-video/          ┘
-│  └─ ComfyUI_windows_portable/  cai-comfyui.cmd tải về
+│  └─ ComfyUI/           cai-comfyui.py tải về (tùy chọn)
 ├─ content/              kịch bản (JSON); content/drafts/ là nháp Gemini viết
 ├─ assets/               nhạc nền của bạn (assets/music/), ảnh đại diện kênh mẫu
 ├─ tools/elk/            dàn bố cục sơ đồ (ELK)
@@ -437,14 +575,14 @@ video-factory/
 
 ## 15. Dùng bằng dòng lệnh
 
-Mở PowerShell ở thư mục gốc. `vf-python.cmd` chạy Python của dự án (giống `python`, kể cả khi Smart App Control chặn
+Mở terminal ở thư mục gốc. `vf-python.py` chạy Python của dự án (giống `python`, kể cả khi Smart App Control chặn
 launcher của venv — xem mục 16):
 
 ```powershell
-.\vf-python.cmd -m factory.status                                          # tình trạng key, engine, ComfyUI
-.\vf-python.cmd -m factory.try_engine hyperframes content\aws-saa\ep05.json # chạy thử một engine, không cần web
-.\vf-python.cmd -m factory.preview content\demo\flow-demo.json             # xem nhanh vài khung hình (không render)
-.\vf-python.cmd -m factory.ve_anh "a red fox in snow" -n 2                 # vẽ ảnh lẻ (cần ComfyUI)
+python vf-python.py -m factory.status                                          # tình trạng key, engine, ComfyUI
+python vf-python.py -m factory.try_engine hyperframes content/aws-saa/ep05.json # chạy thử một engine, không cần web
+python vf-python.py -m factory.preview content/demo/flow-demo.json             # xem nhanh vài khung hình (không render)
+python vf-python.py -m factory.ve_anh "a red fox in snow" -n 2                 # vẽ ảnh lẻ (cần ComfyUI)
 ```
 
 Tên engine: `mpt`, `broll`, `aiauto`, `hyperframes`, `pixelle`, `remotion`. Kết quả `try_engine` ở `.cache\try\<engine>\`.
@@ -453,27 +591,30 @@ Tên engine: `mpt`, `broll`, `aiauto`, `hyperframes`, `pixelle`, `remotion`. K�
 
 | Hiện tượng | Cách xử lý |
 |---|---|
-| `cai-dat.cmd` báo thiếu phần mềm dù vừa cài | Đóng cửa sổ, mở lại (Windows chưa nhận PATH mới); vẫn thiếu thì khởi động lại máy |
+| `cai-dat.py` báo thiếu phần mềm dù vừa cài | Đóng cửa sổ, mở lại (Windows chưa nhận PATH mới); vẫn thiếu thì khởi động lại máy |
 | "An Application Control policy has blocked this file", lỗi 4551 | **Smart App Control** của Windows 11 chặn file không ký số (xem bên dưới) |
-| Engine chấm vàng trên web | Rê chuột lên ô engine xem lý do; thường là chưa chạy hết `cai-dat.cmd` hoặc thiếu key |
+| Engine chấm vàng trên web | Rê chuột lên ô engine xem lý do; thường là chưa chạy hết `cai-dat.py` hoặc thiếu key |
 | Gemini báo 503 / 429, viết nháp lâu | Gói miễn phí quá tải hoặc hết hạn mức: hệ thống tự chờ / đổi model. Hết hạn mức ngày thì đợi hôm sau |
 | Pexels lỗi 429 | Quá 200 lượt/giờ — đợi một lúc rồi *Chạy lại* |
-| "không gọi được ComfyUI" | Chưa bật `chay-comfyui.cmd` (hoặc đã đóng cửa sổ của nó) |
+| VieNeu báo `Connection refused` / "không phản hồi" | Bật speech API trong terminal riêng, đợi khởi động xong; kiểm tra `VIENEU_URL` trỏ tới đúng máy/cổng |
+| Whisper báo thiếu `faster_whisper` | Chạy `uv sync --locked` ở thư mục Video Factory; nếu đặt `ALIGN_PYTHON`, kiểm tra phụ thuộc trong môi trường đó |
+| Whisper báo `metadata_errors` | Môi trường Whisper cần `faster-whisper==1.2.1` và `av>=11,<19`; chạy `uv sync --locked` cho factory hoặc cài bộ phiên bản này trong môi trường `ALIGN_PYTHON`/MoneyPrinterTurbo đang dùng |
+| "không gọi được ComfyUI" | Chưa bật `chay-comfyui.py` (hoặc đã đóng cửa sổ của nó) |
 | ComfyUI báo lỗi CUDA / không thấy GPU | Driver NVIDIA < 580 → cập nhật driver, khởi động lại máy |
-| `chay-comfyui.cmd` báo `WinError 4551 … torch\lib\…dll` | Smart App Control chặn PyTorch — xem khung ghi chú ở [mục 8.1](#81-cài-một-lần) |
+| `chay-comfyui.py` báo `WinError 4551 … torch\lib\…dll` | Smart App Control chặn PyTorch — xem ghi chú bên dưới |
 | ComfyUI báo hết bộ nhớ (out of memory) | Đóng game / ứng dụng dùng card; card < 8 GB VRAM có thể không đủ cho SDXL |
 | MoneyPrinterTurbo lỗi ở bước audio | Edge TTS thỉnh thoảng chậm / treo → *Chạy lại* |
 | Wikimedia Commons báo lỗi thiếu ảnh | Bị giới hạn tần suất → *Chạy lại* sau vài phút |
 | Phụ đề mất dấu tiếng Việt (web MoneyPrinterTurbo) | Chọn font `BeVietnamPro-Bold.ttf`; đừng bấm "Khôi phục cài đặt phụ đề" |
 | Báo cổng 8600 đang được dùng | Web đã chạy ở cửa sổ khác — mở <http://127.0.0.1:8600> |
-| Lỗi lạ với đường dẫn | Chuyển thư mục về chỗ không dấu cách / không dấu tiếng Việt / ngoài OneDrive, chạy lại `cai-dat.cmd` |
+| Lỗi lạ với đường dẫn | Chuyển thư mục về chỗ không dấu cách / không dấu tiếng Việt / ngoài OneDrive, chạy lại `cai-dat.py` |
 
 **Smart App Control.** Ở chế độ bật, Windows 11 chặn dần các file thực thi không có chữ ký số. Trên máy dựng hệ thống nó
 đã chặn launcher `.venv\Scripts\python.exe` mà uv tạo cho mọi venv, `uvicorn.exe`, ffmpeg đi kèm Remotion, và Python tạm
 uv dùng khi build thư viện. Repo đã tự né cả mấy chỗ đó — **không cần tắt Smart App Control**:
-`vf-python.cmd` và [`factory/pyrun.py`](factory/pyrun.py) chạy Python gốc do uv cài (có chữ ký) kèm thư viện của venv;
+`vf-python.py` và [`factory/pyrun.py`](factory/pyrun.py) chạy Python gốc do uv cài (có chữ ký) kèm thư viện của venv;
 Remotion chỉ xuất khung hình rồi ghép bằng FFmpeg của hệ thống; Pixelle được build ngay trong venv. Riêng PyTorch của
-ComfyUI thì không né được (xem [mục 8.1](#81-cài-một-lần)). Nếu gặp chặn ở chỗ khác: Event Viewer → *Applications and Services Logs → Microsoft → Windows → CodeIntegrity → Operational* cho biết file
+ComfyUI thì không né được. Nếu gặp chặn ở chỗ khác: Event Viewer → *Applications and Services Logs → Microsoft → Windows → CodeIntegrity → Operational* cho biết file
 nào bị chặn. Chi tiết: [`docs/ghi-chu-ky-thuat.md`](docs/ghi-chu-ky-thuat.md#smart-app-control-windows-11).
 
 ## 17. Giấy phép và bản quyền

@@ -50,15 +50,17 @@ class HyperFrames(Engine):
 
     def check(self):
         if not CLI.exists():
-            return False, "chưa cài: chạy cai-dat.cmd (npm ci trong engines/hyperframes-academic)"
+            return False, "chưa cài: chạy python3 cai-dat.py (npm ci trong engines/hyperframes-academic)"
         if not TEMPLATE.exists():
             return False, "thiếu template.html (chạy build_template.py)"
         return True, ""
 
     def render(self, spec: Spec, workdir: Path, log: Log) -> Path:
-        log("tạo giọng đọc Edge TTS và dòng thời gian từng từ")
+        log(f"tạo giọng đọc {spec.tts_provider} và dòng thời gian từng từ")
         comp = workdir / "comp"
         data = build_composition(spec, comp, log)
+        if (comp / "credits.txt").exists():
+            shutil.copy2(comp / "credits.txt", workdir / "credits.txt")
 
         log(f"HyperFrames render {data['duration']:.0f}s video")
         out = workdir / "video.mp4"

@@ -25,9 +25,9 @@ from pathlib import Path
 from ..beats import attach as attach_beats
 from ..captions import karaoke_ass
 from ..config import CHROME, ENGINES_DIR
-from ..narration import attach_punctuation, synthesize
+from ..narration import attach_punctuation, synthesize_spec
 from ..spec import Spec
-from .base import Engine, EngineError, Log, run, utf8_env
+from .base import Engine, EngineError, Log, npm_command, run, utf8_env
 
 REPO = ENGINES_DIR / "ai-auto-generate-video"
 TEMPLATES = REPO / "templates"
@@ -169,16 +169,16 @@ def build_script(spec: Spec) -> dict:
 
 
 class _TTSServer:
-    """Server giả lập OmniVoice: POST /tts {"text": ...} → mp3 do Edge TTS đọc."""
+    """Server giả lập OmniVoice: POST /tts {"text": ...} → mp3 do provider đã chọn đọc."""
 
-    def __init__(self, voice: str, log: Log):
-        voice_ = voice
+    def __init__(self, spec: Spec, log: Log):
+        spec_ = spec
 
         class Handler(http.server.BaseHTTPRequestHandler):
             def do_POST(self):
                 try:
                     body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
-                    mp3, _, _ = synthesize(body["text"], voice_)
+                    mp3, _, _ = synthesize_spec(body["text"], spec_)
                     data = mp3.read_bytes()
                     self.send_response(200)
                     self.send_header("Content-Type", "audio/mpeg")
@@ -201,11 +201,11 @@ class _TTSServer:
         self.server.server_close()
 
 
-def build_ass(script: dict, voice: str) -> str:
+def build_ass(script: dict, spec: Spec) -> str:
     """Phụ đề karaoke theo cách repo xếp cảnh (mỗi cảnh cách nhau SCENE_GAP)."""
     words, cursor = [], 0.0
     for i, sc in enumerate(script["scenes"]):
-        mp3, ws, dur = synthesize(sc["voiceText"], voice)   # trúng cache từ lúc repo gọi TTS
+        mp3, ws, dur = synthesize_spec(sc["voiceText"], spec)   # trúng cache từ lúc repo gọi TTS
         attach_punctuation(sc["voiceText"], ws)
         words += [dict(w, start=w["start"] + cursor, end=w["end"] + cursor, scene=i) for w in ws]
         cursor += dur + SCENE_GAP
@@ -242,7 +242,7 @@ def photo_templates(spec: Spec, script: dict, dest: Path, log: Log) -> list[Path
     words, scenes, cursor = [], [], 0.0
     last = len(script["scenes"]) - 1
     for i, sc in enumerate(script["scenes"]):
-        _, ws, dur = synthesize(sc["voiceText"], spec.voice)
+        _, ws, dur = synthesize_spec(sc["voiceText"], spec)
         attach_punctuation(sc["voiceText"], ws)
         words += [dict(w, start=w["start"] + cursor, end=w["end"] + cursor) for w in ws]
         seconds = dur + (SCENE_GAP if i < last else OUTRO_HOLD)
@@ -278,7 +278,7 @@ class AIAutoGenerateVideo(Engine):
 
     def check(self):
         if not (REPO / "node_modules").exists():
-            return False, "chưa cài: chạy cai-dat.cmd (clone repo vào engines/ai-auto-generate-video + npm ci)"
+            return False, "chưa cài: chạy python3 cai-dat.py (clone repo vào engines/ai-auto-generate-video + npm ci)"
         return True, ""
 
     def render(self, spec: Spec, workdir: Path, log: Log) -> Path:
@@ -290,18 +290,18 @@ class AIAutoGenerateVideo(Engine):
         # ("socket hang up") nếu Edge TTS phản hồi chậm, mà Edge đôi khi chậm vài phút.
         for i, sc in enumerate(script["scenes"], 1):
             log(f"tạo giọng đọc cảnh {i}/{len(script['scenes'])}")
-            synthesize(sc["voiceText"], spec.voice)
+            synthesize_spec(sc["voiceText"], spec)
 
         temp = photo_templates(spec, script, workdir / "photos", log)
         script_path = workdir / "script.json"
         script_path.write_text(json.dumps(script, ensure_ascii=False, indent=2), encoding="utf-8")
-        tts = _TTSServer(spec.voice, log)
+        tts = _TTSServer(spec, log)
         try:
             log("chạy pipeline của repo (render từng template, ghép) — lần đầu npx tải hyperframes 0.6.94")
             env = utf8_env(TTS_PROVIDER="omnivoice", OMNIVOICE_ENDPOINT=tts.url, TTS_CONCURRENCY="1",
                            HYPERFRAMES_BROWSER_PATH=str(CHROME), HYPERFRAMES_NO_TELEMETRY="1", DO_NOT_TRACK="1",
                            HYPERFRAMES_NO_UPDATE_CHECK="1", NPM_CONFIG_UPDATE_NOTIFIER="false")
-            run(["npm.cmd", "run", "pipeline", "--", script_path], cwd=REPO, log_file=workdir / "log.txt", env=env, timeout=3600)
+            run([npm_command(), "run", "pipeline", "--", script_path], cwd=REPO, log_file=workdir / "log.txt", env=env, timeout=3600)
         finally:
             tts.close()
             for folder in temp:
@@ -312,7 +312,7 @@ class AIAutoGenerateVideo(Engine):
         if not raw.exists():
             raise RuntimeError("pipeline chạy xong nhưng không thấy video.mp4")
         log("gắn phụ đề karaoke")
-        (workdir / "captions.ass").write_text(build_ass(script, spec.voice), encoding="utf-8")
+        (workdir / "captions.ass").write_text(build_ass(script, spec), encoding="utf-8")
         shutil.copytree(FONTS, workdir / "fonts", dirs_exist_ok=True)
         run(["ffmpeg", "-v", "error", "-y", "-i", "video.mp4", "-vf", "subtitles=captions.ass:fontsdir=fonts",
              "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-c:a", "copy",

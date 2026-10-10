@@ -111,6 +111,8 @@ class Spec(BaseModel):
     ep: int | None = None
     total: int | None = None
     voice: str = "vi-VN-HoaiMyNeural"
+    tts_provider: Literal["edge", "vieneu"] = "edge"
+    vieneu_voice: str | None = Field(default=None, min_length=1)
     scenes: list[Scene] = Field(min_length=1)
     diagrams: dict[str, Any] = {}
     stock_terms: list[str] = []          # từ khoá tiếng Anh tìm video nền (MoneyPrinterTurbo)

@@ -32,24 +32,26 @@ class Remotion(Engine):
 
     def check(self):
         if not CLI.exists():
-            return False, "chưa cài: chạy cai-dat.cmd (npm ci trong engines/remotion-academic)"
+            return False, "chưa cài: chạy python3 cai-dat.py (npm ci trong engines/remotion-academic)"
         return True, ""
 
     def render(self, spec: Spec, workdir: Path, log: Log) -> Path:
-        log("tạo giọng đọc Edge TTS và dòng thời gian từng từ")
+        log(f"tạo giọng đọc {spec.tts_provider} và dòng thời gian từng từ")
         data, parts = build_timeline(spec, log)
         job = uuid.uuid4().hex[:12]
         beat_dir = PROJECT / "public" / "jobs" / job
-        attach_beats(spec, data, beat_dir, f"jobs/{job}/", log)
+        attach_beats(spec, data, beat_dir, f"jobs/{job}/", log, credits_out=workdir / "credits.txt")
         wav = workdir / "narration.wav"
         build_audio(parts, wav, data, spec.title)
         props = workdir / "props.json"
         props.write_text(json.dumps({"data": data, "audio": ""}, ensure_ascii=False), encoding="utf-8")
-        out, frames = workdir / "video.mp4", workdir / "frames"
+        # The pinned CLI interprets dots anywhere in sequence output paths as an extension.
+        # Pass a relative path with no dots, including when workdir lives under .cache/.
+        out, frames = workdir / "video.mp4", beat_dir / "frames"
         shutil.rmtree(frames, ignore_errors=True)
         log(f"Remotion render {data['duration']:.0f}s video")
         try:
-            run(["node", CLI, "render", "src/index.tsx", "Academic", frames, "--sequence", "--image-format=jpeg",
+            run(["node", CLI, "render", "src/index.tsx", "Academic", frames.relative_to(PROJECT), "--sequence", "--image-format=jpeg",
                  "--jpeg-quality=92", f"--props={props}", "--concurrency=8", f"--browser-executable={CHROME}", "--log=info"],
                 cwd=PROJECT, log_file=workdir / "log.txt", env=utf8_env(REMOTION_DISABLE_TELEMETRY="1"), timeout=1800)
             first = re.fullmatch(r"(.*?)(\d+)\.jpe?g", min(f.name for f in frames.glob("*.jp*g")))

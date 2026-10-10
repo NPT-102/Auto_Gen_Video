@@ -1,6 +1,6 @@
 """Server của video-factory: giao diện chọn video + API.
 
-    chay-web.cmd   (hoặc: vf-python.cmd -m uvicorn factory.app:app --port 8600)
+    python3 chay-web.py   (hoặc: python3 vf-python.py -m uvicorn factory.app:app --port 8600)
 """
 
 import json
@@ -121,6 +121,16 @@ def podcast_voices():
     from . import eleven
 
     return {"configured": bool(eleven.api_key()), "voices": eleven.voices(), "default": eleven.DEFAULT_VOICE}
+
+
+@app.get("/api/tts/vieneu/voices")
+def vieneu_voices():
+    from . import vieneu
+
+    try:
+        return {"ready": True, "voices": vieneu.voices(), "default": vieneu.default_voice()}
+    except RuntimeError as exc:
+        return {"ready": False, "voices": [], "default": vieneu.default_voice(), "reason": str(exc)}
 
 
 @app.post("/api/podcast")

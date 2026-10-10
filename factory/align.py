@@ -9,13 +9,13 @@ import difflib
 import hashlib
 import json
 import subprocess
+import sys
 from pathlib import Path
 
-from .config import CACHE_DIR, MPT_DIR
+from .config import CACHE_DIR, MPT_DIR, setting
 from .pyrun import venv_python
 from .narration import PUNCT, norm
 
-PYTHON = MPT_DIR / ".venv" / "Scripts" / "python.exe"
 MODEL = "small"          # đủ để lấy mốc thời gian; lời hiển thị lấy từ kịch bản nên không cần model lớn
 CACHE = CACHE_DIR / "align"
 WHISPER = r"""
@@ -32,11 +32,28 @@ def whisper_words(audio: Path) -> tuple[list[dict], float]:
     h = hashlib.sha1(audio.read_bytes()).hexdigest()[:16]
     f = CACHE / f"{h}-{MODEL}.json"
     if not f.exists():
-        p = subprocess.run([*venv_python(MPT_DIR / ".venv"), "-c", WHISPER, str(audio), MODEL], capture_output=True, text=True,
+        # A dedicated interpreter can be configured for standalone VieNeu use.
+        # Prefer MPT's existing Whisper installation; otherwise use the factory environment.
+        python = setting("ALIGN_PYTHON")
+        if python:
+            command = (python,)
+        elif (MPT_DIR / ".venv" / "pyvenv.cfg").exists():
+            venv = MPT_DIR / ".venv"
+            command = venv_python(venv)
+        elif (Path(sys.prefix) / "pyvenv.cfg").exists():
+            # pyrun.py injects the venv into a base interpreter. Reuse its bootstrap
+            # so a child process sees the same site-packages on Windows.
+            venv = Path(sys.prefix)
+            command = venv_python(venv)
+        else:
+            command = (sys.executable,)
+        p = subprocess.run([*command, "-c", WHISPER, str(audio), MODEL], capture_output=True, text=True,
                            encoding="utf-8", errors="replace", timeout=1800)
         lines = [l for l in p.stdout.splitlines() if l.startswith("{")]
         if p.returncode != 0 or not lines:
-            raise RuntimeError(f"Whisper không đọc được file giọng: {(p.stderr or p.stdout)[-300:]}")
+            raise RuntimeError("Whisper không đọc được file giọng. Cài faster-whisper vào môi trường Python "
+                               "của factory hoặc đặt ALIGN_PYTHON tới Python đã cài faster-whisper: "
+                               f"{(p.stderr or p.stdout)[-300:]}")
         CACHE.mkdir(parents=True, exist_ok=True)
         f.write_text(lines[-1], encoding="utf-8")
     data = json.loads(f.read_text(encoding="utf-8"))
@@ -56,7 +73,7 @@ def align(audio: Path, text: str, log=print) -> tuple[list[dict], float]:
     matched = sum(t is not None for t in times)
     log(f"Whisper khớp {matched}/{len(tokens)} chữ với lời thoại; phần còn lại nội suy")
     if not matched:
-        raise RuntimeError("file giọng không khớp lời thoại podcast (có đúng file không?)")
+        raise RuntimeError("file giọng không khớp lời thoại (có đúng file không?)")
     k = 0
     while k < len(tokens):          # nội suy các đoạn chữ Whisper nghe sai / bỏ sót
         if times[k] is not None:

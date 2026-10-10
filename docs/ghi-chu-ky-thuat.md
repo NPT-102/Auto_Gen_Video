@@ -16,7 +16,7 @@ Dành cho người muốn sửa hoặc mở rộng hệ thống. Cách cài và 
 | [`factory/flow.py`](../factory/flow.py) + [`tools/elk`](../tools/elk/) | Cảnh `flow`: sơ đồ tự dàn bố cục bằng ELK |
 | [`factory/align.py`](../factory/align.py) | Căn mốc từng chữ cho file giọng làm sẵn bằng faster-whisper (venv của MoneyPrinterTurbo) |
 | [`factory/eleven.py`](../factory/eleven.py) | API ElevenLabs (giọng podcast) |
-| [`factory/pyrun.py`](../factory/pyrun.py), [`vf-python.cmd`](../vf-python.cmd) | Chạy Python của venv khi Smart App Control chặn launcher |
+| [`factory/pyrun.py`](../factory/pyrun.py), [`vf-python.py`](../vf-python.py) | Chạy Python của venv khi Smart App Control chặn launcher |
 | [`factory/engines/`](../factory/engines/) | Mỗi engine một lớp `Engine`: `check()` (sẵn sàng chưa) và `render(spec, workdir, log)` trả về `video.mp4` |
 
 Thêm engine mới: viết lớp con của `Engine` trong `factory/engines/`, thêm vào `ENGINES` ở `factory/engines/__init__.py`.
@@ -139,7 +139,7 @@ Smart App Control ở chế độ bật chặn dần các file thực thi không
 | 01/10/2026 | `avfilter-10.dll` của ffmpeg đi kèm Remotion | Remotion chỉ xuất khung hình, ffmpeg hệ thống ghép |
 | 06/10/2026 | `.venv\Scripts\uvicorn.exe` | gọi `python -m uvicorn` |
 | 07/10/2026 | `.venv\Scripts\python.exe` của MoneyPrinterTurbo | [`factory/pyrun.py`](../factory/pyrun.py): chạy Python gốc + thư viện của venv |
-| 09/10/2026 | `.venv\Scripts\python.exe` của web và Pixelle (cùng một file launcher của uv) | [`vf-python.cmd`](../vf-python.cmd) tự chuyển sang Python gốc |
+| 09/10/2026 | `.venv\Scripts\python.exe` của web và Pixelle (cùng một file launcher của uv) | [`vf-python.py`](../vf-python.py) tự chuyển sang Python gốc |
 | 09/10/2026 | `torch_cpu.dll` của PyTorch trong ComfyUI portable (05–07/10 còn chạy) | **Không né được** — thư viện bắt buộc, không có bản ký số. Tắt Smart App Control (quyết định của chủ máy), hoặc chạy ComfyUI ở WSL2 / máy khác và trỏ `COMFYUI_URL` tới đó |
 
 Python gốc do uv cài (`%APPDATA%\uv\python\cpython-3.x…\python.exe`), Node.js, ffmpeg của Gyan, Chrome, Python nhúng

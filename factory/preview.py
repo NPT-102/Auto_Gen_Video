@@ -1,7 +1,7 @@
 """Xem nhanh khung hình của template HyperFrames mà không render cả video.
 
-    vf-python.cmd -m factory.preview content/demo/flow-demo.json            # tự chọn khung giữa và cuối mỗi cảnh
-    vf-python.cmd -m factory.preview content/demo/flow-demo.json 3,8.5,12   # các giây cụ thể
+    python3 vf-python.py -m factory.preview content/demo/flow-demo.json            # tự chọn khung giữa và cuối mỗi cảnh
+    python3 vf-python.py -m factory.preview content/demo/flow-demo.json 3,8.5,12   # các giây cụ thể
 Kết quả: .cache/preview/<id>.png (các khung ghép ngang).
 """
 

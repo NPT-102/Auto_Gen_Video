@@ -7,7 +7,7 @@ lúc câu bắt đầu (sớm hơn lời BEAT_LEAD giây), mờ chuyển và zoo
 Nguồn ảnh (IMAGE_SOURCE trong .env):
 - pexels (mặc định): ảnh chụp thật, miễn phí — Gemini đặt từ khoá tìm ảnh cho từng câu trong một lần gọi.
 - comfyui: vẽ bằng ComfyUI chạy trên GPU của máy (SDXL-Lightning 4 bước, ~3 giây/ảnh, miễn phí) — bật bằng
-  chay-comfyui.cmd; Gemini viết mô tả cảnh cho từng câu.
+  python3 chay-comfyui.py; Gemini viết mô tả cảnh cho từng câu.
 - gemini: vẽ bằng Gemini (cần bật thanh toán: gói miễn phí không có hạn mức vẽ ảnh).
 Vẽ lỗi (ComfyUI chưa bật, hết hạn mức…) thì quay về Pexels theo từ khoá clip của cảnh.
 """
@@ -25,7 +25,8 @@ from pathlib import Path
 
 import httpx
 
-from .config import CACHE_DIR, _read_dotenv, gemini_api_key, pexels_api_key
+from .config import CACHE_DIR, _read_dotenv, gemini_api_key, pexels_api_key, stock_api_key, stock_provider
+from . import pixabay
 from .spec import Spec
 
 BEAT_LEAD = 0.35        # ảnh đổi sớm hơn câu được đọc
@@ -63,7 +64,7 @@ _comfy_lock = threading.Lock()   # ComfyUI vẽ lần lượt; engine chạy son
 def _source(spec: Spec | None = None) -> str:
     """Nguồn ảnh: "image_source" của kịch bản, rồi IMAGE_SOURCE (biến môi trường / .env), mặc định pexels."""
     own = (spec.model_extra or {}).get("image_source") if spec else None
-    return (own or os.environ.get("IMAGE_SOURCE") or _read_dotenv().get("IMAGE_SOURCE") or "pexels").strip().lower()
+    return (own or os.environ.get("IMAGE_SOURCE") or _read_dotenv().get("IMAGE_SOURCE") or stock_provider()).strip().lower()
 
 
 SENTENCE_END = (".", "!", "?", "…")
@@ -251,7 +252,7 @@ def _comfyui(prompt: str, log, variant: int = 0) -> Path | None:
             png = httpx.get(f"{base}/view", params={k: img[k] for k in ("filename", "subfolder", "type")}, timeout=60)
             png.raise_for_status()
         except httpx.HTTPError as exc:
-            log(f"không gọi được ComfyUI ở {base} ({type(exc).__name__}) — đã bật chay-comfyui.cmd chưa?")
+            log(f"không gọi được ComfyUI ở {base} ({type(exc).__name__}) — đã bật python3 chay-comfyui.py chưa?")
             return None
         dst.parent.mkdir(parents=True, exist_ok=True)
         tmp = dst.with_suffix(".png")
@@ -261,14 +262,16 @@ def _comfyui(prompt: str, log, variant: int = 0) -> Path | None:
         return dst
 
 
-def attach(spec: Spec, data: dict, dest: Path, prefix: str, log) -> int:
+def attach(spec: Spec, data: dict, dest: Path, prefix: str, log, *, credits_out: Path | None = None) -> int:
     """Gắn data["beats"] = [{t0, t1, src, q, scene, text}] và chép ảnh vào `dest` (src = prefix + tên file).
 
     Trả về số ảnh. Các engine khác nhau dùng chung từ khoá (cache theo nội dung câu) nên ra cùng bộ ảnh."""
     if (spec.model_extra or {}).get("images") is False:
         return 0
     beats = plan(data)
-    source, key = _source(spec), pexels_api_key()
+    source, provider = _source(spec), stock_provider(spec)
+    key = stock_api_key(provider)
+    stock_photo = pixabay.photo if provider == "pixabay" else _pexels
     ai = source in ("gemini", "comfyui")
     if not beats or not (key or ai):
         return 0
@@ -286,18 +289,23 @@ def attach(spec: Spec, data: dict, dest: Path, prefix: str, log) -> int:
         if not img and key:
             search = terms[n] if ai else q   # mô tả cảnh dài của AI không hợp để tìm trên Pexels
             try:
-                img = _pexels(search, used, key) or _pexels(spec.stock_terms[0] if spec.stock_terms else spec.title, used, key)
-            except httpx.HTTPError as exc:
-                log(f"Pexels lỗi với '{search}': {exc}")
+                img = stock_photo(search, used, key) or stock_photo(spec.stock_terms[0] if spec.stock_terms else spec.title, used, key)
+            except (httpx.HTTPError, RuntimeError) as exc:
+                log(f"{provider.title()} lỗi với '{search}': {exc}")
         if not img:
             continue
         name = f"b{len(out):02d}{img.suffix}"
         shutil.copy2(img, dest / name)
         out.append({"t0": round(b["t0"], 3), "t1": round(b["t1"], 3), "src": f"{prefix}{name}", "q": q,
-                    "scene": b["scene"], "text": b["text"]})
+                    "scene": b["scene"], "text": b["text"], "provider": provider if not ai or ai_failed else source,
+                    "page": json.loads(img.with_suffix('.json').read_text()).get('page', '')
+                    if img.name.startswith('pixabay-') and img.with_suffix('.json').exists() else ''})
     data["beats"] = out
+    pages = list(dict.fromkeys(b['page'] for b in out if b.get('page')))
+    if pages:
+        (credits_out or dest.parent / "credits.txt").write_text("Ảnh: Pixabay\n" + "\n".join(pages) + "\n", encoding="utf-8")
     where = {"comfyui": "ComfyUI", "gemini": "Gemini"}.get(source, "Pexels")
-    log(f"ảnh theo câu: {len(out)} ảnh" + (f" ({drawn} ảnh vẽ bằng {where}, còn lại Pexels)" if ai else " (Pexels)"))
+    log(f"ảnh theo câu: {len(out)} ảnh" + (f" ({drawn} ảnh vẽ bằng {where}, còn lại {provider.title()})" if ai else f" ({provider.title()})"))
     return len(out)
 
 
@@ -673,7 +681,7 @@ def sentence_clips(spec: Spec, words: list[dict], duration: float, dest: Path, l
       tự do; nguồn ảnh ghi vào `credits_out` để dán vào mô tả khi đăng.
     `words` là mốc từng từ của giọng đọc sẽ dùng (đã gắn dấu câu). Trả [] nếu nguồn hình không dùng được."""
     source = _source(spec)
-    if source not in ("comfyui", "gemini", "commons") or (spec.model_extra or {}).get("images") is False:
+    if source not in ("comfyui", "gemini", "commons", "pixabay") or (spec.model_extra or {}).get("images") is False:
         return []
     beats = [dict(b, scene=0) for b in phrases(words, duration)]
     if not beats:
@@ -684,7 +692,21 @@ def sentence_clips(spec: Spec, words: list[dict], duration: float, dest: Path, l
         count = max(1, round(span / target))
         spans += [(n, span / count)] * count
 
-    if source == "commons":
+    if source == "pixabay":
+        with _lock:
+            queries = _queries(spec, beats, log)
+        used, images, pages = set(), [], []
+        key = stock_api_key("pixabay")
+        for n, _ in spans:
+            image = pixabay.photo(queries[n], used, key) or pixabay.photo(spec.stock_terms[0] if spec.stock_terms else spec.title, set(), key)
+            if image is None:
+                return []
+            images.append(image)
+            if image.with_suffix('.json').exists():
+                pages.append(json.loads(image.with_suffix('.json').read_text()).get('page', ''))
+        if credits_out:
+            credits_out.write_text("Ảnh: Pixabay\n" + "\n".join(dict.fromkeys(pages)) + "\n", encoding="utf-8")
+    elif source == "commons":
         try:
             pins = (spec.model_extra or {}).get("image_pins") or []
             pin_of = {}

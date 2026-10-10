@@ -11,6 +11,9 @@ dependencies = [
     "pydantic>=2.7",
     "diagrams>=0.25.1",
     "playwright>=1.63.0",
+    "faster-whisper==1.2.1",
+    # faster-whisper 1.2.1 passes metadata_errors, removed in PyAV 19.
+    "av>=11,<19",
 ]
 
 [tool.uv]

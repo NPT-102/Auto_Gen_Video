@@ -1,4 +1,4 @@
-"""Giọng đọc Edge TTS có mốc thời gian từng từ, và dòng thời gian cảnh dùng chung cho các engine.
+"""Giọng đọc Edge/VieNeu có mốc từng từ, và dòng thời gian cảnh dùng chung cho các engine.
 
 build_timeline(spec) trả về `data` (cảnh + thời điểm bắt đầu/kết thúc + mọi cue đã quy ra giây,
 từ và cụm phụ đề) và các đoạn audio; build_audio() ghép thành một file wav.
@@ -61,6 +61,15 @@ def synthesize(text: str, voice: str, rate: str = RATE) -> tuple[Path, list[dict
         if mp3.exists() and meta.exists():
             return mp3, json.loads(meta.read_text(encoding="utf-8")), probe_duration(mp3)
         return _synthesize_uncached(text, voice, rate, mp3, meta)
+
+
+def synthesize_spec(text: str, spec: Spec) -> tuple[Path, list[dict], float]:
+    """Giọng đã chọn trong kịch bản; giữ nguyên cache và giọng Edge cho kịch bản cũ."""
+    if spec.tts_provider == "vieneu":
+        from .vieneu import synthesize as vieneu_synthesize
+
+        return vieneu_synthesize(text, spec.vieneu_voice)
+    return synthesize(text, spec.voice)
 
 
 async def _stream_to_file(text: str, voice: str, rate: str, path: Path) -> list[dict]:
@@ -195,7 +204,7 @@ def build_timeline(spec: Spec, log=print) -> tuple[dict, list[tuple[Path, float,
     scenes, all_words, audio_parts = [], [], []
     n = len(compiled["scenes"])
     for i, sc in enumerate(compiled["scenes"]):
-        mp3, words, dur = synthesize(sc["say"], spec.voice)
+        mp3, words, dur = synthesize_spec(sc["say"], spec)
         attach_punctuation(sc["say"], words)
         lead = FIRST_LEAD if i == 0 else LEAD
         start, audio_at = t, t + lead

@@ -2,7 +2,7 @@
 
 Kịch bản có phần "podcast" (văn nói, Gemini viết thêm) thì bản này thành podcast tâm sự: đọc lời podcast, clip nền
 theo từ khoá podcast. Nguồn giọng, theo thứ tự: file giọng làm sẵn (podcast.audio — tải từ web ElevenLabs hoặc tự thu,
-Whisper căn mốc từng chữ) → API ElevenLabs (cần gói trả phí cho giọng thư viện) → giọng Edge mặc định.
+Whisper căn mốc từng chữ) → VieNeu (nếu đã chọn) hoặc API ElevenLabs (cần gói trả phí cho giọng thư viện) → Edge mặc định.
 Giọng được đưa vào MoneyPrinterTurbo dưới dạng custom_audio_file, phụ đề karaoke gắn sau.
 
 Nhạc nền: KHÔNG dùng kho nhạc có sẵn của MoneyPrinterTurbo (resource/songs: 29 bản không rõ nguồn; 28/09 một bản
@@ -26,13 +26,13 @@ from pathlib import Path
 from .. import align, eleven
 from ..beats import _source as image_source, sentence_clips
 from ..captions import esc, karaoke_ass
-from ..config import CONTENT_DIR, ENGINES_DIR, MPT_DIR
-from ..narration import MUSIC_DIR, attach_punctuation, synthesize
-from ..pyrun import venv_python
+from ..config import CONTENT_DIR, ENGINES_DIR, MPT_DIR, stock_api_key
+from ..narration import MUSIC_DIR, attach_punctuation, synthesize_spec
+from ..pyrun import python_path, venv_python
 from ..spec import Spec
 from .base import Engine, EngineError, Log, run
 
-PYTHON = MPT_DIR / ".venv" / "Scripts" / "python.exe"
+PYTHON = python_path(MPT_DIR / ".venv")
 LOCAL = MPT_DIR / "storage" / "local_videos"   # MoneyPrinterTurbo chặn tư liệu cục bộ nằm ngoài thư mục này
 FONTS = ENGINES_DIR / "hyperframes-academic" / "fonts"
 PODCAST_MUSIC = MUSIC_DIR / "podcast"
@@ -73,7 +73,7 @@ class MoneyPrinterTurbo(Engine):
 
     def check(self):
         if not PYTHON.exists():
-            return False, f"chưa cài: chạy cai-dat.cmd (không thấy {PYTHON})"
+            return False, f"chưa cài: chạy python3 cai-dat.py (không thấy {PYTHON})"
         return True, ""
 
     def render(self, spec: Spec, workdir: Path, log: Log) -> Path:
@@ -101,8 +101,10 @@ class MoneyPrinterTurbo(Engine):
                     task.update(custom_audio_file=str(audio), subtitle_enabled=False)
                     log(f"dùng file giọng {audio.name} ({dur:.0f} giây)")
                 except (RuntimeError, OSError) as exc:
-                    log(f"không căn được file giọng ({exc}) → đọc bằng giọng {spec.voice}")
+                    log(f"không căn được file giọng ({exc}) → dùng provider {spec.tts_provider}")
                     words = None
+            elif spec.tts_provider == "vieneu":
+                log("bản podcast dùng giọng VieNeu đã chọn")
             elif eleven.api_key():
                 try:
                     audio, words, dur = eleven.synthesize(pod["say"], pod.get("voice"), log)
@@ -117,14 +119,40 @@ class MoneyPrinterTurbo(Engine):
             "không chèn nhạc nền (kho nhạc của MoneyPrinterTurbo dính bản quyền; muốn có nhạc thì bỏ nhạc có quyền dùng "
             "vào assets/music/ hoặc thêm trong trình đăng của TikTok/YouTube)")
         local = None
-        if image_source(spec) in ("comfyui", "gemini", "commons"):
-            if pod:
+        if image_source(spec) == "pixabay" and (spec.model_extra or {}).get("images") is False:
+            from .broll import search, download
+            local = LOCAL / f"vf-{workdir.parent.name}"
+            shutil.rmtree(local, ignore_errors=True)
+            local.mkdir(parents=True, exist_ok=True)
+            materials, pages, seen = [], [], set()
+            for term in terms or [spec.title]:
+                candidates = search(term, stock_api_key("pixabay"), "landscape", "pixabay")
+                for clip in candidates[:2]:
+                    if clip["id"] in seen:
+                        continue
+                    seen.add(clip["id"])
+                    target = local / f"{len(materials):03d}.mp4"
+                    shutil.copy2(download(clip), target)
+                    materials.append({"provider": "local", "url": str(target), "duration": 0})
+                    pages.append(clip["page"])
+            if not materials:
+                shutil.rmtree(local, ignore_errors=True)
+                raise EngineError("Pixabay không có clip cho các từ khoá đã chọn.")
+            task.update(video_source="local", video_materials=materials)
+            task.pop("video_terms", None)
+            (workdir / "credits.txt").write_text("Video: Pixabay\n" + "\n".join(pages), encoding="utf-8")
+        elif image_source(spec) in ("comfyui", "gemini", "commons", "pixabay"):
+            if pod and image_source(spec) != "pixabay":
                 log("bản podcast: chưa ghép ảnh vẽ theo lời podcast → dùng clip Pexels")
             else:
                 local = LOCAL / f"vf-{workdir.parent.name}"
                 shutil.rmtree(local, ignore_errors=True)
-                text = spec.narration()
-                mp3, ws, dur = synthesize(text, spec.voice)
+                text = pod.get("say") or spec.narration()
+                if task.get("custom_audio_file"):
+                    mp3 = Path(task["custom_audio_file"])
+                    ws, dur = (words, dur) if words is not None else align.align(mp3, text, log)
+                else:
+                    mp3, ws, dur = synthesize_spec(text, spec)
                 attach_punctuation(text, ws)
                 clips = sentence_clips(spec, ws, dur, local, log, credits_out=workdir / "credits.txt")
                 if clips:
@@ -133,10 +161,18 @@ class MoneyPrinterTurbo(Engine):
                                 video_materials=[{"provider": "local", "url": str(p), "duration": 0} for p in clips],
                                 custom_audio_file=str(mp3), subtitle_enabled=False)
                     task.pop("video_terms", None)
-                elif image_source(spec) == "commons":   # video về người/sự kiện thật: clip Pexels sẽ sai nội dung
+                elif image_source(spec) in ("commons", "pixabay"):
                     shutil.rmtree(local, ignore_errors=True)
-                    raise EngineError("chưa lấy đủ ảnh Wikimedia Commons (thường do Wikimedia giới hạn tần suất) — "
+                    raise EngineError(f"chưa lấy đủ ảnh {image_source(spec)} — "
                                       "bấm Chạy lại sau vài phút; ảnh đã tải được giữ trong cache")
+        # Never let MPT's internal Edge reader override an explicit VieNeu selection.
+        # Uploaded podcast audio remains an intentional override.
+        if spec.tts_provider == "vieneu" and not task.get("custom_audio_file"):
+            text = pod.get("say") or spec.narration()
+            mp3, words, dur = synthesize_spec(text, spec)
+            attach_punctuation(text, words)
+            task.update(custom_audio_file=str(mp3), subtitle_enabled=False)
+            log(f"giọng VieNeu {dur:.0f} giây; phụ đề karaoke căn bằng Whisper")
         manifest = workdir / "mpt-manifest.json"
         manifest.write_text(json.dumps([task], ensure_ascii=False), encoding="utf-8")
 

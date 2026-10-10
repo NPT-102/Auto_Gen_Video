@@ -1,9 +1,9 @@
 """Tự vẽ ảnh bằng ComfyUI + SDXL-Lightning trên GPU của máy, không cần làm video.
 
-    vf-python.cmd -m factory.ve_anh "a misty lotus pond at dawn, soft golden light" -n 4
-    vf-python.cmd -m factory.ve_anh "hồ sen buổi sớm có sương" --dich -n 4     (Gemini viết lại thành mô tả tiếng Anh)
+    python3 vf-python.py -m factory.ve_anh "a misty lotus pond at dawn, soft golden light" -n 4
+    python3 vf-python.py -m factory.ve_anh "hồ sen buổi sớm có sương" --dich -n 4     (Gemini viết lại thành mô tả tiếng Anh)
 
-Bật chay-comfyui.cmd trước. Ảnh dọc 768×1344 (9:16), kiểu ảnh chụp, lưu ở anh-ve/<ngày-giờ>-<mô tả>/ kèm prompt.txt.
+Bật python3 chay-comfyui.py trước. Ảnh dọc 768×1344 (9:16), kiểu ảnh chụp, lưu ở anh-ve/<ngày-giờ>-<mô tả>/ kèm prompt.txt.
 Mỗi ảnh một seed khác nhau; cùng mô tả + cùng số thứ tự thì ra lại đúng ảnh cũ (lấy từ cache .cache/beats/ai/).
 SDXL hiểu tiếng Anh tốt hơn hẳn tiếng Việt — viết tiếng Việt thì thêm --dich.
 """
@@ -26,7 +26,7 @@ Return only the prompt."""
 
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8")
-    ap = argparse.ArgumentParser(description="Vẽ ảnh bằng ComfyUI + SDXL-Lightning (bật chay-comfyui.cmd trước)")
+    ap = argparse.ArgumentParser(description="Vẽ ảnh bằng ComfyUI + SDXL-Lightning (bật python3 chay-comfyui.py trước)")
     ap.add_argument("mo_ta", help="mô tả ảnh, nên viết bằng tiếng Anh")
     ap.add_argument("-n", type=int, default=4, help="số ảnh (mặc định 4)")
     ap.add_argument("--dich", action="store_true", help="nhờ Gemini viết lại mô tả thành prompt tiếng Anh")
@@ -43,7 +43,7 @@ def main() -> int:
     for k in range(a.n):
         img = _comfyui(prompt, print, variant=k)
         if not img:
-            print(f"không vẽ được - ComfyUI ở {comfyui_url()} đã bật chưa (chay-comfyui.cmd)?")
+            print(f"không vẽ được - ComfyUI ở {comfyui_url()} đã bật chưa (python3 chay-comfyui.py)?")
             if not k:
                 shutil.rmtree(dest, ignore_errors=True)
                 if not any(OUT.iterdir()):
