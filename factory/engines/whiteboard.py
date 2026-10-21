@@ -117,6 +117,40 @@ def attach_local_assets(spec: Spec, data: dict, dest: Path, prefix: str) -> None
     data["beats"] = out
 
 
+def attach_planned_assets(python: Path, spec: Spec, data: dict, dest: Path, workdir: Path) -> None:
+    """Turn a declarative whiteboard plan into independent drawable layers."""
+    scenes = list((spec.model_extra or {}).get("whiteboard_plan") or [])
+    beats = scene_beats(data, spec)
+    if len(scenes) != len(beats):
+        raise ValueError(f"whiteboard_plan needs {len(beats)} scene plans, got {len(scenes)}")
+    plan_file = dest / "whiteboard-plan.json"
+    plan_dir = dest / "planned-assets"
+    dest.mkdir(parents=True, exist_ok=True)
+    workdir.mkdir(parents=True, exist_ok=True)
+    plan_file.write_text(json.dumps({"scenes": scenes}, ensure_ascii=False), encoding="utf-8")
+    raw = run([python, ROOT / "tools" / "render_whiteboard_plan.py", "--plan", plan_file, "--out-dir", plan_dir],
+              cwd=ROOT, log_file=workdir / "log.txt", env=utf8_env(), timeout=300, capture_stdout=True)
+    try:
+        manifest = json.loads(raw.strip().splitlines()[-1])
+        rendered_scenes = list(manifest["scenes"])
+    except (IndexError, KeyError, json.JSONDecodeError) as exc:
+        raise RuntimeError("whiteboard plan renderer did not return a valid manifest") from exc
+    if len(rendered_scenes) != len(beats):
+        raise RuntimeError("whiteboard plan renderer returned the wrong number of scenes")
+    data["beats"] = [
+        {
+            **beat,
+            "provider": "planned",
+            "_planned_layers": [
+                {**layer, "path": str(plan_dir / layer["file"])}
+                for layer in rendered["layers"]
+            ],
+            "_planned_composite": str(plan_dir / rendered["composite"]),
+        }
+        for beat, rendered in zip(beats, rendered_scenes)
+    ]
+
+
 class Whiteboard(Engine):
     key = "whiteboard"
     label = "Whiteboard"
@@ -139,7 +173,13 @@ class Whiteboard(Engine):
         # objects inside it; never build a fixed grid of unrelated photos.
         if spec.model_extra is not None:
             spec.model_extra["image_style"] = "whiteboard"
-        if (spec.model_extra or {}).get("whiteboard_assets"):
+        python = lab_python()
+        if python is None:
+            raise RuntimeError(f"Whiteboard Lab Python not found at {WHITEBOARD_LAB_DIR}")
+        if (spec.model_extra or {}).get("whiteboard_plan"):
+            attach_planned_assets(python, spec, data, beat_dir, workdir)
+            log(f"whiteboard storyboard: {len(data['beats'])} scene(s)")
+        elif (spec.model_extra or {}).get("whiteboard_assets"):
             attach_local_assets(spec, data, beat_dir, f"jobs/{job}/")
             log(f"dÃ¹ng {len(data['beats'])} áº£nh whiteboard Ä‘Ã£ chuáº©n bá»‹")
         else:
@@ -156,28 +196,38 @@ class Whiteboard(Engine):
         clips = beat_dir / "whiteboard"
         try:
             for index, beat in enumerate(data.get("beats", []), 1):
-                source = PROJECT / "public" / beat["src"]
+                planned_layers = beat.pop("_planned_layers", None)
+                planned_composite = beat.pop("_planned_composite", None)
+                source = PROJECT / "public" / beat["src"] if not planned_layers else None
                 seconds = max(0.1, float(beat["t1"]) - float(beat["t0"]))
                 objects_dir = beat_dir / "objects" / f"scene-{index:02d}"
-                manifest = split_scene_objects(python, source, objects_dir, workdir)
-                layers = list(manifest.get("layers") or [])
+                if planned_layers:
+                    layers = [
+                        {"file": None, "path": item["path"], "weight": item.get("weight", 1.0),
+                         "bbox": item["bbox"]}
+                        for item in planned_layers
+                    ]
+                    fallback = False
+                else:
+                    manifest = split_scene_objects(python, source, objects_dir, workdir)
+                    layers = list(manifest.get("layers") or [])
+                    fallback = bool(manifest.get("fallback"))
                 durations = layer_durations(seconds, layers)
                 # A short narration line cannot show six separate drawings
                 # clearly. Keep the original whole composition in that case,
                 # rather than silently dropping smaller objects.
                 if durations is None:
-                    layers = [{"file": None, "weight": 1.0,
+                    layers = [{"file": None, "path": planned_composite, "weight": 1.0,
                                "bbox": {"x": 0, "y": 0, "w": 1, "h": 1}}]
                     durations = [seconds]
                     fallback = True
-                else:
-                    fallback = bool(manifest.get("fallback"))
 
                 log(f"whiteboard part {index}/{len(data['beats'])}: {len(layers)} layer(s), {seconds:.1f}s ({mode})")
                 cursor = float(beat["t0"])
                 rendered_layers = []
                 for layer_index, (layer, draw_seconds) in enumerate(zip(layers, durations), 1):
-                    layer_source = source if layer["file"] is None else objects_dir / layer["file"]
+                    layer_source = (Path(layer["path"]) if layer.get("path") else
+                                    source if layer["file"] is None else objects_dir / layer["file"])
                     target = clips / f"wb{index:02d}-{layer_index:02d}.mp4"
                     run([python, "-m", "lab.module", "--image", layer_source, "--output", target,
                          "--duration", f"{draw_seconds:.3f}", "--mode", mode],

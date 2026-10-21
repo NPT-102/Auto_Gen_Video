@@ -7,11 +7,31 @@
   "tts_provider": "edge",
   "description": "Demo nội bộ để kiểm tra cách Whiteboard vẽ object, giữ layer và chuyển camera.",
   "hashtags": ["whiteboard", "2fa", "demo"],
-  "whiteboard_assets": [
-    "assets/whiteboard-demo/01-password-risk.png",
-    "assets/whiteboard-demo/02-second-layer.png",
-    "assets/whiteboard-demo/03-one-time-code.png",
-    "assets/whiteboard-demo/04-turn-on-2fa.png"
+  "whiteboard_plan": [
+    {"objects": [
+      {"kind": "laptop", "x": 0.08, "y": 0.34, "scale": 1.0},
+      {"kind": "lock", "x": 0.60, "y": 0.34, "scale": 1.55, "color": "red", "broken": true},
+      {"kind": "warning", "x": 0.64, "y": 0.61, "scale": 1.0},
+      {"kind": "star", "x": 0.18, "y": 0.67, "scale": 1.0, "color": "blue"}
+    ]},
+    {"objects": [
+      {"kind": "phone", "x": 0.11, "y": 0.31, "scale": 1.35},
+      {"kind": "shield", "x": 0.58, "y": 0.27, "scale": 1.45, "color": "blue"},
+      {"kind": "lock", "x": 0.65, "y": 0.55, "scale": 1.20, "color": "orange"},
+      {"kind": "arrow", "x": 0.46, "y": 0.48, "to_x": 0.54, "to_y": 0.48, "scale": 1.0, "color": "green"}
+    ]},
+    {"objects": [
+      {"kind": "code", "x": 0.08, "y": 0.32, "scale": 1.0, "value": "8421"},
+      {"kind": "phone", "x": 0.14, "y": 0.53, "scale": 1.16},
+      {"kind": "shield", "x": 0.65, "y": 0.54, "scale": 1.12, "color": "green", "checked": true},
+      {"kind": "arrow", "x": 0.60, "y": 0.68, "to_x": 0.69, "to_y": 0.72, "scale": 1.0, "color": "green"}
+    ]},
+    {"objects": [
+      {"kind": "shield", "x": 0.37, "y": 0.30, "scale": 2.05, "color": "green", "checked": true},
+      {"kind": "checklist", "x": 0.15, "y": 0.56, "scale": 1.0},
+      {"kind": "star", "x": 0.17, "y": 0.37, "scale": 1.0, "color": "orange"},
+      {"kind": "star", "x": 0.83, "y": 0.37, "scale": 1.0, "color": "blue"}
+    ]}
   ],
   "scenes": [
     {
