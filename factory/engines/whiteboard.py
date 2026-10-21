@@ -9,7 +9,7 @@ import uuid
 from pathlib import Path
 
 from ..beats import attach as attach_beats
-from ..config import CHROME, ENGINES_DIR, WHITEBOARD_LAB_DIR
+from ..config import CHROME, ENGINES_DIR, ROOT, WHITEBOARD_LAB_DIR
 from ..narration import build_audio, build_timeline
 from ..spec import Spec
 from .base import Engine, Log, run, utf8_env
@@ -92,6 +92,31 @@ def layer_durations(seconds: float, layers: list[dict]) -> list[float] | None:
     return [minimum + remaining * weight / total for weight in weights]
 
 
+def attach_local_assets(spec: Spec, data: dict, dest: Path, prefix: str) -> None:
+    """Use prepared image files instead of asking an image provider.
+
+    This is useful for a reviewed storyboard and for visual regression demos.
+    Paths are always relative to Factory's root, so a content JSON cannot read
+    arbitrary files elsewhere on the machine.
+    """
+    raw_assets = list((spec.model_extra or {}).get("whiteboard_assets") or [])
+    beats = scene_beats(data, spec)
+    if len(raw_assets) != len(beats):
+        raise ValueError(f"whiteboard_assets needs {len(beats)} image paths, got {len(raw_assets)}")
+    dest.mkdir(parents=True, exist_ok=True)
+    out = []
+    for index, (beat, raw_path) in enumerate(zip(beats, raw_assets), 1):
+        source = (ROOT / str(raw_path)).resolve()
+        if ROOT.resolve() not in source.parents or not source.is_file():
+            raise ValueError(f"whiteboard asset not found: {raw_path}")
+        if source.suffix.lower() not in {".png", ".jpg", ".jpeg", ".webp"}:
+            raise ValueError(f"whiteboard asset must be PNG, JPG, JPEG or WEBP: {raw_path}")
+        name = f"b{index:02d}{source.suffix.lower()}"
+        shutil.copy2(source, dest / name)
+        out.append({**beat, "src": f"{prefix}{name}", "provider": "prepared"})
+    data["beats"] = out
+
+
 class Whiteboard(Engine):
     key = "whiteboard"
     label = "Whiteboard"
@@ -114,8 +139,12 @@ class Whiteboard(Engine):
         # objects inside it; never build a fixed grid of unrelated photos.
         if spec.model_extra is not None:
             spec.model_extra["image_style"] = "whiteboard"
-        attach_beats(spec, data, beat_dir, f"jobs/{job}/", log, credits_out=workdir / "credits.txt",
-                     beats=scene_beats(data, spec))
+        if (spec.model_extra or {}).get("whiteboard_assets"):
+            attach_local_assets(spec, data, beat_dir, f"jobs/{job}/")
+            log(f"dÃ¹ng {len(data['beats'])} áº£nh whiteboard Ä‘Ã£ chuáº©n bá»‹")
+        else:
+            attach_beats(spec, data, beat_dir, f"jobs/{job}/", log, credits_out=workdir / "credits.txt",
+                         beats=scene_beats(data, spec))
         for beat in data.get("beats", []):
             beat["motion"] = scene_direction(data["scenes"][int(beat["scene"])], int(beat["scene"]))
         mode = str((spec.model_extra or {}).get("whiteboard_mode", "auto"))

@@ -1,0 +1,49 @@
+{
+  "id": "demo-whiteboard-2fa",
+  "title": "Vì sao nên bật xác thực hai lớp?",
+  "series": "TEST WHITEBOARD",
+  "ep": 1,
+  "voice": "vi-VN-HoaiMyNeural",
+  "tts_provider": "edge",
+  "description": "Demo nội bộ để kiểm tra cách Whiteboard vẽ object, giữ layer và chuyển camera.",
+  "hashtags": ["whiteboard", "2fa", "demo"],
+  "whiteboard_assets": [
+    "assets/whiteboard-demo/01-password-risk.png",
+    "assets/whiteboard-demo/02-second-layer.png",
+    "assets/whiteboard-demo/03-one-time-code.png",
+    "assets/whiteboard-demo/04-turn-on-2fa.png"
+  ],
+  "scenes": [
+    {
+      "type": "title",
+      "say": "Chỉ dùng một mật khẩu giống như khóa cửa bằng một chìa khóa duy nhất. Khi nó bị lộ, tài khoản của bạn cũng gặp rủi ro.",
+      "tag": "BẢO MẬT",
+      "headline": [["BẬT", false], ["2FA", true]],
+      "sub": "Thêm một lớp bảo vệ cho tài khoản"
+    },
+    {
+      "type": "bullets",
+      "say": "Xác thực hai lớp thêm một bước kiểm tra trên điện thoại. Mật khẩu bị lộ vẫn chưa đủ để người lạ đăng nhập.",
+      "heading": "THÊM MỘT LỚP",
+      "items": [
+        {"text": "Mật khẩu"},
+        {"text": "Xác nhận trên điện thoại"}
+      ]
+    },
+    {
+      "type": "stat",
+      "say": "Khi có đăng nhập mới, ứng dụng gửi cho bạn một mã chỉ dùng một lần. Không có mã đó, yêu cầu đăng nhập sẽ bị chặn.",
+      "heading": "MÃ DÙNG MỘT LẦN",
+      "stats": [
+        {"value": "8421", "label": "Mã xác thực"},
+        {"value": "OK", "label": "Đăng nhập an toàn"}
+      ]
+    },
+    {
+      "type": "tip",
+      "say": "Hãy bật xác thực hai lớp cho email, mạng xã hội và tài khoản ngân hàng ngay hôm nay. Chỉ mất vài phút để an toàn hơn rất nhiều.",
+      "question": "BẮT ĐẦU TỪ ĐÂU?",
+      "answer": "Bật 2FA cho tài khoản quan trọng nhất"
+    }
+  ]
+}
