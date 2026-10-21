@@ -9,37 +9,56 @@ from __future__ import annotations
 from .spec import Spec
 
 
+def _timed(objects: list[dict]) -> dict:
+    """Give a page an intentional reading order.
+
+    `at` is a fraction of this narration scene, not an absolute video second.
+    It lets the renderer draw the visual at the clause that introduces it.
+    """
+    count = max(1, len(objects))
+    for index, item in enumerate(objects):
+        item.setdefault("at", round(0.06 + index * (0.70 / max(1, count - 1)), 2))
+    return {"objects": objects}
+
+
 def _text(scene, title: str) -> str:
     extra = scene.model_extra or {}
     return " ".join([title, scene.say, str(extra.get("heading", "")), str(extra.get("question", ""))]).lower()
 
 
+def _label(scene, title: str) -> str:
+    """A short heading that belongs on the board, not a subtitle transcript."""
+    extra = scene.model_extra or {}
+    raw = str(extra.get("heading") or extra.get("question") or extra.get("tag") or title)
+    return " ".join(raw.replace("?", "").replace("!", "").split()[:5])
+
+
 def _security() -> dict:
-    return {"objects": [
+    return _timed([
         {"kind": "laptop", "x": .08, "y": .36, "scale": .90},
         {"kind": "lock", "x": .62, "y": .35, "scale": 1.28, "color": "orange"},
         {"kind": "shield", "x": .58, "y": .60, "scale": 1.16, "color": "green", "checked": True},
         {"kind": "arrow", "x": .48, "y": .50, "to_x": .58, "to_y": .50, "color": "green"},
-    ]}
+    ])
 
 
 def _network() -> dict:
-    return {"objects": [
+    return _timed([
         {"kind": "laptop", "x": .07, "y": .41, "scale": .78},
         {"kind": "cloud", "x": .42, "y": .30, "scale": 1.25, "color": "blue"},
         {"kind": "server", "x": .68, "y": .43, "scale": 1.05, "color": "blue"},
         {"kind": "arrow", "x": .37, "y": .52, "to_x": .47, "to_y": .45, "color": "blue"},
         {"kind": "arrow", "x": .62, "y": .45, "to_x": .68, "to_y": .51, "color": "blue"},
-    ]}
+    ])
 
 
 def _money() -> dict:
-    return {"objects": [
+    return _timed([
         {"kind": "chart", "x": .10, "y": .38, "scale": 1.05, "color": "blue"},
         {"kind": "coin", "x": .66, "y": .40, "scale": 1.30, "color": "orange"},
         {"kind": "coin", "x": .76, "y": .59, "scale": .95, "color": "orange"},
         {"kind": "arrow", "x": .52, "y": .58, "to_x": .64, "to_y": .53, "color": "green"},
-    ]}
+    ])
 
 
 def _checklist(scene_type: str) -> dict:
@@ -49,16 +68,16 @@ def _checklist(scene_type: str) -> dict:
     ]
     if scene_type == "tip":
         objects.insert(1, {"kind": "shield", "x": .70, "y": .32, "scale": .72, "color": "green", "checked": True})
-    return {"objects": objects}
+    return _timed(objects)
 
 
 def _compare() -> dict:
-    return {"objects": [
+    return _timed([
         {"kind": "phone", "x": .11, "y": .38, "scale": .90},
         {"kind": "laptop", "x": .53, "y": .46, "scale": .82},
         {"kind": "arrow", "x": .42, "y": .56, "to_x": .52, "to_y": .56, "color": "orange"},
         {"kind": "star", "x": .50, "y": .34, "scale": .80, "color": "blue"},
-    ]}
+    ])
 
 
 def plan_from_spec(spec: Spec) -> list[dict]:
@@ -76,5 +95,9 @@ def plan_from_spec(spec: Spec) -> list[dict]:
             plan = _compare()
         else:
             plan = _checklist(kind)
+        plan["objects"].insert(0, {
+            "kind": "text", "text": _label(scene, spec.title), "x": .10, "y": .14,
+            "scale": .62, "at": .02,
+        })
         plans.append(plan)
     return plans

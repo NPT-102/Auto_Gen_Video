@@ -13,6 +13,8 @@ export type Data = {
   words: Word[];
   phrases: Phrase[];
   diagrams: Record<string, Diagram>;
+  whiteboard?: { captions?: boolean; header?: boolean };
+  whiteboard_pages?: WhiteboardPage[];
   beats?: Beat[];   // ảnh nền theo từng câu kể (factory/beats.py), src nằm trong public/
 };
 export type Beat = {
@@ -24,7 +26,7 @@ export type Beat = {
   clip?: string;
   layers?: WhiteboardLayer[];
   motion?: {
-    camera?: "zoom_in" | "zoom_out" | "pan_right" | "pan_down";
+    camera?: "static" | "zoom_in" | "zoom_out" | "pan_right" | "pan_down";
     transition?: "clear" | "slide_left" | "slide_right";
     accent?: "settle" | "pulse" | "follow";
   };
@@ -36,6 +38,12 @@ export type WhiteboardLayer = {
   clip: string;
   bbox?: { x: number; y: number; w: number; h: number };
   blend?: "normal" | "multiply";
+};
+export type WhiteboardPage = {
+  t0: number;
+  t1: number;
+  layers: WhiteboardLayer[];
+  motion?: Beat["motion"];
 };
 export type Props = { data: Data; audio: string };
 

@@ -63,7 +63,7 @@ Target: {minutes}, about {words} spoken words in total, exactly {scenes} scenes.
   "stock_terms": ["5 English stock-footage searches of things a camera can film, 1-3 words, in narration order: places, animals, food, objects, people doing an action (e.g. 'hanoi street', 'woman typing phone'); never abstract terms like 'cloud computing' or 'load balancer'"],
   "description": "1–2 Vietnamese sentences for the post caption, ending with a question inviting comments",
   "hashtags": ["4-6 tags without #"],
-  "whiteboard_plan": [{{"objects": [{{"kind":"phone|laptop|lock|shield|warning|code|checklist|arrow|star|bulb|chart|coin|cloud|server", "x":0.0, "y":0.0, "scale":1.0, "color":"blue|orange|green|red", "checked":false, "broken":false, "value":"optional code", "to_x":0.0, "to_y":0.0}}]}}],
+  "whiteboard_plan": [{{"page":1, "objects": [{{"kind":"phone|laptop|lock|shield|warning|code|checklist|arrow|star|bulb|chart|coin|cloud|server|text|stat|formula|person|books|document|explosion|atom", "at":0.0, "x":0.0, "y":0.0, "scale":1.0, "color":"blue|orange|green|red|pink", "text":"only for text/stat/formula", "label":"optional stat label", "checked":false, "broken":false, "value":"optional code", "to_x":0.0, "to_y":0.0}}]}}],
   "scenes": [ ... ]
 }}
 Scene types (every scene has "type", "say" and "stock": 1-2 English stock-footage searches of what a camera would film
@@ -97,9 +97,11 @@ while THIS scene is said, e.g. ["suspension bridge", "man walking on bridge"] �
 - next    {{"type":"next","say":...,"label":"GHI NHỚ|TIẾP THEO","title":"<=40 chars","sub":"<=60 chars"}}
 Whiteboard plan rules:
 - Return one whiteboard_plan item for every scene, in exactly the same order.
-- Each item has 2-6 objects. Use only the listed object kinds. x and y are normalized board coordinates from 0 to 1; keep objects inside x=.05-.80 and y=.22-.78.
-- Objects are drawn in listed order. Use arrow only to connect nearby objects and give it to_x/to_y. Avoid text objects: captions already carry the words.
-- Choose concrete objects that explain this scene. The plan is a simple visual storyboard, not a stock-photo search.
+- Each item has 2-6 objects. Use only the listed object kinds. x and y are normalized board coordinates from 0 to 1; keep objects inside x=.05-.80 and y=.12-.78.
+- at is a fraction of this narration scene from 0 to 1. Draw the first object at .05 and the last no later than .75. Objects are drawn in listed order. Use arrow only to connect nearby objects and give it to_x/to_y.
+- page is a positive integer. Consecutive scenes with the same page continue drawing on the same board and retain the objects already drawn. Start a new page only when the explanation changes to a new idea.
+- text, stat and formula are part of the whiteboard drawing. Use them sparingly for a keyword, a number or a short formula; captions retain the full narration.
+- Choose concrete doodles that explain this scene. The plan is a simple visual storyboard, not a stock-photo search.
 Rules:
 - Scene 1 is "title" and its "say" starts with the hook line. The last scene is "next": a one-line takeaway plus a call to save the video,
   follow, and answer a question in the comments. Include exactly one "tip". Include 1–3 "flow" scenes whenever the outline lists diagrams.

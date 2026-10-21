@@ -8,14 +8,17 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
 
 W, H = 1080, 1920
-PAPER, INK = "#f8f6ef", "#20252a"
-COLOURS = {"blue": "#3b82f6", "orange": "#f59e0b", "green": "#24a36b", "red": "#e45858", "paper": "#ffffff"}
+PAPER, INK = "#fbfaf6", "#242424"
+# Keep the palette deliberately small.  A whiteboard page is readable because
+# colour is an accent, not because every object has its own full illustration.
+COLOURS = {"blue": "#5c8fbf", "orange": "#d9874d", "green": "#6b9d79", "red": "#ca6961", "pink": "#d58b9e", "paper": "#ffffff"}
 
 
 def colour(value: str | None, default: str) -> str:
@@ -155,8 +158,95 @@ def draw_server(draw, x, y, s, c):
         stroke(draw, [(x + 84*s, yy + 38*s), (x + 220*s, yy + 38*s)], width=8*s)
 
 
+def draw_text_lines(draw, x, y, s, text, c=INK, align="left", label=None):
+    """Write a loose, readable label directly on the board.
+
+    These labels intentionally have no card or UI chrome around them.  Text is
+    another thing the hand draws, just like an arrow or a stick figure.
+    """
+    text = str(text or "").strip()
+    if not text:
+        return
+    size = max(34, round(float(s) * 82))
+    font = safe_font(size)
+    max_width = max(220, round(780 * float(s)))
+    words, lines, line = text.split(), [], []
+    for word in words:
+        candidate = " ".join(line + [word])
+        if line and draw.textbbox((0, 0), candidate, font=font)[2] > max_width:
+            lines.append(" ".join(line)); line = [word]
+        else:
+            line.append(word)
+    if line:
+        lines.append(" ".join(line))
+    for index, line in enumerate(lines[:3]):
+        width = draw.textbbox((0, 0), line, font=font)[2]
+        xx = x - width // 2 if align == "center" else x
+        draw.text((xx, y + index * size * 1.08), line, fill=c, font=font, stroke_width=max(0, round(s * 0.7)))
+    if label:
+        small = safe_font(max(24, round(size * .42)))
+        draw.text((x, y + len(lines[:3]) * size * 1.14), str(label), fill=colour("green", COLOURS["green"]), font=small)
+
+
+def draw_stick_person(draw, x, y, s, c, pose="stand"):
+    p = max(5, round(13*s))
+    draw.ellipse((x + 56*s, y, x + 156*s, y + 100*s), outline=INK, width=p)
+    stroke(draw, [(x + 106*s, y + 100*s), (x + 106*s, y + 246*s)], width=p)
+    if pose == "point":
+        stroke(draw, [(x + 106*s, y + 136*s), (x + 25*s, y + 170*s)], fill=c, width=p)
+        stroke(draw, [(x + 106*s, y + 136*s), (x + 204*s, y + 92*s)], fill=c, width=p)
+    else:
+        stroke(draw, [(x + 106*s, y + 136*s), (x + 30*s, y + 188*s)], width=p)
+        stroke(draw, [(x + 106*s, y + 136*s), (x + 182*s, y + 188*s)], width=p)
+    stroke(draw, [(x + 106*s, y + 246*s), (x + 44*s, y + 350*s)], width=p)
+    stroke(draw, [(x + 106*s, y + 246*s), (x + 168*s, y + 350*s)], width=p)
+
+
+def draw_books(draw, x, y, s, c):
+    p = max(5, round(12*s))
+    for index, shift in enumerate((0, -18, 12)):
+        yy = y + index * 82*s
+        draw.rounded_rectangle((x + shift*s, yy, x + (268 + shift)*s, yy + 68*s), radius=13*s, fill="#ffffff", outline=INK, width=p)
+        stroke(draw, [(x + (35 + shift)*s, yy + 34*s), (x + (205 + shift)*s, yy + 34*s)], fill=c if index == 1 else INK, width=max(4, round(7*s)))
+
+
+def draw_document(draw, x, y, s, c):
+    p = max(5, round(12*s))
+    w, h = 220*s, 292*s
+    draw.polygon([(x, y), (x + w*0.72, y), (x + w, y + h*.25), (x + w, y+h), (x, y+h)], fill="#ffffff", outline=INK)
+    stroke(draw, [(x + w*.72, y), (x + w*.72, y + h*.25), (x+w, y+h*.25)], width=p)
+    for yy in (.43, .58, .73):
+        stroke(draw, [(x + 30*s, y + h*yy), (x + w*.78, y + h*yy)], fill=c if yy == .43 else INK, width=max(4, round(7*s)))
+
+
+def draw_explosion(draw, x, y, s, c):
+    points = []
+    for index in range(16):
+        angle = math.tau * index / 16 - math.pi / 2
+        radius = (120 if index % 2 == 0 else 72) * s
+        points.append((x + 125*s + math.cos(angle)*radius, y + 125*s + math.sin(angle)*radius))
+    draw.polygon(points, fill="#fff5d7")
+    stroke(draw, points + [points[0]], fill=INK, width=max(5, round(12*s)))
+    draw.ellipse((x + 93*s, y + 93*s, x + 157*s, y + 157*s), fill=c, outline=INK, width=max(4, round(7*s)))
+
+
+def draw_atom(layer, draw, x, y, s, c):
+    p = max(4, round(9*s))
+    cx, cy = x + 135*s, y + 118*s
+    for angle in (-45, 0, 45):
+        w, h = 250*s, 84*s
+        shape = Image.new("RGBA", layer.size, (0, 0, 0, 0))
+        sd = ImageDraw.Draw(shape)
+        sd.ellipse((cx-w/2, cy-h/2, cx+w/2, cy+h/2), outline=INK, width=p)
+        shape = shape.rotate(angle, center=(cx, cy), resample=Image.Resampling.BICUBIC)
+        layer.alpha_composite(shape)
+    draw.ellipse((cx-25*s, cy-25*s, cx+25*s, cy+25*s), fill=c, outline=INK, width=p)
+
+
 def safe_font(size: int):
-    for name in ("arialbd.ttf", "Arial Bold.ttf"):
+    # Windows supplies these handwritten-looking fonts locally.  The generic
+    # fallbacks keep command-line rendering possible on another platform.
+    for name in ("Inkfree.ttf", "segoepr.ttf", "comic.ttf", "arialbd.ttf", "Arial Bold.ttf"):
         try:
             return ImageFont.truetype(name, size)
         except OSError:
@@ -183,6 +273,14 @@ def draw_object(layer: Image.Image, item: dict) -> None:
     elif kind == "coin": draw_coin(draw, x, y, s, c)
     elif kind == "cloud": draw_cloud(draw, x, y, s, c)
     elif kind == "server": draw_server(draw, x, y, s, c)
+    elif kind in {"text", "formula", "stat"}:
+        draw_text_lines(draw, x, y, s, item.get("text", item.get("value", "")), colour(item.get("color"), INK),
+                        str(item.get("align", "left")), item.get("label") if kind == "stat" else None)
+    elif kind in {"person", "stick_person"}: draw_stick_person(draw, x, y, s, c, str(item.get("pose", "stand")))
+    elif kind in {"books", "paper_stack"}: draw_books(draw, x, y, s, c)
+    elif kind in {"document", "paper"}: draw_document(draw, x, y, s, c)
+    elif kind in {"explosion", "burst"}: draw_explosion(draw, x, y, s, c)
+    elif kind == "atom": draw_atom(layer, draw, x, y, s, c)
     else: raise ValueError(f"unknown whiteboard object kind: {kind}")
 
 
@@ -209,11 +307,13 @@ def render(plan: dict, out_dir: Path) -> dict:
             composite.alpha_composite(shape)
             x0, y0, x1, y1 = bbox
             layers.append({"file": f"scene-{scene_index:02d}/{name}", "weight": max(1, (x1-x0)*(y1-y0)) ** 0.5,
+                           "at": item.get("at"),
                            "bbox": {"x": round(x0/W, 5), "y": round(y0/H, 5), "w": round((x1-x0)/W, 5), "h": round((y1-y0)/H, 5)}})
         if not layers: raise ValueError(f"scene {scene_index} has no drawable objects")
         composite_name = f"scene-{scene_index:02d}/composite.png"
         composite.convert("RGB").save(out_dir / composite_name)
-        result.append({"layers": layers, "composite": composite_name})
+        result.append({"layers": layers, "composite": composite_name,
+                       "page": scene.get("page", scene_index)})
     return {"scenes": result}
 
 

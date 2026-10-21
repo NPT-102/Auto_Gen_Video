@@ -47,21 +47,10 @@ def scene_direction(scene: dict, index: int) -> dict:
     storyboard later without changing the Remotion contract.
     """
     kind = str(scene.get("type", ""))
-    by_kind = {
-        "title": ("zoom_out", "clear", "settle"),
-        "stat": ("zoom_in", "slide_left", "pulse"),
-        "compare": ("pan_right", "slide_right", "settle"),
-        "flow": ("pan_down", "slide_left", "follow"),
-        "bullets": ("zoom_in", "clear", "settle"),
-        "tip": ("zoom_out", "slide_right", "pulse"),
-        "next": ("zoom_in", "slide_left", "settle"),
-    }
-    camera, transition, accent = by_kind.get(kind, ("zoom_in", "clear", "settle"))
-    # Avoid the same hand-off every time when the script contains generic
-    # scene types that do not carry a stronger visual meaning.
-    if kind not in by_kind:
-        transition = ("clear", "slide_left", "slide_right")[index % 3]
-    return {"camera": camera, "transition": transition, "accent": accent}
+    # The reference style is a readable page that grows over time.  Motion is
+    # opt-in; a camera that constantly hunts individual icons makes a board
+    # feel like a slideshow instead of a drawing.
+    return {"camera": "static", "transition": "clear", "accent": "settle"}
 
 
 def lab_python() -> Path | None:
@@ -91,6 +80,64 @@ def layer_durations(seconds: float, layers: list[dict]) -> list[float] | None:
     weights = [max(0.01, float(layer.get("weight", 1))) for layer in layers]
     total = sum(weights)
     return [minimum + remaining * weight / total for weight in weights]
+
+
+def layer_schedule(seconds: float, layers: list[dict]) -> list[tuple[float, float]] | None:
+    """Return each object's start offset and drawing duration.
+
+    A plan can give every object an `at` value.  Values from 0 to 1 mean a
+    fraction of this narration scene; larger values mean seconds.  If the
+    requested timing leaves too little time to visibly draw an object, fall
+    back to the reliable sequential schedule instead of producing a frantic
+    flash of drawings.
+    """
+    durations = layer_durations(seconds, layers)
+    if durations is None:
+        return None
+    requested: list[float] = []
+    for layer in layers:
+        value = layer.get("at")
+        if value is None:
+            return list(zip([sum(durations[:i]) for i in range(len(durations))], durations))
+        try:
+            value = float(value)
+        except (TypeError, ValueError):
+            return list(zip([sum(durations[:i]) for i in range(len(durations))], durations))
+        requested.append(seconds * value if 0 <= value <= 1 else value)
+    if requested != sorted(requested):
+        return list(zip([sum(durations[:i]) for i in range(len(durations))], durations))
+    minimum = 0.65
+    windows = []
+    for index, start in enumerate(requested):
+        start = max(0.0, start)
+        end = requested[index + 1] if index + 1 < len(requested) else seconds
+        if end - start < minimum:
+            return list(zip([sum(durations[:i]) for i in range(len(durations))], durations))
+        windows.append((start, end - start))
+    return windows
+
+
+def assemble_pages(beats: list[dict]) -> list[dict]:
+    """Combine consecutive beats that belong to one whiteboard page.
+
+    A scene is a narration unit; a page is a visual unit.  Keeping those two
+    units separate lets one drawing keep growing while several narration
+    sentences are spoken.
+    """
+    pages: list[dict] = []
+    for index, beat in enumerate(beats, 1):
+        key = beat.get("page", index)
+        if not pages or pages[-1]["key"] != key:
+            pages.append({"key": key, "t0": float(beat["t0"]), "t1": float(beat["t1"]),
+                          "layers": [], "motion": beat.get("motion")})
+        page = pages[-1]
+        page["t1"] = float(beat["t1"])
+        page["layers"].extend(beat.get("layers") or [])
+    for page in pages:
+        for layer in page["layers"]:
+            layer["hold_t1"] = round(page["t1"], 3)
+        page.pop("key", None)
+    return pages
 
 
 def attach_local_assets(spec: Spec, data: dict, dest: Path, prefix: str) -> None:
@@ -143,13 +190,16 @@ def attach_planned_assets(python: Path, spec: Spec, data: dict, dest: Path, work
         {
             **beat,
             "provider": "planned",
+            # Consecutive narration scenes can share a page.  Their drawings
+            # remain visible until the next page begins.
+            "page": rendered.get("page", index),
             "_planned_layers": [
                 {**layer, "path": str(plan_dir / layer["file"])}
                 for layer in rendered["layers"]
             ],
             "_planned_composite": str(plan_dir / rendered["composite"]),
         }
-        for beat, rendered in zip(beats, rendered_scenes)
+        for index, (beat, rendered) in enumerate(zip(beats, rendered_scenes), 1)
     ]
 
 
@@ -195,6 +245,12 @@ class Whiteboard(Engine):
                          beats=scene_beats(data, spec))
         for beat in data.get("beats", []):
             beat["motion"] = scene_direction(data["scenes"][int(beat["scene"])], int(beat["scene"]))
+        # Clean paper is the default.  A caller can deliberately turn the
+        # overlay back on for a social-media variant.
+        data["whiteboard"] = {
+            "captions": bool((spec.model_extra or {}).get("whiteboard_captions", False)),
+            "header": bool((spec.model_extra or {}).get("whiteboard_header", False)),
+        }
         mode = str((spec.model_extra or {}).get("whiteboard_mode", "auto"))
         if mode not in {"auto", "outline_color", "direct_color"}:
             raise ValueError("whiteboard_mode phải là auto, outline_color hoặc direct_color")
@@ -212,7 +268,7 @@ class Whiteboard(Engine):
                 if planned_layers:
                     layers = [
                         {"file": None, "path": item["path"], "weight": item.get("weight", 1.0),
-                         "bbox": item["bbox"]}
+                         "bbox": item["bbox"], "at": item.get("at")}
                         for item in planned_layers
                     ]
                     fallback = False
@@ -220,29 +276,29 @@ class Whiteboard(Engine):
                     manifest = split_scene_objects(python, source, objects_dir, workdir)
                     layers = list(manifest.get("layers") or [])
                     fallback = bool(manifest.get("fallback"))
-                durations = layer_durations(seconds, layers)
+                schedule = layer_schedule(seconds, layers)
                 # A short narration line cannot show six separate drawings
                 # clearly. Keep the original whole composition in that case,
                 # rather than silently dropping smaller objects.
-                if durations is None:
+                if schedule is None:
                     layers = [{"file": None, "path": planned_composite, "weight": 1.0,
                                "bbox": {"x": 0, "y": 0, "w": 1, "h": 1}}]
-                    durations = [seconds]
+                    schedule = [(0.0, seconds)]
                     fallback = True
 
                 log(f"whiteboard part {index}/{len(data['beats'])}: {len(layers)} layer(s), {seconds:.1f}s ({mode})")
-                cursor = float(beat["t0"])
                 rendered_layers = []
-                for layer_index, (layer, draw_seconds) in enumerate(zip(layers, durations), 1):
+                for layer_index, (layer, (offset, draw_seconds)) in enumerate(zip(layers, schedule), 1):
                     layer_source = (Path(layer["path"]) if layer.get("path") else
                                     source if layer["file"] is None else objects_dir / layer["file"])
                     target = clips / f"wb{index:02d}-{layer_index:02d}.mp4"
                     run([python, "-m", "lab.module", "--image", layer_source, "--output", target,
                          "--duration", f"{draw_seconds:.3f}", "--mode", mode],
                         cwd=WHITEBOARD_LAB_DIR, log_file=workdir / "log.txt", env=utf8_env(), timeout=1800)
-                    draw_end = min(float(beat["t1"]), cursor + draw_seconds)
+                    draw_start = float(beat["t0"]) + offset
+                    draw_end = min(float(beat["t1"]), draw_start + draw_seconds)
                     rendered_layers.append({
-                        "t0": round(cursor, 3), "draw_t1": round(draw_end, 3),
+                        "t0": round(draw_start, 3), "draw_t1": round(draw_end, 3),
                         "hold_t1": round(float(beat["t1"]), 3),
                         "clip": f"jobs/{job}/whiteboard/{target.name}",
                         "bbox": layer["bbox"],
@@ -250,11 +306,10 @@ class Whiteboard(Engine):
                         # the compositor. A whole scene retains normal colour.
                         "blend": "normal" if fallback else "multiply",
                     })
-                    cursor = draw_end
                 beat["layers"] = rendered_layers
                 beat.pop("clip", None)
 
-
+            data["whiteboard_pages"] = assemble_pages(data.get("beats", []))
             wav = workdir / "narration.wav"
             build_audio(parts, wav, data, spec.title)
             props = workdir / "props.json"
