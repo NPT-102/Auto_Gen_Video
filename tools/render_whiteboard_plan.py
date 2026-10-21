@@ -117,6 +117,44 @@ def draw_star(draw, x, y, s, c):
     stroke(draw, [(x + 28*s, y - 28*s), (x - 28*s, y + 28*s)], fill=c, width=10*s)
 
 
+def draw_bulb(draw, x, y, s, c):
+    draw.ellipse((x, y, x + 180*s, y + 180*s), fill="#fff5d7", outline=INK, width=round(15*s))
+    stroke(draw, [(x + 55*s, y + 190*s), (x + 125*s, y + 190*s)], width=15*s)
+    stroke(draw, [(x + 66*s, y + 218*s), (x + 114*s, y + 218*s)], width=15*s)
+    for dx, dy in ((90, -55), (-42, 15), (222, 15), (0, 155), (180, 155)):
+        stroke(draw, [(x + dx*s, y + dy*s), (x + dx*s + 18*s, y + dy*s)], fill=c, width=11*s)
+
+
+def draw_chart(draw, x, y, s, c):
+    stroke(draw, [(x, y + 330*s), (x + 340*s, y + 330*s)], width=16*s)
+    stroke(draw, [(x, y + 330*s), (x, y + 30*s)], width=16*s)
+    for index, height in enumerate((100, 190, 275)):
+        xx = x + (58 + index * 94)*s
+        draw.rounded_rectangle((xx, y + (330-height)*s, xx + 58*s, y + 330*s), radius=12*s, fill=c, outline=INK, width=round(9*s))
+    stroke(draw, [(x + 35*s, y + 245*s), (x + 150*s, y + 155*s), (x + 245*s, y + 195*s), (x + 330*s, y + 55*s)], fill=COLOURS["green"], width=14*s)
+
+
+def draw_coin(draw, x, y, s, c):
+    draw.ellipse((x, y, x + 190*s, y + 190*s), fill=c, outline=INK, width=round(15*s))
+    draw.ellipse((x + 35*s, y + 35*s, x + 155*s, y + 155*s), outline="#ffffff", width=round(10*s))
+    stroke(draw, [(x + 95*s, y + 54*s), (x + 95*s, y + 136*s)], fill="#ffffff", width=12*s)
+
+
+def draw_cloud(draw, x, y, s, c):
+    circles = [(0, 70, 120), (80, 20, 155), (190, 65, 120), (65, 90, 200)]
+    for dx, dy, size in circles:
+        draw.ellipse((x + dx*s, y + dy*s, x + (dx+size)*s, y + (dy+size)*s), fill="#dbeafe", outline=INK, width=round(13*s))
+    stroke(draw, [(x + 45*s, y + 210*s), (x + 290*s, y + 210*s)], fill=c, width=20*s)
+
+
+def draw_server(draw, x, y, s, c):
+    for index in range(3):
+        yy = y + index * 102*s
+        box(draw, (x, yy, x + 270*s, yy + 76*s), fill="#ffffff", width=12*s, radius=16*s)
+        draw.ellipse((x + 26*s, yy + 27*s, x + 48*s, yy + 49*s), fill=c)
+        stroke(draw, [(x + 84*s, yy + 38*s), (x + 220*s, yy + 38*s)], width=8*s)
+
+
 def safe_font(size: int):
     for name in ("arialbd.ttf", "Arial Bold.ttf"):
         try:
@@ -140,6 +178,11 @@ def draw_object(layer: Image.Image, item: dict) -> None:
     elif kind == "checklist": draw_checklist(draw, x, y, s)
     elif kind == "arrow": draw_arrow(draw, x, y, s, item)
     elif kind == "star": draw_star(draw, x, y, s, c)
+    elif kind == "bulb": draw_bulb(draw, x, y, s, c)
+    elif kind == "chart": draw_chart(draw, x, y, s, c)
+    elif kind == "coin": draw_coin(draw, x, y, s, c)
+    elif kind == "cloud": draw_cloud(draw, x, y, s, c)
+    elif kind == "server": draw_server(draw, x, y, s, c)
     else: raise ValueError(f"unknown whiteboard object kind: {kind}")
 
 

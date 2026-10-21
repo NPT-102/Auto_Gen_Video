@@ -12,6 +12,7 @@ from ..beats import attach as attach_beats
 from ..config import CHROME, ENGINES_DIR, ROOT, WHITEBOARD_LAB_DIR
 from ..narration import build_audio, build_timeline
 from ..spec import Spec
+from ..whiteboard_planner import plan_from_spec
 from .base import Engine, Log, run, utf8_env
 
 PROJECT = ENGINES_DIR / "remotion-whiteboard"
@@ -117,9 +118,10 @@ def attach_local_assets(spec: Spec, data: dict, dest: Path, prefix: str) -> None
     data["beats"] = out
 
 
-def attach_planned_assets(python: Path, spec: Spec, data: dict, dest: Path, workdir: Path) -> None:
+def attach_planned_assets(python: Path, spec: Spec, data: dict, dest: Path, workdir: Path,
+                          scenes: list[dict] | None = None) -> None:
     """Turn a declarative whiteboard plan into independent drawable layers."""
-    scenes = list((spec.model_extra or {}).get("whiteboard_plan") or [])
+    scenes = list(scenes if scenes is not None else (spec.model_extra or {}).get("whiteboard_plan") or [])
     beats = scene_beats(data, spec)
     if len(scenes) != len(beats):
         raise ValueError(f"whiteboard_plan needs {len(beats)} scene plans, got {len(scenes)}")
@@ -176,9 +178,15 @@ class Whiteboard(Engine):
         python = lab_python()
         if python is None:
             raise RuntimeError(f"Whiteboard Lab Python not found at {WHITEBOARD_LAB_DIR}")
+        layout = str((spec.model_extra or {}).get("whiteboard_layout", "plan"))
+        if layout not in {"plan", "image"}:
+            raise ValueError("whiteboard_layout must be plan or image")
         if (spec.model_extra or {}).get("whiteboard_plan"):
             attach_planned_assets(python, spec, data, beat_dir, workdir)
             log(f"whiteboard storyboard: {len(data['beats'])} scene(s)")
+        elif layout == "plan":
+            attach_planned_assets(python, spec, data, beat_dir, workdir, plan_from_spec(spec))
+            log(f"whiteboard storyboard auto-plan: {len(data['beats'])} scene(s)")
         elif (spec.model_extra or {}).get("whiteboard_assets"):
             attach_local_assets(spec, data, beat_dir, f"jobs/{job}/")
             log(f"dÃ¹ng {len(data['beats'])} áº£nh whiteboard Ä‘Ã£ chuáº©n bá»‹")
