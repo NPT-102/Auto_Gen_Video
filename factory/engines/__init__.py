@@ -7,6 +7,7 @@ from .hyperframes import HyperFrames
 from .mpt import MoneyPrinterTurbo
 from .pixelle import PixelleVideo
 from .remotion import Remotion
+from .whiteboard import Whiteboard
 
 
 class _Pending(Engine):
@@ -26,5 +27,6 @@ ENGINES: dict[str, Engine] = {
         HyperFrames(),
         PixelleVideo(),
         Remotion(),
+        Whiteboard(),
     )
 }

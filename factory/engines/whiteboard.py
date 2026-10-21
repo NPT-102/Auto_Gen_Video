@@ -1,0 +1,191 @@
+"""Whiteboard video: render each narrated beat through Whiteboard Lab, then
+use a separate Remotion project for captions, transitions and final audio."""
+
+import json
+import re
+import shutil
+import sys
+import uuid
+from pathlib import Path
+
+from ..beats import attach as attach_beats
+from ..config import CHROME, ENGINES_DIR, WHITEBOARD_LAB_DIR
+from ..narration import build_audio, build_timeline
+from ..spec import Spec
+from .base import Engine, Log, run, utf8_env
+
+PROJECT = ENGINES_DIR / "remotion-whiteboard"
+CLI = PROJECT / "node_modules" / "@remotion" / "cli" / "remotion-cli.js"
+FPS = 30
+
+def scene_beats(data: dict, spec: Spec) -> list[dict]:
+    """One coherent illustration for each narration scene.
+
+    A whiteboard scene is a composition whose objects are revealed by the Lab;
+    it is not a collage of unrelated stock photos in fixed grid slots.
+    """
+    return [
+        {
+            "scene": index,
+            "t0": float(scene["start"]),
+            "t1": float(scene["end"]),
+            # build_timeline intentionally removes `say` from its render data.
+            # Read the original narration from Spec so every scene still gets
+            # an illustration request.
+            "text": str(spec.scenes[index].say),
+        }
+        for index, scene in enumerate(data["scenes"])
+        if str(spec.scenes[index].say).strip()
+    ]
+
+
+def scene_direction(scene: dict, index: int) -> dict:
+    """Choose a modest camera and scene hand-off from the script structure.
+
+    This stays deterministic so the outer pipeline can replace it with an LLM
+    storyboard later without changing the Remotion contract.
+    """
+    kind = str(scene.get("type", ""))
+    by_kind = {
+        "title": ("zoom_out", "clear", "settle"),
+        "stat": ("zoom_in", "slide_left", "pulse"),
+        "compare": ("pan_right", "slide_right", "settle"),
+        "flow": ("pan_down", "slide_left", "follow"),
+        "bullets": ("zoom_in", "clear", "settle"),
+        "tip": ("zoom_out", "slide_right", "pulse"),
+        "next": ("zoom_in", "slide_left", "settle"),
+    }
+    camera, transition, accent = by_kind.get(kind, ("zoom_in", "clear", "settle"))
+    # Avoid the same hand-off every time when the script contains generic
+    # scene types that do not carry a stronger visual meaning.
+    if kind not in by_kind:
+        transition = ("clear", "slide_left", "slide_right")[index % 3]
+    return {"camera": camera, "transition": transition, "accent": accent}
+
+
+def lab_python() -> Path | None:
+    # Whiteboard Lab keeps its isolated interpreter in .venv/, like Factory.
+    # Keep the two legacy locations for an existing checkout created differently.
+    names = (".venv/Scripts/python.exe", ".venv/bin/python", "Scripts/python.exe", "bin/python")
+    return next((WHITEBOARD_LAB_DIR / name for name in names if (WHITEBOARD_LAB_DIR / name).exists()), None)
+
+
+def split_scene_objects(python: Path, source: Path, output_dir: Path, workdir: Path) -> dict:
+    """Ask Whiteboard Lab for a small, spatially coherent layer plan."""
+    raw = run([python, "-m", "lab.module", "--image", source, "--split-objects", output_dir],
+              cwd=WHITEBOARD_LAB_DIR, log_file=workdir / "log.txt", env=utf8_env(),
+              timeout=300, capture_stdout=True)
+    try:
+        return json.loads(raw.strip().splitlines()[-1])
+    except (IndexError, json.JSONDecodeError) as exc:
+        raise RuntimeError("Whiteboard Lab did not return a valid object-layer manifest") from exc
+
+
+def layer_durations(seconds: float, layers: list[dict]) -> list[float] | None:
+    """Give every object a visible drawing window, or choose one whole scene."""
+    minimum = 0.75
+    if not layers or len(layers) * minimum > seconds:
+        return None
+    remaining = max(0.0, seconds - len(layers) * minimum)
+    weights = [max(0.01, float(layer.get("weight", 1))) for layer in layers]
+    total = sum(weights)
+    return [minimum + remaining * weight / total for weight in weights]
+
+
+class Whiteboard(Engine):
+    key = "whiteboard"
+    label = "Whiteboard"
+    style = "Bàn tay vẽ ảnh minh họa theo từng câu, Remotion ghép phụ đề và giọng đọc"
+
+    def check(self):
+        if not CLI.exists():
+            return False, "chưa cài: chạy npm ci trong engines/remotion-whiteboard"
+        python = lab_python()
+        if python is None or not (WHITEBOARD_LAB_DIR / "lab" / "module.py").exists():
+            return False, f"không tìm thấy Whiteboard Lab ở {WHITEBOARD_LAB_DIR}"
+        return True, ""
+
+    def render(self, spec: Spec, workdir: Path, log: Log) -> Path:
+        log(f"tạo giọng đọc {spec.tts_provider} và dòng thời gian từng từ")
+        data, parts = build_timeline(spec, log)
+        job = uuid.uuid4().hex[:12]
+        beat_dir = PROJECT / "public" / "jobs" / job
+        # One coherent illustration per narration scene.  The Lab reveals the
+        # objects inside it; never build a fixed grid of unrelated photos.
+        if spec.model_extra is not None:
+            spec.model_extra["image_style"] = "whiteboard"
+        attach_beats(spec, data, beat_dir, f"jobs/{job}/", log, credits_out=workdir / "credits.txt",
+                     beats=scene_beats(data, spec))
+        for beat in data.get("beats", []):
+            beat["motion"] = scene_direction(data["scenes"][int(beat["scene"])], int(beat["scene"]))
+        mode = str((spec.model_extra or {}).get("whiteboard_mode", "auto"))
+        if mode not in {"auto", "outline_color", "direct_color"}:
+            raise ValueError("whiteboard_mode phải là auto, outline_color hoặc direct_color")
+        python = lab_python()
+        if python is None:
+            raise RuntimeError(f"Không tìm thấy Python của Whiteboard Lab ở {WHITEBOARD_LAB_DIR}")
+        clips = beat_dir / "whiteboard"
+        try:
+            for index, beat in enumerate(data.get("beats", []), 1):
+                source = PROJECT / "public" / beat["src"]
+                seconds = max(0.1, float(beat["t1"]) - float(beat["t0"]))
+                objects_dir = beat_dir / "objects" / f"scene-{index:02d}"
+                manifest = split_scene_objects(python, source, objects_dir, workdir)
+                layers = list(manifest.get("layers") or [])
+                durations = layer_durations(seconds, layers)
+                # A short narration line cannot show six separate drawings
+                # clearly. Keep the original whole composition in that case,
+                # rather than silently dropping smaller objects.
+                if durations is None:
+                    layers = [{"file": None, "weight": 1.0,
+                               "bbox": {"x": 0, "y": 0, "w": 1, "h": 1}}]
+                    durations = [seconds]
+                    fallback = True
+                else:
+                    fallback = bool(manifest.get("fallback"))
+
+                log(f"whiteboard part {index}/{len(data['beats'])}: {len(layers)} layer(s), {seconds:.1f}s ({mode})")
+                cursor = float(beat["t0"])
+                rendered_layers = []
+                for layer_index, (layer, draw_seconds) in enumerate(zip(layers, durations), 1):
+                    layer_source = source if layer["file"] is None else objects_dir / layer["file"]
+                    target = clips / f"wb{index:02d}-{layer_index:02d}.mp4"
+                    run([python, "-m", "lab.module", "--image", layer_source, "--output", target,
+                         "--duration", f"{draw_seconds:.3f}", "--mode", mode],
+                        cwd=WHITEBOARD_LAB_DIR, log_file=workdir / "log.txt", env=utf8_env(), timeout=1800)
+                    draw_end = min(float(beat["t1"]), cursor + draw_seconds)
+                    rendered_layers.append({
+                        "t0": round(cursor, 3), "draw_t1": round(draw_end, 3),
+                        "hold_t1": round(float(beat["t1"]), 3),
+                        "clip": f"jobs/{job}/whiteboard/{target.name}",
+                        "bbox": layer["bbox"],
+                        # White areas in split PNGs are transparent paper in
+                        # the compositor. A whole scene retains normal colour.
+                        "blend": "normal" if fallback else "multiply",
+                    })
+                    cursor = draw_end
+                beat["layers"] = rendered_layers
+                beat.pop("clip", None)
+
+
+            wav = workdir / "narration.wav"
+            build_audio(parts, wav, data, spec.title)
+            props = workdir / "props.json"
+            props.write_text(json.dumps({"data": data, "audio": ""}, ensure_ascii=False), encoding="utf-8")
+            out, frames = workdir / "video.mp4", beat_dir / "frames"
+            shutil.rmtree(frames, ignore_errors=True)
+            log(f"Remotion ghép {len(data.get('beats', []))} cảnh whiteboard, {data['duration']:.0f}s")
+            run(["node", CLI, "render", "src/index.tsx", "Whiteboard", frames.relative_to(PROJECT), "--sequence", "--image-format=jpeg",
+                 "--jpeg-quality=92", f"--props={props}", "--concurrency=1", f"--browser-executable={CHROME}", "--log=info"],
+                cwd=PROJECT, log_file=workdir / "log.txt", env=utf8_env(REMOTION_DISABLE_TELEMETRY="1"), timeout=1800)
+            first = re.fullmatch(r"(.*?)(\d+)\.jpe?g", min(path.name for path in frames.glob("*.jp*g")))
+            log("ghép khung hình + giọng đọc bằng ffmpeg")
+            run(["ffmpeg", "-v", "error", "-y", "-framerate", str(FPS), "-start_number", str(int(first[2])),
+                 "-i", frames / f"{first[1]}%0{len(first[2])}d{Path(first[0]).suffix}", "-i", wav,
+                 "-map", "0:v", "-map", "1:a", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p",
+                 "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", out],
+                cwd=workdir, log_file=workdir / "log.txt")
+            return out
+        finally:
+            (workdir / "narration.wav").unlink(missing_ok=True)
+            shutil.rmtree(beat_dir, ignore_errors=True)

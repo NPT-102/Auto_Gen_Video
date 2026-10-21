@@ -72,46 +72,142 @@ def synthesize_spec(text: str, spec: Spec) -> tuple[Path, list[dict], float]:
     return synthesize(text, spec.voice)
 
 
-async def _stream_to_file(text: str, voice: str, rate: str, path: Path) -> list[dict]:
+async def _stream_to_file(text: str, voice: str, rate: str, path: Path) -> tuple[list[dict], int]:
     import edge_tts
 
     words = []
     comm = edge_tts.Communicate(text, voice, rate=rate, boundary="WordBoundary", receive_timeout=60)
+    written = 0
     with open(path, "wb") as f:
         async for chunk in comm.stream():
             if chunk["type"] == "audio":
                 f.write(chunk["data"])
+                written += len(chunk["data"])
             elif chunk["type"] == "WordBoundary":
                 start = chunk["offset"] / 1e7
                 words.append({"text": chunk["text"], "start": start, "end": start + chunk["duration"] / 1e7})
-    return words
+    return words, written
+
+
+def _tts_chunks(text: str, max_chars: int = 260) -> list[str]:
+    """Split a failed long TTS request at sentence or word boundaries."""
+    sentences = [s.strip() for s in re.split(r"(?<=[.!?…;:])\s+", text.strip()) if s.strip()]
+    chunks: list[str] = []
+    current = ""
+    for sentence in sentences or [text.strip()]:
+        pieces: list[str] = []
+        piece = ""
+        for word in sentence.split():
+            candidate = f"{piece} {word}".strip()
+            if piece and len(candidate) > max_chars:
+                pieces.append(piece)
+                piece = word
+            else:
+                piece = candidate
+        if piece:
+            pieces.append(piece)
+        for piece in pieces:
+            candidate = f"{current} {piece}".strip()
+            if current and len(candidate) > max_chars:
+                chunks.append(current)
+                current = piece
+            else:
+                current = candidate
+    if current:
+        chunks.append(current)
+    return chunks
 
 
 def _synthesize_uncached(text: str, voice: str, rate: str, mp3: Path, meta: Path) -> tuple[Path, list[dict], float]:
-    # Kết nối tới Edge đôi khi treo hẳn mà receive_timeout không cắt được; wait_for huỷ hẳn kết nối
-    # sau một khoảng tỉ lệ với độ dài câu rồi thử lại.
-    limit = 30 + len(text) * 0.12
-    last_error = None
-    for attempt in range(4):
-        tmp = mp3.with_name(f"{mp3.stem}.{uuid.uuid4().hex[:8]}.part")
+    # Edge can occasionally complete a WebSocket request without sending audio.
+    # Keep retries short, then retry sentence-sized requests before failing the job.
+    def request(part: str, target: Path, retries: int) -> tuple[list[dict] | None, object | None]:
+        last_error: object | None = None
+        limit = 30 + len(part) * 0.12
+        for attempt in range(retries):
+            target.unlink(missing_ok=True)
+            try:
+                words, audio_bytes = asyncio.run(asyncio.wait_for(
+                    _stream_to_file(part, voice, rate, target), timeout=limit,
+                ))
+                # Word boundaries are needed for captions, and an empty MP3 is unusable.
+                if words and audio_bytes > 1024:
+                    return words, None
+                last_error = "Edge returned no audio or no word timings"
+            except asyncio.TimeoutError:
+                last_error = f"Edge did not respond within {limit:.0f}s"
+            except Exception as exc:
+                last_error = exc
+            target.unlink(missing_ok=True)
+            if attempt + 1 < retries:
+                time.sleep(2 * (attempt + 1))
+        return None, last_error
+
+    tmp = mp3.with_name(f"{mp3.stem}.{uuid.uuid4().hex[:8]}.part.mp3")
+    words, last_error = request(text, tmp, retries=3)
+    if words is not None:
+        meta_tmp = meta.with_name(f"{meta.stem}.{uuid.uuid4().hex[:8]}.part")
         try:
-            words = asyncio.run(asyncio.wait_for(_stream_to_file(text, voice, rate, tmp), timeout=limit))
-            if words:
-                os.replace(tmp, mp3)
-                meta_tmp = meta.with_name(f"{meta.stem}.{uuid.uuid4().hex[:8]}.part")
-                meta_tmp.write_text(json.dumps(words, ensure_ascii=False), encoding="utf-8")
-                os.replace(meta_tmp, meta)
-                return mp3, words, probe_duration(mp3)
-            last_error = "không nhận được mốc thời gian từ"
-        except asyncio.TimeoutError:
-            last_error = f"Edge không phản hồi sau {limit:.0f}s"
-        except Exception as exc:  # mạng chập chờn: thử lại
-            last_error = exc
+            os.replace(tmp, mp3)
+            meta_tmp.write_text(json.dumps(words, ensure_ascii=False), encoding="utf-8")
+            os.replace(meta_tmp, meta)
+            return mp3, words, probe_duration(mp3)
         finally:
             tmp.unlink(missing_ok=True)
-        time.sleep(3 * (attempt + 1))
-    raise RuntimeError(f"Edge TTS lỗi: {text[:60]}...: {last_error}")
+            meta_tmp.unlink(missing_ok=True)
 
+    # A troublesome full scene often works when Edge receives its sentences separately.
+    chunks = _tts_chunks(text)
+    if len(chunks) > 1:
+        part_files: list[Path] = []
+        all_words: list[dict] = []
+        offset = 0.0
+        listing: Path | None = None
+        merged: Path | None = None
+        meta_tmp: Path | None = None
+        try:
+            for index, chunk in enumerate(chunks):
+                part = mp3.with_name(f"{mp3.stem}.{uuid.uuid4().hex[:8]}.{index}.part.mp3")
+                part_files.append(part)
+                chunk_words, chunk_error = request(chunk, part, retries=3)
+                if chunk_words is None:
+                    last_error = chunk_error
+                    raise RuntimeError("A sentence-sized Edge request also failed")
+                duration = probe_duration(part)
+                all_words.extend(
+                    {**word, "start": word["start"] + offset, "end": word["end"] + offset}
+                    for word in chunk_words
+                )
+                offset += duration
+
+            listing = mp3.with_name(f"{mp3.stem}.{uuid.uuid4().hex[:8]}.concat.txt")
+            merged = mp3.with_name(f"{mp3.stem}.{uuid.uuid4().hex[:8]}.part.mp3")
+            # The generated files sit beside the list, so ffmpeg never has to parse
+            # the workspace path that contains spaces.
+            listing.write_text("".join(f"file '{file.name}'\n" for file in part_files), encoding="utf-8")
+            subprocess.run(
+                ["ffmpeg", "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(listing),
+                 "-c:a", "libmp3lame", "-b:a", "128k", str(merged)],
+                check=True, timeout=120,
+            )
+            meta_tmp = meta.with_name(f"{meta.stem}.{uuid.uuid4().hex[:8]}.part")
+            meta_tmp.write_text(json.dumps(all_words, ensure_ascii=False), encoding="utf-8")
+            os.replace(merged, mp3)
+            os.replace(meta_tmp, meta)
+            return mp3, all_words, probe_duration(mp3)
+        except RuntimeError:
+            pass
+        finally:
+            for part in part_files:
+                part.unlink(missing_ok=True)
+            if listing:
+                listing.unlink(missing_ok=True)
+            if merged:
+                merged.unlink(missing_ok=True)
+            if meta_tmp:
+                meta_tmp.unlink(missing_ok=True)
+
+    raise RuntimeError(f"Edge TTS lỗi: {text[:60]}...: {last_error}")
 
 def attach_punctuation(text: str, words: list[dict]) -> None:
     pos, low = 0, text.lower()

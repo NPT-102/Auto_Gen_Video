@@ -21,7 +21,7 @@ REPOS = {
     "pixelle": ("pixelle-video", "https://github.com/ATH-MaaS/Pixelle-Video.git",
                 "848b054e4fae40dabc62ec58e960b573e83793ac"),
 }
-ENGINES = ("hyperframes", "remotion", "broll", "mpt", "aiauto", "pixelle")
+ENGINES = ("hyperframes", "remotion", "whiteboard", "broll", "mpt", "aiauto", "pixelle")
 
 
 def check_tools() -> bool:
@@ -149,9 +149,11 @@ def main(argv=None) -> int:
         environment = local_env(ROOT)
         run(["uv", "sync", "--frozen", "--python", args.python], cwd=ROOT, env=environment)
         install_node(ROOT / "tools" / "elk")
-        for name in ("hyperframes", "remotion"):
+        for name in ("hyperframes", "remotion", "whiteboard"):
             if name in args.engines:
-                install_node(ROOT / "engines" / f"{name}-academic")
+                project = {"hyperframes": "hyperframes-academic", "remotion": "remotion-academic",
+                           "whiteboard": "remotion-whiteboard"}[name]
+                install_node(ROOT / "engines" / project)
         values = settings(ROOT)
         for name in args.engines:
             if name not in REPOS:

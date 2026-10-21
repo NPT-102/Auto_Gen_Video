@@ -56,6 +56,12 @@ Return ONLY JSON: {{"queries": ["...", "..."]}} with exactly {n} items, in the s
 AI_NOTE = "People are young Vietnamese unless the sentence is about a specific foreign person, experiment or place."
 
 AI_STYLE = "Cinematic vertical photo, soft natural light, shallow depth of field, realistic, no text, no letters, no watermark."
+WHITEBOARD_PROMPT = """You write prompts for an AI image model to create ONE clean whiteboard illustration for a narrated scene in a Vietnamese explainer video titled "{title}".
+For each numbered scene, write ONE English prompt (35-55 words). Translate its meaning into 2-4 simple, distinct visual objects arranged with clear empty gaps on a warm off-white paper background. The objects must tell the story together: use arrows only when they explain a relationship. Use thick black ink outlines and small, purposeful flat colour accents. No photos, no realistic lighting, no border, no panel grid, no text, no letters, no logos, no watermark.
+Scenes:
+{numbered}
+Return ONLY JSON: {{"queries": ["..."]}} with exactly {n} items, in the same order."""
+WHITEBOARD_STYLE = "Vertical 9:16 whiteboard explainer illustration on warm off-white paper. Thick clean black marker outlines, sparse flat accent colours, large simple objects with generous gaps. No text, letters, numbers, logos, watermark, photo realism, cards, grid, border, or frame."
 COMFY_STYLE = "cinematic vertical photo, natural light, shallow depth of field, realistic, 35mm film, no text"
 COMFY_CKPT = "sdxl_lightning_4step.safetensors"
 _comfy_lock = threading.Lock()   # ComfyUI vẽ lần lượt; engine chạy song song xin cùng ảnh thì chờ rồi dùng cache
@@ -115,7 +121,8 @@ def _stock_terms(spec: Spec, beats: list[dict]) -> list[str]:
 def _queries(spec: Spec, beats: list[dict], log, ai: bool = False) -> list[str]:
     """Mỗi beat một từ khoá tìm ảnh (Pexels) hoặc, khi vẽ bằng AI, một câu mô tả cảnh; cache theo nội dung câu."""
     own_note = (spec.model_extra or {}).get("image_note") if ai else None
-    parts = [spec.title, [b["text"] for b in beats]] + ([own_note] if own_note else [])
+    whiteboard_style = ai and (spec.model_extra or {}).get("image_style") == "whiteboard"
+    parts = [spec.title, [b["text"] for b in beats], "whiteboard" if whiteboard_style else "photo"] + ([own_note] if own_note else [])
     key = hashlib.sha1(json.dumps(parts, ensure_ascii=False).encode()).hexdigest()[:16]
     f = CACHE / f"{'ai' if ai else 'q'}-{key}.json"
     if f.exists():
@@ -130,8 +137,11 @@ def _queries(spec: Spec, beats: list[dict], log, ai: bool = False) -> list[str]:
             mood = (spec.model_extra or {}).get("image_mood") or "warm natural light, cinematic colour"
         else:
             mood = ", ".join(spec.stock_terms[:3]) or "warm, cinematic"
-        prompt = (AI_PROMPT if ai else QUERY_PROMPT).format(title=spec.title, mood=mood, numbered=numbered, n=len(beats),
-                                                            note=own_note or AI_NOTE)
+        if whiteboard_style:
+            prompt = WHITEBOARD_PROMPT.format(title=spec.title, numbered=numbered, n=len(beats))
+        else:
+            prompt = (AI_PROMPT if ai else QUERY_PROMPT).format(title=spec.title, mood=mood, numbered=numbered, n=len(beats),
+                                                                note=own_note or AI_NOTE)
         for attempt in (1, 2):
             data = _json(_call_gemini(prompt, log=log))
             qs = [str(q).strip() for q in data.get("queries", [])]
@@ -188,19 +198,33 @@ def _pexels(query: str, used: set, key: str) -> Path | None:
     return None
 
 
-def _gemini(prompt: str) -> Path | None:
+def _gemini(prompt: str, log=None, *, whiteboard: bool = False) -> Path | None:
     dst = CACHE / "ai" / f"{hashlib.sha1(prompt.encode()).hexdigest()[:16]}.png"
     if dst.exists():
         return dst
-    body = {"contents": [{"parts": [{"text": f"{prompt}. {AI_STYLE}"}]}],
+    style = WHITEBOARD_STYLE if whiteboard else AI_STYLE
+    body = {"contents": [{"parts": [{"text": f"{prompt}. {style}"}]}],
             "generationConfig": {"responseModalities": ["IMAGE"], "imageConfig": {"aspectRatio": "9:16"}}}
-    r = httpx.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent",
-                   headers={"x-goog-api-key": gemini_api_key() or ""}, json=body, timeout=180)
+    try:
+        r = httpx.post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent",
+                       headers={"x-goog-api-key": gemini_api_key() or ""}, json=body, timeout=180)
+    except httpx.HTTPError as exc:
+        if log:
+            log(f"Gemini Image không kết nối được: {type(exc).__name__}: {exc}")
+        return None
     if r.status_code != 200:
+        if log:
+            try:
+                detail = r.json().get("error", {}).get("message", r.text)
+            except ValueError:
+                detail = r.text
+            log(f"Gemini Image HTTP {r.status_code}: {str(detail)[:500]}")
         return None
     parts = (r.json().get("candidates") or [{}])[0].get("content", {}).get("parts", [])
     img = next((p["inlineData"]["data"] for p in parts if "inlineData" in p), None)
     if not img:
+        if log:
+            log("Gemini Image trả về thành công nhưng không có dữ liệu ảnh.")
         return None
     dst.parent.mkdir(parents=True, exist_ok=True)
     dst.write_bytes(base64.b64decode(img))
@@ -262,13 +286,15 @@ def _comfyui(prompt: str, log, variant: int = 0) -> Path | None:
         return dst
 
 
-def attach(spec: Spec, data: dict, dest: Path, prefix: str, log, *, credits_out: Path | None = None) -> int:
+def attach(spec: Spec, data: dict, dest: Path, prefix: str, log, *, credits_out: Path | None = None,
+           skip: set[str] = SKIP, min_beat: float = MIN_BEAT,
+           ends: tuple[str, ...] = SENTENCE_END, beats: list[dict] | None = None) -> int:
     """Gắn data["beats"] = [{t0, t1, src, q, scene, text}] và chép ảnh vào `dest` (src = prefix + tên file).
 
     Trả về số ảnh. Các engine khác nhau dùng chung từ khoá (cache theo nội dung câu) nên ra cùng bộ ảnh."""
     if (spec.model_extra or {}).get("images") is False:
         return 0
-    beats = plan(data)
+    beats = beats if beats is not None else plan(data, skip=skip, min_beat=min_beat, ends=ends)
     source, provider = _source(spec), stock_provider(spec)
     key = stock_api_key(provider)
     stock_photo = pixabay.photo if provider == "pixabay" else _pexels
@@ -279,13 +305,16 @@ def attach(spec: Spec, data: dict, dest: Path, prefix: str, log, *, credits_out:
         queries = _queries(spec, beats, log, ai=ai)
     terms = _stock_terms(spec, beats)
     used, out, drawn, ai_failed = set(), [], 0, False
+    whiteboard_style = (spec.model_extra or {}).get("image_style") == "whiteboard"
     dest.mkdir(parents=True, exist_ok=True)
     for n, (b, q) in enumerate(zip(beats, queries)):
         img = None
         if ai and not ai_failed:
-            img = _gemini(q) if source == "gemini" else _comfyui(q, log)
+            img = _gemini(q, log, whiteboard=whiteboard_style) if source == "gemini" else _comfyui(q, log)
             ai_failed = img is None          # một lần lỗi (chưa bật ComfyUI, hết hạn mức) thì các câu sau dùng Pexels luôn
             drawn += img is not None
+            if ai_failed and source == "gemini":
+                raise RuntimeError("Gemini Image không tạo được ảnh; xem dòng lỗi Gemini Image ngay phía trên. Không dùng ảnh stock thay thế.")
         if not img and key:
             search = terms[n] if ai else q   # mô tả cảnh dài của AI không hợp để tìm trên Pexels
             try:
