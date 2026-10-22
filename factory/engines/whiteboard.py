@@ -134,8 +134,16 @@ def assemble_pages(beats: list[dict]) -> list[dict]:
         page["t1"] = float(beat["t1"])
         page["layers"].extend(beat.get("layers") or [])
     for page in pages:
-        for layer in page["layers"]:
-            layer["hold_t1"] = round(page["t1"], 3)
+        layers = page["layers"]
+        for index, layer in enumerate(layers):
+            # The next layer is a transparent drawing on top of this
+            # completed board.  When it finishes, its own cumulative still
+            # takes over. Do not leave both cumulative stills visible or all
+            # earlier marks are painted a second time.
+            layer["hold_t1"] = round(
+                float(layers[index + 1]["draw_t1"]) if index + 1 < len(layers) else page["t1"],
+                3,
+            )
         page.pop("key", None)
     return pages
 
@@ -306,6 +314,14 @@ class Whiteboard(Engine):
                     run([python, "-m", "lab.module", "--image", layer_source, "--output", target,
                          "--duration", f"{draw_seconds:.3f}", "--mode", render_mode],
                         cwd=WHITEBOARD_LAB_DIR, log_file=workdir / "log.txt", env=utf8_env(), timeout=1800)
+                    frame_dir = target.with_name(f"{target.stem}-frames")
+                    raw = run([python, ROOT / "tools" / "make_transparent_frames.py", target, frame_dir],
+                              cwd=ROOT, log_file=workdir / "log.txt", env=utf8_env(), timeout=300,
+                              capture_stdout=True)
+                    try:
+                        frame_count = int(json.loads(raw.strip().splitlines()[-1])["frames"])
+                    except (IndexError, KeyError, ValueError, json.JSONDecodeError) as exc:
+                        raise RuntimeError("transparent whiteboard frame conversion failed") from exc
                     # Use one transparent, cumulative board after the drawing
                     # ends. A single new source layer has opaque paper, which
                     # otherwise erases the earlier drawings below it.
@@ -319,6 +335,8 @@ class Whiteboard(Engine):
                         "t0": round(draw_start, 3), "draw_t1": round(draw_end, 3),
                         "hold_t1": round(float(beat["t1"]), 3),
                         "clip": f"jobs/{job}/whiteboard/{target.name}",
+                        "frames": f"jobs/{job}/whiteboard/{frame_dir.name}",
+                        "frame_count": frame_count,
                         "still": f"jobs/{job}/whiteboard/{still.name}",
                         "bbox": layer["bbox"],
                         "blend": "normal",

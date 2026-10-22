@@ -76,19 +76,22 @@ const LayeredBoard: React.FC<{
 };
 
 const BoardLayer: React.FC<{ layer: WhiteboardLayer; sceneStart: number; zIndex: number }> = ({ layer, sceneStart, zIndex }) => {
+  const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const from = Math.max(0, Math.round((layer.t0 - sceneStart) * fps));
   const drawDuration = Math.max(1, Math.round((layer.draw_t1 - layer.t0) * fps));
   const total = Math.max(drawDuration, Math.round((layer.hold_t1 - layer.t0) * fps));
-  const box = layer.bbox;
-  // Lab videos have an opaque paper backdrop. Restrict it to a padded object
-  // area while it draws; the completed PNG is genuinely transparent.
-  const pad = 0.055;
-  const top = Math.max(0, (box?.y ?? 0) - pad) * 100;
-  const right = Math.max(0, 1 - ((box?.x ?? 0) + (box?.w ?? 1) + pad)) * 100;
-  const bottom = Math.max(0, 1 - ((box?.y ?? 0) + (box?.h ?? 1) + pad)) * 100;
-  const left = Math.max(0, (box?.x ?? 0) - pad) * 100;
-  const video = <OffthreadVideo src={staticFile(layer.clip)} style={{ width: "100%", height: "100%", objectFit: "cover", clipPath: `inset(${top}% ${right}% ${bottom}% ${left}%)` }} />;
+  // `frame` belongs to the whole page.  Convert it to the layer's own
+  // drawing interval; otherwise a later layer starts by showing a frame from
+  // the middle/end of its drawing clip.
+  const localFrame = Math.max(0, frame - from);
+  const safeFrame = Math.max(0, Math.min(
+    (layer.frame_count ?? 1) - 1,
+    Math.floor(localFrame * (layer.frame_count ?? 1) / drawDuration),
+  ));
+  const video = layer.frames
+    ? <Img src={staticFile(`${layer.frames}/frame-${String(safeFrame).padStart(5, "0")}.png`)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+    : <OffthreadVideo src={staticFile(layer.clip)} style={{ width: "100%", height: "100%", objectFit: "cover" }} />;
   const still = layer.still ? <Img src={staticFile(layer.still)} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : video;
   return (
     <Sequence from={from} durationInFrames={total} layout="none">
