@@ -36,6 +36,9 @@ export type WhiteboardLayer = {
   draw_t1: number;
   hold_t1: number;
   clip: string;
+  // The original layer, copied into the job directory. It is used after the
+  // drawing MP4 finishes so the board cannot jump back into that MP4.
+  still?: string;
   bbox?: { x: number; y: number; w: number; h: number };
   blend?: "normal" | "multiply";
 };

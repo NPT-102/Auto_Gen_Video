@@ -298,12 +298,19 @@ class Whiteboard(Engine):
                     run([python, "-m", "lab.module", "--image", layer_source, "--output", target,
                          "--duration", f"{draw_seconds:.3f}", "--mode", render_mode],
                         cwd=WHITEBOARD_LAB_DIR, log_file=workdir / "log.txt", env=utf8_env(), timeout=1800)
+                    # Do not freeze a frame from the drawing MP4 after it
+                    # ends. Remotion's nested timeline can seek that clip
+                    # back into its drawing phase. Keep a plain final still
+                    # beside it instead; it also removes the idle hand.
+                    still = target.with_name(f"{target.stem}-still{layer_source.suffix.lower()}")
+                    shutil.copy2(layer_source, still)
                     draw_start = float(beat["t0"]) + offset
                     draw_end = min(float(beat["t1"]), draw_start + draw_seconds)
                     rendered_layers.append({
                         "t0": round(draw_start, 3), "draw_t1": round(draw_end, 3),
                         "hold_t1": round(float(beat["t1"]), 3),
                         "clip": f"jobs/{job}/whiteboard/{target.name}",
+                        "still": f"jobs/{job}/whiteboard/{still.name}",
                         "bbox": layer["bbox"],
                         # White areas in split PNGs are transparent paper in
                         # the compositor. A whole scene retains normal colour.

@@ -1,6 +1,6 @@
 import { loadFont } from "@remotion/fonts";
 import React from "react";
-import { AbsoluteFill, Audio, Freeze, OffthreadVideo, Sequence, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Audio, Img, OffthreadVideo, Sequence, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { C, FONT, Props, WhiteboardLayer, clamp } from "./lib";
 import { Captions } from "./Scenes";
 
@@ -80,15 +80,13 @@ const BoardLayer: React.FC<{ layer: WhiteboardLayer; sceneStart: number }> = ({ 
   const drawDuration = Math.max(1, Math.round((layer.draw_t1 - layer.t0) * fps));
   const total = Math.max(drawDuration, Math.round((layer.hold_t1 - layer.t0) * fps));
   const video = <OffthreadVideo src={staticFile(layer.clip)} style={{ width: "100%", height: "100%", objectFit: "cover", mixBlendMode: layer.blend === "multiply" ? "multiply" : "normal" }} />;
+  const still = layer.still ? <Img src={staticFile(layer.still)} style={{ width: "100%", height: "100%", objectFit: "cover", mixBlendMode: layer.blend === "multiply" ? "multiply" : "normal" }} /> : video;
   return (
     <Sequence from={from} durationInFrames={total} layout="none">
       <Sequence durationInFrames={drawDuration} layout="none">{video}</Sequence>
       {total > drawDuration ? (
         <Sequence from={drawDuration} durationInFrames={total - drawDuration} layout="none">
-          {/* Freeze already adds this nested hold Sequence's drawDuration.
-              Adding the layer offset here lands on this layer's final frame;
-              otherwise a later layer is frozen before it begins. */}
-          <Freeze frame={Math.max(0, from - 1)}>{video}</Freeze>
+          {still}
         </Sequence>
       ) : null}
     </Sequence>
