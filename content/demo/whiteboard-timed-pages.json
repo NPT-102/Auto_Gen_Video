@@ -1,0 +1,73 @@
+{
+  "id": "demo-whiteboard-timed-pages",
+  "title": "Vì sao mật khẩu một lớp chưa đủ?",
+  "series": "TEST WHITEBOARD",
+  "ep": 2,
+  "voice": "vi-VN-HoaiMyNeural",
+  "tts_provider": "edge",
+  "description": "Demo kiểm tra trang whiteboard giữ object theo lời đọc.",
+  "hashtags": ["whiteboard", "demo", "baomat"],
+  "whiteboard_plan": [
+    {
+      "page": 1,
+      "objects": [
+        {"kind": "text", "text": "MỘT MẬT KHẨU", "x": 0.10, "y": 0.13, "scale": 0.62, "at": 0.05},
+        {"kind": "person", "x": 0.12, "y": 0.37, "scale": 1.12, "at": 0.25},
+        {"kind": "lock", "x": 0.62, "y": 0.37, "scale": 1.16, "color": "orange", "at": 0.48},
+        {"kind": "arrow", "x": 0.37, "y": 0.56, "to_x": 0.60, "to_y": 0.56, "color": "orange", "at": 0.66}
+      ]
+    },
+    {
+      "page": 1,
+      "objects": [
+        {"kind": "stat", "text": "1", "label": "lớp bảo vệ", "x": 0.14, "y": 0.76, "scale": 1.10, "at": 0.08},
+        {"kind": "explosion", "x": 0.66, "y": 0.73, "scale": 0.84, "color": "red", "at": 0.34},
+        {"kind": "text", "text": "BỊ LỘ?", "x": 0.55, "y": 0.99, "scale": 0.56, "color": "red", "at": 0.57}
+      ]
+    },
+    {
+      "page": 2,
+      "objects": [
+        {"kind": "text", "text": "XÁC THỰC HAI LỚP", "x": 0.10, "y": 0.13, "scale": 0.58, "at": 0.05},
+        {"kind": "phone", "x": 0.12, "y": 0.34, "scale": 1.02, "at": 0.25},
+        {"kind": "code", "x": 0.10, "y": 0.73, "scale": 0.54, "value": "8421", "at": 0.46},
+        {"kind": "shield", "x": 0.65, "y": 0.35, "scale": 1.05, "color": "green", "checked": true, "at": 0.66}
+      ]
+    },
+    {
+      "page": 2,
+      "objects": [
+        {"kind": "arrow", "x": 0.49, "y": 0.56, "to_x": 0.63, "to_y": 0.56, "color": "green", "at": 0.08},
+        {"kind": "stat", "text": "2", "label": "lớp bảo vệ", "x": 0.16, "y": 0.78, "scale": 1.08, "at": 0.34},
+        {"kind": "text", "text": "AN TOÀN HƠN", "x": 0.43, "y": 0.88, "scale": 0.58, "color": "green", "at": 0.58}
+      ]
+    }
+  ],
+  "scenes": [
+    {
+      "type": "title",
+      "say": "Một mật khẩu giống như một chiếc chìa khóa duy nhất. Ai lấy được nó thì có thể mở tài khoản của bạn.",
+      "tag": "BẢO MẬT",
+      "headline": [["MỘT", false], ["MẬT KHẨU", true]],
+      "sub": "Vì sao một lớp bảo vệ chưa đủ"
+    },
+    {
+      "type": "stat",
+      "say": "Chỉ cần mật khẩu bị lộ, lớp bảo vệ duy nhất này sẽ mất tác dụng. Vì vậy rủi ro không nằm ở việc bạn nhớ mật khẩu tốt đến đâu.",
+      "heading": "RỦI RO",
+      "stats": [{"value": "1", "label": "lớp bảo vệ"}]
+    },
+    {
+      "type": "bullets",
+      "say": "Xác thực hai lớp yêu cầu thêm một mã trên điện thoại. Mật khẩu đúng vẫn chưa đủ để đăng nhập.",
+      "heading": "THÊM MỘT BƯỚC",
+      "items": [{"text": "Mật khẩu"}, {"text": "Mã trên điện thoại"}]
+    },
+    {
+      "type": "tip",
+      "say": "Khi có thêm mã xác thực, tài khoản có hai lớp bảo vệ. Hãy bật xác thực hai lớp cho email và tài khoản quan trọng ngay hôm nay.",
+      "question": "NÊN BẬT Ở ĐÂU?",
+      "answer": "Bắt đầu từ email"
+    }
+  ]
+}
