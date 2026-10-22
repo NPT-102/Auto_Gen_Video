@@ -8,9 +8,10 @@ loadFont({ family: "BVP", url: staticFile("fonts/BeVietnamPro-Medium.ttf"), weig
 loadFont({ family: "BVP", url: staticFile("fonts/BeVietnamPro-Bold.ttf"), weight: "700" });
 
 const Paper: React.FC = () => (
-  <AbsoluteFill style={{ background: "#f8f6ef" }}>
-    <AbsoluteFill style={{ opacity: 0.28, backgroundImage: "radial-gradient(rgba(68,59,45,.18) .75px, transparent .75px)", backgroundSize: "7px 7px" }} />
-  </AbsoluteFill>
+  // Match the paper colour emitted by Whiteboard Lab. A textured background
+  // makes the opaque drawing clip look like a visible rectangle while a hand
+  // is moving across it.
+  <AbsoluteFill style={{ background: "#fbfdfa" }} />
 );
 
 const WhiteboardClips: React.FC<{ data: Props["data"] }> = ({ data }) => {
