@@ -259,7 +259,15 @@ class Whiteboard(Engine):
             raise RuntimeError(f"Không tìm thấy Python của Whiteboard Lab ở {WHITEBOARD_LAB_DIR}")
         clips = beat_dir / "whiteboard"
         try:
+            # Completed layers are rendered as a cumulative transparent board.
+            # A page reset starts a new board; objects on the same page persist.
+            active_page = object()
+            page_sources: list[Path] = []
             for index, beat in enumerate(data.get("beats", []), 1):
+                page = beat.get("page", index)
+                if page != active_page:
+                    active_page = page
+                    page_sources = []
                 planned_layers = beat.pop("_planned_layers", None)
                 planned_composite = beat.pop("_planned_composite", None)
                 source = PROJECT / "public" / beat["src"] if not planned_layers else None
@@ -298,12 +306,13 @@ class Whiteboard(Engine):
                     run([python, "-m", "lab.module", "--image", layer_source, "--output", target,
                          "--duration", f"{draw_seconds:.3f}", "--mode", render_mode],
                         cwd=WHITEBOARD_LAB_DIR, log_file=workdir / "log.txt", env=utf8_env(), timeout=1800)
-                    # Do not freeze a frame from the drawing MP4 after it
-                    # ends. Remotion's nested timeline can seek that clip
-                    # back into its drawing phase. Keep a plain final still
-                    # beside it instead; it also removes the idle hand.
-                    still = target.with_name(f"{target.stem}-still{layer_source.suffix.lower()}")
-                    shutil.copy2(layer_source, still)
+                    # Use one transparent, cumulative board after the drawing
+                    # ends. A single new source layer has opaque paper, which
+                    # otherwise erases the earlier drawings below it.
+                    page_sources.append(layer_source)
+                    still = target.with_name(f"{target.stem}-still.png")
+                    run([python, ROOT / "tools" / "make_transparent_layer.py", *page_sources, "--output", still],
+                        cwd=ROOT, log_file=workdir / "log.txt", env=utf8_env(), timeout=120)
                     draw_start = float(beat["t0"]) + offset
                     draw_end = min(float(beat["t1"]), draw_start + draw_seconds)
                     rendered_layers.append({
@@ -312,9 +321,7 @@ class Whiteboard(Engine):
                         "clip": f"jobs/{job}/whiteboard/{target.name}",
                         "still": f"jobs/{job}/whiteboard/{still.name}",
                         "bbox": layer["bbox"],
-                        # White areas in split PNGs are transparent paper in
-                        # the compositor. A whole scene retains normal colour.
-                        "blend": "normal" if fallback else "multiply",
+                        "blend": "normal",
                     })
                 beat["layers"] = rendered_layers
                 beat.pop("clip", None)

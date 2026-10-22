@@ -68,27 +68,40 @@ const LayeredBoard: React.FC<{
   return (
     <AbsoluteFill style={{ overflow: "hidden" }}>
       <AbsoluteFill style={{ transform: `translate(${x}px, ${y}px) scale(${scale})`, transformOrigin: "center center" }}>
-        {layers.map((layer, index) => <BoardLayer key={index} layer={layer} sceneStart={sceneStart} />)}
+        {layers.map((layer, index) => <BoardLayer key={index} layer={layer} sceneStart={sceneStart} zIndex={index} />)}
       </AbsoluteFill>
     </AbsoluteFill>
   );
 };
 
-const BoardLayer: React.FC<{ layer: WhiteboardLayer; sceneStart: number }> = ({ layer, sceneStart }) => {
+const BoardLayer: React.FC<{ layer: WhiteboardLayer; sceneStart: number; zIndex: number }> = ({ layer, sceneStart, zIndex }) => {
   const { fps } = useVideoConfig();
   const from = Math.max(0, Math.round((layer.t0 - sceneStart) * fps));
   const drawDuration = Math.max(1, Math.round((layer.draw_t1 - layer.t0) * fps));
   const total = Math.max(drawDuration, Math.round((layer.hold_t1 - layer.t0) * fps));
-  const video = <OffthreadVideo src={staticFile(layer.clip)} style={{ width: "100%", height: "100%", objectFit: "cover", mixBlendMode: layer.blend === "multiply" ? "multiply" : "normal" }} />;
-  const still = layer.still ? <Img src={staticFile(layer.still)} style={{ width: "100%", height: "100%", objectFit: "cover", mixBlendMode: layer.blend === "multiply" ? "multiply" : "normal" }} /> : video;
+  const box = layer.bbox;
+  // Lab videos have an opaque paper backdrop. Restrict it to a padded object
+  // area while it draws; the completed PNG is genuinely transparent.
+  const pad = 0.055;
+  const top = Math.max(0, (box?.y ?? 0) - pad) * 100;
+  const right = Math.max(0, 1 - ((box?.x ?? 0) + (box?.w ?? 1) + pad)) * 100;
+  const bottom = Math.max(0, 1 - ((box?.y ?? 0) + (box?.h ?? 1) + pad)) * 100;
+  const left = Math.max(0, (box?.x ?? 0) - pad) * 100;
+  const video = <OffthreadVideo src={staticFile(layer.clip)} style={{ width: "100%", height: "100%", objectFit: "cover", clipPath: `inset(${top}% ${right}% ${bottom}% ${left}%)` }} />;
+  const still = layer.still ? <Img src={staticFile(layer.still)} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : video;
   return (
     <Sequence from={from} durationInFrames={total} layout="none">
-      <Sequence durationInFrames={drawDuration} layout="none">{video}</Sequence>
-      {total > drawDuration ? (
-        <Sequence from={drawDuration} durationInFrames={total - drawDuration} layout="none">
-          {still}
-        </Sequence>
-      ) : null}
+      {/* Sequence timing does not define visual stacking. Give later planned
+          objects a higher layer explicitly, otherwise a completed early
+          object can cover every object drawn after it. */}
+      <AbsoluteFill style={{ zIndex }}>
+        <Sequence durationInFrames={drawDuration} layout="none">{video}</Sequence>
+        {total > drawDuration ? (
+          <Sequence from={drawDuration} durationInFrames={total - drawDuration} layout="none">
+            {still}
+          </Sequence>
+        ) : null}
+      </AbsoluteFill>
     </Sequence>
   );
 };
