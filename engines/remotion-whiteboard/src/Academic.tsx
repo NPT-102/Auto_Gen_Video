@@ -85,7 +85,10 @@ const BoardLayer: React.FC<{ layer: WhiteboardLayer; sceneStart: number }> = ({ 
       <Sequence durationInFrames={drawDuration} layout="none">{video}</Sequence>
       {total > drawDuration ? (
         <Sequence from={drawDuration} durationInFrames={total - drawDuration} layout="none">
-          <Freeze frame={drawDuration - 1}>{video}</Freeze>
+          {/* Freeze already adds this nested hold Sequence's drawDuration.
+              Adding the layer offset here lands on this layer's final frame;
+              otherwise a later layer is frozen before it begins. */}
+          <Freeze frame={Math.max(0, from - 1)}>{video}</Freeze>
         </Sequence>
       ) : null}
     </Sequence>

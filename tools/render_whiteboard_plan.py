@@ -19,6 +19,7 @@ PAPER, INK = "#fbfaf6", "#242424"
 # Keep the palette deliberately small.  A whiteboard page is readable because
 # colour is an accent, not because every object has its own full illustration.
 COLOURS = {"blue": "#5c8fbf", "orange": "#d9874d", "green": "#6b9d79", "red": "#ca6961", "pink": "#d58b9e", "paper": "#ffffff"}
+VIETNAMESE_FONT = Path(__file__).resolve().parents[1] / "engines" / "remotion-whiteboard" / "public" / "fonts" / "BeVietnamPro-Medium.ttf"
 
 
 def colour(value: str | None, default: str) -> str:
@@ -244,9 +245,9 @@ def draw_atom(layer, draw, x, y, s, c):
 
 
 def safe_font(size: int):
-    # Windows supplies these handwritten-looking fonts locally.  The generic
-    # fallbacks keep command-line rendering possible on another platform.
-    for name in ("Inkfree.ttf", "segoepr.ttf", "comic.ttf", "arialbd.ttf", "Arial Bold.ttf"):
+    # Ink Free looks hand-written but lacks Vietnamese glyphs.  The bundled
+    # font is first so words never turn into square replacement characters.
+    for name in (VIETNAMESE_FONT, "Inkfree.ttf", "segoepr.ttf", "comic.ttf", "arialbd.ttf", "Arial Bold.ttf"):
         try:
             return ImageFont.truetype(name, size)
         except OSError:

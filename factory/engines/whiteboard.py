@@ -286,14 +286,17 @@ class Whiteboard(Engine):
                     schedule = [(0.0, seconds)]
                     fallback = True
 
-                log(f"whiteboard part {index}/{len(data['beats'])}: {len(layers)} layer(s), {seconds:.1f}s ({mode})")
+                # Primitive doodles are deliberately line art.  Auto mode
+                # misclassifies their thin black strokes as a colour fill.
+                render_mode = "outline_color" if planned_layers and mode == "auto" else mode
+                log(f"whiteboard part {index}/{len(data['beats'])}: {len(layers)} layer(s), {seconds:.1f}s ({render_mode})")
                 rendered_layers = []
                 for layer_index, (layer, (offset, draw_seconds)) in enumerate(zip(layers, schedule), 1):
                     layer_source = (Path(layer["path"]) if layer.get("path") else
                                     source if layer["file"] is None else objects_dir / layer["file"])
                     target = clips / f"wb{index:02d}-{layer_index:02d}.mp4"
                     run([python, "-m", "lab.module", "--image", layer_source, "--output", target,
-                         "--duration", f"{draw_seconds:.3f}", "--mode", mode],
+                         "--duration", f"{draw_seconds:.3f}", "--mode", render_mode],
                         cwd=WHITEBOARD_LAB_DIR, log_file=workdir / "log.txt", env=utf8_env(), timeout=1800)
                     draw_start = float(beat["t0"]) + offset
                     draw_end = min(float(beat["t1"]), draw_start + draw_seconds)
