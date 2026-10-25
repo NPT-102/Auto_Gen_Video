@@ -154,6 +154,11 @@ def main(argv=None) -> int:
                 project = {"hyperframes": "hyperframes-academic", "remotion": "remotion-academic",
                            "whiteboard": "remotion-whiteboard"}[name]
                 install_node(ROOT / "engines" / project)
+        if "whiteboard" in args.engines and not (ROOT.parent / "whiteboard-lab" / "lab" / "module.py").exists():
+            # Whiteboard Lab bundled in engines/whiteboard-lab (numpy, Pillow, OpenCV) unless the original Lab sits
+            # beside the repository (factory/config.py picks the same one)
+            run(["uv", "sync", "--frozen", "--python", args.python], cwd=ROOT / "engines" / "whiteboard-lab",
+                env=environment)
         values = settings(ROOT)
         for name in args.engines:
             if name not in REPOS:

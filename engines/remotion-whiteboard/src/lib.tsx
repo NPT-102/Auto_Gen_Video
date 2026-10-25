@@ -43,6 +43,9 @@ export type WhiteboardLayer = {
   still?: string;
   bbox?: { x: number; y: number; w: number; h: number };
   blend?: "normal" | "multiply";
+  // Đầu bút ở từng khung của lớp (Whiteboard Lab đóng gói sẵn): [x, y, chạm giấy], x và y từ 0 tới 1.
+  // Có đường bút thì khung vẽ không kèm bàn tay; Academic.tsx vẽ một bàn tay đi theo đường này.
+  pen?: [number, number, number][];
 };
 export type WhiteboardPage = {
   t0: number;

@@ -1,0 +1,13 @@
+[project]
+name = "whiteboard-lab"
+version = "0.1.0"
+description = "Dựng clip bàn tay vẽ cho engine Whiteboard: bút chạy theo từng nét, vẽ viền rồi tô màu"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26",
+    "pillow>=10.0",
+    "opencv-contrib-python-headless>=4.9",
+]
+
+[tool.uv]
+package = false

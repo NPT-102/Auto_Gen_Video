@@ -1,6 +1,6 @@
 import { loadFont } from "@remotion/fonts";
 import React from "react";
-import { AbsoluteFill, Audio, Img, OffthreadVideo, Sequence, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Audio, Easing, Img, OffthreadVideo, Sequence, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { C, FONT, Props, WhiteboardLayer, clamp } from "./lib";
 import { Captions } from "./Scenes";
 
@@ -8,40 +8,125 @@ loadFont({ family: "BVP", url: staticFile("fonts/BeVietnamPro-Medium.ttf"), weig
 loadFont({ family: "BVP", url: staticFile("fonts/BeVietnamPro-Bold.ttf"), weight: "700" });
 
 const Paper: React.FC = () => (
-  // Match the paper colour emitted by Whiteboard Lab. A textured background
-  // makes the opaque drawing clip look like a visible rectangle while a hand
-  // is moving across it.
-  <AbsoluteFill style={{ background: "#fbfdfa" }} />
+  // Drawings now arrive as transparent frames, so the board can have a little depth (a faint light falloff toward
+  // the edges) without the old problem: an opaque clip on a textured board showed up as a visible rectangle.
+  <AbsoluteFill style={{
+    background: "radial-gradient(ellipse 85% 70% at 50% 42%, #fdfdfa 0%, #f9f9f4 62%, #f1f1ea 100%)",
+  }} />
 );
 
+// Đổi trang: bảng cũ trượt sang trái, bảng mới trượt vào từ bên phải trong PAGE_TURN giây (như máy quay lia sang
+// một khoảng bảng trống), thay cho việc xoá trắng cả khung trong một khung hình.
+const PAGE_TURN = 0.45;
+
 const WhiteboardClips: React.FC<{ data: Props["data"] }> = ({ data }) => {
-  const { fps } = useVideoConfig();
+  const { fps, width } = useVideoConfig();
+  const frame = useCurrentFrame();
   const pages = data.whiteboard_pages ?? (data.beats || []).map((beat) => ({
     t0: beat.t0, t1: beat.t1, layers: beat.layers || [], motion: beat.motion,
   }));
+  const t = frame / fps;
   return (
     <>
       {pages.map((page, index) => {
-        if (page.layers?.length) {
-          const from = Math.max(0, Math.round(page.t0 * fps));
-          const duration = Math.max(1, Math.round((page.t1 - page.t0) * fps));
-          return (
-            <Sequence key={index} from={from} durationInFrames={duration} layout="none">
-              <LayeredBoard layers={page.layers} sceneStart={page.t0} motion={page.motion} />
-            </Sequence>
-          );
-        }
-        return null;
+        if (!page.layers?.length) return null;
+        const next = pages[index + 1];
+        const turnOut = next?.layers?.length ? PAGE_TURN : 0;   // trang sau còn hiện thêm lúc đang trượt ra
+        const from = Math.max(0, Math.round(page.t0 * fps));
+        const duration = Math.max(1, Math.round((page.t1 + turnOut - page.t0) * fps));
+        const enter = index > 0 ? interpolate(t, [page.t0, page.t0 + PAGE_TURN], [1, 0], {
+          extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) }) : 0;
+        const leave = turnOut ? interpolate(t, [page.t1, page.t1 + turnOut], [0, 1], {
+          extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) }) : 0;
+        return (
+          <Sequence key={index} from={from} durationInFrames={duration} layout="none">
+            <AbsoluteFill style={{ transform: `translateX(${(enter - leave) * width * 1.04}px)` }}>
+              <LayeredBoard layers={page.layers} sceneStart={page.t0} pageEnd={page.t1} motion={page.motion} />
+            </AbsoluteFill>
+          </Sequence>
+        );
       })}
     </>
+  );
+};
+
+// ---- bàn tay cầm bút: một bàn tay cho cả trang, đi theo đường bút của từng lớp, lướt sang hình kế tiếp,
+// ---- rời khung khi phải chờ lâu (lời đọc chưa tới hình sau) rồi quay lại đúng lúc
+const HAND = { src: "whiteboard/hand-marker.png", size: 900, tip: [60, 60] as const, scale: 0.78 };
+const OFFSTAGE = { x: 1.22, y: 1.08 };   // đầu bút ngoài khung, góc dưới bên phải
+const HAND_MOVE = 0.42;                  // giây để vào / ra khung
+const GLIDE_MAX = 1.6;                   // khoảng nghỉ ngắn hơn thế thì bút lướt thẳng sang hình sau
+
+type Pen = { x: number; y: number; down: boolean; lift: number };
+
+const easeInOut = (p: number) => (p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2);
+const mix = (a: Pen | typeof OFFSTAGE, b: Pen | typeof OFFSTAGE, p: number): Pen => ({
+  x: a.x + (b.x - a.x) * p, y: a.y + (b.y - a.y) * p, down: false, lift: 1,
+});
+const point = (pen: [number, number, number][], i: number): Pen => {
+  const k = Math.max(0, Math.min(pen.length - 1, i));
+  const [x, y, d] = pen[k];
+  // độ nhấc tay = tỉ lệ khung nhấc bút trong 5 khung quanh đó: giữa hai chữ cái bút chỉ rời giấy một chốc,
+  // nhấc / hạ theo từng khung thì bàn tay rung lên xuống
+  let up = 0, n = 0;
+  for (let j = Math.max(0, k - 2); j <= Math.min(pen.length - 1, k + 2); j++) { n++; if (!pen[j][2]) up++; }
+  return { x, y, down: d > 0, lift: up / n };
+};
+
+export const penAt = (layers: WhiteboardLayer[], second: number): Pen | null => {
+  const drawn = layers.filter((l) => l.pen && l.pen.length);
+  if (!drawn.length) return null;
+  for (const l of drawn) {
+    if (second >= l.t0 && second < l.draw_t1) {
+      const n = l.pen!.length;
+      return point(l.pen!, Math.floor(((second - l.t0) / Math.max(1e-6, l.draw_t1 - l.t0)) * n));
+    }
+  }
+  const prev = [...drawn].reverse().find((l) => l.draw_t1 <= second);
+  const next = drawn.find((l) => l.t0 > second);
+  const end = prev ? point(prev.pen!, prev.pen!.length - 1) : null;
+  const start = next ? point(next.pen!, 0) : null;
+  if (end && start && next && prev) {
+    const gap = next.t0 - prev.draw_t1;
+    if (gap <= GLIDE_MAX) return mix(end, start, easeInOut(clamp((second - prev.draw_t1) / gap)));
+    if (second < prev.draw_t1 + HAND_MOVE) return mix(end, OFFSTAGE, easeInOut((second - prev.draw_t1) / HAND_MOVE));
+    if (second > next.t0 - HAND_MOVE) return mix(OFFSTAGE, start, easeInOut((second - (next.t0 - HAND_MOVE)) / HAND_MOVE));
+    return null;
+  }
+  if (start && next) {
+    const s0 = next.t0 - HAND_MOVE;
+    return second < s0 ? null : mix(OFFSTAGE, start, easeInOut((second - s0) / HAND_MOVE));
+  }
+  if (end && prev && second < prev.draw_t1 + HAND_MOVE) {
+    return mix(end, OFFSTAGE, easeInOut((second - prev.draw_t1) / HAND_MOVE));
+  }
+  return null;
+};
+
+const Hand: React.FC<{ layers: WhiteboardLayer[]; second: number }> = ({ layers, second }) => {
+  const { width, height } = useVideoConfig();
+  const pen = penAt(layers, second);
+  if (!pen) return null;
+  const s = HAND.scale;
+  // Cổ tay xoay nhẹ theo chỗ đang vẽ (vẽ bên trái thì cẳng tay nằm ngang hơn); nhấc bút thì tay nhích lên một chút.
+  const angle = (0.5 - pen.x) * 9 + (pen.y - 0.45) * -5;
+  const lift = 7 * pen.lift;
+  const left = pen.x * width - HAND.tip[0] * s;
+  const top = pen.y * height - HAND.tip[1] * s - lift;
+  return (
+    <Img src={staticFile(HAND.src)} style={{
+      position: "absolute", left, top, width: HAND.size * s, height: HAND.size * s, zIndex: 1000,
+      transform: `rotate(${angle}deg)`, transformOrigin: `${HAND.tip[0] * s}px ${HAND.tip[1] * s}px`,
+    }} />
   );
 };
 
 const LayeredBoard: React.FC<{
   layers: WhiteboardLayer[];
   sceneStart: number;
+  pageEnd?: number;
   motion?: NonNullable<Props["data"]["beats"]>[number]["motion"];
-}> = ({ layers, sceneStart, motion }) => {
+}> = ({ layers, sceneStart, pageEnd, motion }) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   const second = sceneStart + frame / fps;
@@ -69,18 +154,22 @@ const LayeredBoard: React.FC<{
   return (
     <AbsoluteFill style={{ overflow: "hidden" }}>
       <AbsoluteFill style={{ transform: `translate(${x}px, ${y}px) scale(${scale})`, transformOrigin: "center center" }}>
-        {layers.map((layer, index) => <BoardLayer key={index} layer={layer} sceneStart={sceneStart} zIndex={index} />)}
+        {layers.map((layer, index) => <BoardLayer key={index} layer={layer} sceneStart={sceneStart} zIndex={index} last={index === layers.length - 1} />)}
+        {/* bàn tay nằm cùng hệ toạ độ với các lớp nên đầu bút luôn trùng nét đang vẽ, kể cả khi máy quay zoom;
+            trang đã hết lượt (đang trượt ra) thì không còn tay */}
+        {pageEnd === undefined || second < pageEnd ? <Hand layers={layers} second={second} /> : null}
       </AbsoluteFill>
     </AbsoluteFill>
   );
 };
 
-const BoardLayer: React.FC<{ layer: WhiteboardLayer; sceneStart: number; zIndex: number }> = ({ layer, sceneStart, zIndex }) => {
+const BoardLayer: React.FC<{ layer: WhiteboardLayer; sceneStart: number; zIndex: number; last?: boolean }> = ({ layer, sceneStart, zIndex, last }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const from = Math.max(0, Math.round((layer.t0 - sceneStart) * fps));
   const drawDuration = Math.max(1, Math.round((layer.draw_t1 - layer.t0) * fps));
-  const total = Math.max(drawDuration, Math.round((layer.hold_t1 - layer.t0) * fps));
+  // Lớp cuối của trang giữ ảnh hoàn chỉnh tới hết Sequence của trang, kể cả lúc trang đang trượt ra.
+  const total = last ? Infinity : Math.max(drawDuration, Math.round((layer.hold_t1 - layer.t0) * fps));
   // `frame` belongs to the whole page.  Convert it to the layer's own
   // drawing interval; otherwise a later layer starts by showing a frame from
   // the middle/end of its drawing clip.

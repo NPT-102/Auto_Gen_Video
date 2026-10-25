@@ -2,6 +2,7 @@
 use a separate Remotion project for captions, transitions and final audio."""
 
 import json
+import os
 import re
 import shutil
 import sys
@@ -18,6 +19,9 @@ from .base import Engine, Log, run, utf8_env
 PROJECT = ENGINES_DIR / "remotion-whiteboard"
 CLI = PROJECT / "node_modules" / "@remotion" / "cli" / "remotion-cli.js"
 FPS = 30
+# Chrome tabs Remotion renders with. Frames are independent stills, so a few tabs cut the render time several-fold
+# (35 s demo: ~100 s with one tab); WHITEBOARD_CONCURRENCY=1 restores the old behaviour on a small machine.
+RENDER_CONCURRENCY = int(os.environ.get("WHITEBOARD_CONCURRENCY") or max(1, min(6, (os.cpu_count() or 2) // 4)))
 
 def scene_beats(data: dict, spec: Spec) -> list[dict]:
     """One coherent illustration for each narration scene.
@@ -51,6 +55,21 @@ def scene_direction(scene: dict, index: int) -> dict:
     # opt-in; a camera that constantly hunts individual icons makes a board
     # feel like a slideshow instead of a drawing.
     return {"camera": "static", "transition": "clear", "accent": "settle"}
+
+
+def lab_caps() -> dict:
+    """What the selected Lab can do beyond the original command line (engines/whiteboard-lab declares it).
+
+    frames_dir: writes transparent PNG frames itself, so no MP4 -> colour-keyed PNG round trip;
+    pen_json: also writes the pen-tip path, so Remotion can draw one hand that travels between objects;
+    natural: picks a human drawing speed up to the window instead of stretching every object over it."""
+    try:
+        return json.loads((WHITEBOARD_LAB_DIR / "lab" / "capabilities.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+
+
+WRITING_KINDS = {"text", "stat", "formula"}   # drawn left to right like handwriting
 
 
 def lab_python() -> Path | None:
@@ -202,10 +221,13 @@ def attach_planned_assets(python: Path, spec: Spec, data: dict, dest: Path, work
             # remain visible until the next page begins.
             "page": rendered.get("page", index),
             "_planned_layers": [
-                {**layer, "path": str(plan_dir / layer["file"])}
+                {**layer, "path": str(plan_dir / layer["file"]),
+                 "alpha_path": str(plan_dir / layer["alpha_file"]) if layer.get("alpha_file") else None}
                 for layer in rendered["layers"]
             ],
             "_planned_composite": str(plan_dir / rendered["composite"]),
+            "_planned_composite_alpha": (str(plan_dir / rendered["composite_alpha"])
+                                         if rendered.get("composite_alpha") else None),
         }
         for index, (beat, rendered) in enumerate(zip(beats, rendered_scenes), 1)
     ]
@@ -266,6 +288,7 @@ class Whiteboard(Engine):
         if python is None:
             raise RuntimeError(f"Không tìm thấy Python của Whiteboard Lab ở {WHITEBOARD_LAB_DIR}")
         clips = beat_dir / "whiteboard"
+        caps = lab_caps()
         try:
             # Completed layers are rendered as a cumulative transparent board.
             # A page reset starts a new board; objects on the same page persist.
@@ -278,13 +301,14 @@ class Whiteboard(Engine):
                     page_sources = []
                 planned_layers = beat.pop("_planned_layers", None)
                 planned_composite = beat.pop("_planned_composite", None)
+                planned_composite_alpha = beat.pop("_planned_composite_alpha", None)
                 source = PROJECT / "public" / beat["src"] if not planned_layers else None
                 seconds = max(0.1, float(beat["t1"]) - float(beat["t0"]))
                 objects_dir = beat_dir / "objects" / f"scene-{index:02d}"
                 if planned_layers:
                     layers = [
-                        {"file": None, "path": item["path"], "weight": item.get("weight", 1.0),
-                         "bbox": item["bbox"], "at": item.get("at")}
+                        {"file": None, "path": item["path"], "alpha": item.get("alpha_path"), "kind": item.get("kind"),
+                         "weight": item.get("weight", 1.0), "bbox": item["bbox"], "at": item.get("at")}
                         for item in planned_layers
                     ]
                     fallback = False
@@ -297,8 +321,8 @@ class Whiteboard(Engine):
                 # clearly. Keep the original whole composition in that case,
                 # rather than silently dropping smaller objects.
                 if schedule is None:
-                    layers = [{"file": None, "path": planned_composite, "weight": 1.0,
-                               "bbox": {"x": 0, "y": 0, "w": 1, "h": 1}}]
+                    layers = [{"file": None, "path": planned_composite, "alpha": planned_composite_alpha,
+                               "weight": 1.0, "bbox": {"x": 0, "y": 0, "w": 1, "h": 1}}]
                     schedule = [(0.0, seconds)]
                     fallback = True
 
@@ -311,17 +335,38 @@ class Whiteboard(Engine):
                     layer_source = (Path(layer["path"]) if layer.get("path") else
                                     source if layer["file"] is None else objects_dir / layer["file"])
                     target = clips / f"wb{index:02d}-{layer_index:02d}.mp4"
-                    run([python, "-m", "lab.module", "--image", layer_source, "--output", target,
-                         "--duration", f"{draw_seconds:.3f}", "--mode", render_mode],
-                        cwd=WHITEBOARD_LAB_DIR, log_file=workdir / "log.txt", env=utf8_env(), timeout=1800)
                     frame_dir = target.with_name(f"{target.stem}-frames")
-                    raw = run([python, ROOT / "tools" / "make_transparent_frames.py", target, frame_dir],
-                              cwd=ROOT, log_file=workdir / "log.txt", env=utf8_env(), timeout=300,
-                              capture_stdout=True)
-                    try:
-                        frame_count = int(json.loads(raw.strip().splitlines()[-1])["frames"])
-                    except (IndexError, KeyError, ValueError, json.JSONDecodeError) as exc:
-                        raise RuntimeError("transparent whiteboard frame conversion failed") from exc
+                    pen = None
+                    drawn_seconds = draw_seconds
+                    if caps.get("frames_dir"):
+                        # The bundled Lab draws straight from the transparent layer into transparent frames (no
+                        # hand); its pen path drives one hand in Remotion that travels between objects.
+                        image = Path(layer["alpha"]) if layer.get("alpha") else layer_source
+                        pen_file = target.with_name(f"{target.stem}-pen.json")
+                        order = "writing" if layer.get("kind") in WRITING_KINDS else "auto"
+                        raw = run([python, "-m", "lab.module", "--image", image, "--frames-dir", frame_dir,
+                                   "--pen-json", pen_file, "--duration", f"{draw_seconds:.3f}", "--natural",
+                                   "--mode", render_mode, "--order", order],
+                                  cwd=WHITEBOARD_LAB_DIR, log_file=workdir / "log.txt", env=utf8_env(), timeout=1800,
+                                  capture_stdout=True)
+                        try:
+                            info = json.loads(raw.strip().splitlines()[-1])
+                            frame_count, drawn_seconds = int(info["frames"]), float(info["duration"])
+                            pen = json.loads(pen_file.read_text(encoding="utf-8"))["points"]
+                        except (IndexError, KeyError, ValueError, OSError, json.JSONDecodeError) as exc:
+                            raise RuntimeError("Whiteboard Lab did not return frames and a pen path") from exc
+                        layer_source = image
+                    else:
+                        run([python, "-m", "lab.module", "--image", layer_source, "--output", target,
+                             "--duration", f"{draw_seconds:.3f}", "--mode", render_mode],
+                            cwd=WHITEBOARD_LAB_DIR, log_file=workdir / "log.txt", env=utf8_env(), timeout=1800)
+                        raw = run([python, ROOT / "tools" / "make_transparent_frames.py", target, frame_dir],
+                                  cwd=ROOT, log_file=workdir / "log.txt", env=utf8_env(), timeout=300,
+                                  capture_stdout=True)
+                        try:
+                            frame_count = int(json.loads(raw.strip().splitlines()[-1])["frames"])
+                        except (IndexError, KeyError, ValueError, json.JSONDecodeError) as exc:
+                            raise RuntimeError("transparent whiteboard frame conversion failed") from exc
                     # Use one transparent, cumulative board after the drawing
                     # ends. A single new source layer has opaque paper, which
                     # otherwise erases the earlier drawings below it.
@@ -330,7 +375,7 @@ class Whiteboard(Engine):
                     run([python, ROOT / "tools" / "make_transparent_layer.py", *page_sources, "--output", still],
                         cwd=ROOT, log_file=workdir / "log.txt", env=utf8_env(), timeout=120)
                     draw_start = float(beat["t0"]) + offset
-                    draw_end = min(float(beat["t1"]), draw_start + draw_seconds)
+                    draw_end = min(float(beat["t1"]), draw_start + drawn_seconds)
                     rendered_layers.append({
                         "t0": round(draw_start, 3), "draw_t1": round(draw_end, 3),
                         "hold_t1": round(float(beat["t1"]), 3),
@@ -340,20 +385,24 @@ class Whiteboard(Engine):
                         "still": f"jobs/{job}/whiteboard/{still.name}",
                         "bbox": layer["bbox"],
                         "blend": "normal",
+                        **({"pen": pen} if pen else {}),
                     })
                 beat["layers"] = rendered_layers
                 beat.pop("clip", None)
 
             data["whiteboard_pages"] = assemble_pages(data.get("beats", []))
             wav = workdir / "narration.wav"
-            build_audio(parts, wav, data, spec.title)
+            # Voice (and music from assets/music) only. No template sound effects: their pops follow bullet/stat cues
+            # the whiteboard never draws, and their whoosh fires on every scene even when the page does not change.
+            build_audio(parts, wav, None, spec.title)
             props = workdir / "props.json"
             props.write_text(json.dumps({"data": data, "audio": ""}, ensure_ascii=False), encoding="utf-8")
             out, frames = workdir / "video.mp4", beat_dir / "frames"
             shutil.rmtree(frames, ignore_errors=True)
             log(f"Remotion ghép {len(data.get('beats', []))} cảnh whiteboard, {data['duration']:.0f}s")
             run(["node", CLI, "render", "src/index.tsx", "Whiteboard", frames.relative_to(PROJECT), "--sequence", "--image-format=jpeg",
-                 "--jpeg-quality=92", f"--props={props}", "--concurrency=1", f"--browser-executable={CHROME}", "--log=info"],
+                 "--jpeg-quality=92", f"--props={props}", f"--concurrency={RENDER_CONCURRENCY}",
+                 f"--browser-executable={CHROME}", "--log=info"],
                 cwd=PROJECT, log_file=workdir / "log.txt", env=utf8_env(REMOTION_DISABLE_TELEMETRY="1"), timeout=1800)
             first = re.fullmatch(r"(.*?)(\d+)\.jpe?g", min(path.name for path in frames.glob("*.jp*g")))
             log("ghép khung hình + giọng đọc bằng ffmpeg")

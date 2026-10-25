@@ -15,6 +15,9 @@ engines/*/
 !engines/hyperframes-academic/
 !engines/remotion-academic/
 engines/remotion-academic/public/jobs/
+!engines/remotion-whiteboard/
+engines/remotion-whiteboard/public/jobs/
+!engines/whiteboard-lab/
 
 # Nội dung cá nhân: kịch bản, bản nháp và giọng đọc; ví dụ đã được track vẫn giữ trong repo
 content/*

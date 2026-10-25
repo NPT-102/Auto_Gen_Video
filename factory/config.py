@@ -67,10 +67,16 @@ def _chrome() -> Path:
 MPT_DIR = _mpt_dir()
 CHROME = _chrome()
 
-# Whiteboard Lab is developed beside this repository by default.  A separate
-# checkout can be selected without copying its Python environment into Factory.
-WHITEBOARD_LAB_DIR = (resolve_path(setting("WHITEBOARD_LAB_DIR"))
-                      if setting("WHITEBOARD_LAB_DIR") else ROOT.parent / "whiteboard-lab")
+# Whiteboard Lab: WHITEBOARD_LAB_DIR → a checkout beside this repository (where the original Lab is developed)
+# → the Lab bundled in engines/whiteboard-lab (same command line, plus transparent frames and pen paths).
+def _whiteboard_lab() -> Path:
+    if setting("WHITEBOARD_LAB_DIR"):
+        return resolve_path(setting("WHITEBOARD_LAB_DIR"))
+    beside = ROOT.parent / "whiteboard-lab"
+    return beside if (beside / "lab" / "module.py").exists() else ENGINES_DIR / "whiteboard-lab"
+
+
+WHITEBOARD_LAB_DIR = _whiteboard_lab()
 
 PORT = int(setting("FACTORY_PORT", "8600"))
 # Số engine render cùng lúc. Máy 32 luồng chạy 2 engine song song thoải mái.

@@ -16,6 +16,7 @@ hoặc ảnh thật trên Wikimedia Commons cho video về người và sự ki�
 | [HyperFrames](https://www.npmjs.com/package/hyperframes) | Học thuật nền sáng: sơ đồ dựng dần, phụ đề karaoke | ~4 phút |
 | [Pixelle-Video](https://github.com/ATH-MaaS/Pixelle-Video) | Mỗi câu một khung: ảnh + chữ | ~2 phút |
 | [Remotion](https://www.remotion.dev) | Nền tối, phụ đề kiểu TikTok | ~7 phút |
+| Whiteboard (viết riêng) | **Bàn tay cầm bút vẽ** từng hình theo lời đọc trên nền giấy trắng ([mục 9b](#9b-video-bàn-tay-vẽ-whiteboard)) | ~3,5 phút (video 35 giây) |
 
 Hệ thống **không tự đăng** video: bạn xem, chọn bản ưng ý, rồi tự tải lên kênh.
 
@@ -439,6 +440,48 @@ sai sự kiện), nên với kịch bản loại này chỉ tick MoneyPrinterTur
   sau vài phút (ảnh đã tải được giữ lại).
 
 Nội dung chính trị nên trung lập, chỉ nêu dữ kiện kiểm chứng được.
+
+## 9b. Video bàn tay vẽ (Whiteboard)
+
+Engine `whiteboard` vẽ từng hình lên bảng đúng lúc lời đọc nhắc tới: một bàn tay cầm bút dạ đi theo từng nét, vẽ viền
+trước rồi tô màu, viết chữ từ trái sang phải, lướt sang hình kế tiếp; hết ý thì bảng lia sang trang mới. Thử ngay:
+
+```bash
+python -m factory.try_engine whiteboard content/demo/whiteboard-timed-pages.json
+```
+
+Kịch bản có thêm `whiteboard_plan`: mỗi cảnh một danh sách hình (`kind`: phone, laptop, lock, shield, warning, code,
+checklist, arrow, star, bulb, chart, coin, cloud, server, text, stat, formula, person, books, document, explosion,
+atom), toạ độ `x`, `y` (0–1), `scale`, `color`, `at` (lúc bắt đầu vẽ, tính theo phần của cảnh) và `page` (cảnh cùng
+`page` vẽ tiếp trên cùng một bảng). Gemini tự viết phần này khi viết nháp; không có thì `factory/whiteboard_planner.py`
+chọn hình theo nội dung câu.
+
+Các bước, từ kịch bản tới video:
+
+1. `tools/render_whiteboard_plan.py` vẽ từng hình thành một lớp PNG trong suốt. Mỗi trang được co giãn và đặt giữa
+   vùng an toàn của khung 9:16 (tối đa phóng 1,5 lần). Hình đè lên hình trước thì được đẩy sang chỗ trống gần nhất.
+   Chữ to tối thiểu 44 px và xuống dòng cân, không để một chữ lẻ ở dòng cuối.
+2. **Whiteboard Lab** (`engines/whiteboard-lab`, cài cùng `cai-dat.py`) dựng clip vẽ cho từng lớp:
+   - tách nét mảnh (viền, chữ, mũi tên) khỏi mảng tô, làm mảnh nét thành đường xương;
+   - cho bút đi dọc đường xương; mỗi điểm ảnh hiện ra đúng lúc đầu bút đi qua;
+   - thứ tự như người viết: chữ viết từng dòng (xong "XÁC THỰC" mới xuống "HAI LỚP"), mỗi dòng từng chữ cái từ trái
+     sang phải, dấu thanh ngay sau chữ cái của nó; hình vẽ theo thứ tự đọc (dãy ô 8-4-2-1 vẽ từ ô số 8);
+   - vẽ xong nét thì tô màu bằng vệt quét zig-zag; mảng trắng (lòng ô, màn hình) hiện ngay khi viền khép lại.
+   Nhịp tay người: nhanh trên đoạn thẳng, chậm ở góc ngoặt, tăng tốc đầu nét và hãm cuối nét, nhấc bút giữa hai chữ cái
+   ~0,03 giây; cả hình co giãn để lấp khoảng thời gian dành cho nó.
+   Lab xuất khung PNG trong suốt và đường đi đầu bút từng khung. Có checkout Whiteboard Lab gốc nằm cạnh repo
+   (`../whiteboard-lab`) hoặc đặt `WHITEBOARD_LAB_DIR` thì engine dùng bản đó với giao diện cũ (clip MP4).
+3. Remotion (`engines/remotion-whiteboard`) xếp các lớp theo trang và vẽ **một** bàn tay
+   (`assets/whiteboard/hand-marker.svg`, xuất PNG bằng `tools/whiteboard_hand.py`) theo đường bút:
+   - chờ dưới 1,6 giây thì tay lướt thẳng sang hình kế tiếp; chờ lâu hơn thì rời khung rồi quay lại;
+   - đổi trang thì bảng cũ trượt ra, bảng mới trượt vào.
+4. Âm thanh chỉ có giọng đọc (và nhạc nền nếu bỏ nhạc vào `assets/music`). Không có tiếng bút, và không dùng tiếng
+   "pop"/"whoosh" của các engine khác vì chúng canh theo ý của template chứ không theo hình đang vẽ.
+
+Tuỳ chọn trong kịch bản: `whiteboard_captions: true` (phụ đề), `whiteboard_header: true` (thanh tiến độ + tên series).
+Render nhanh hơn với nhiều tab Chrome (`WHITEBOARD_CONCURRENCY`, mặc định theo số nhân CPU).
+Chi tiết, đủ các trường của `whiteboard_plan` và những gì đã đổi so với nhánh `feat/whiteboard-video-engine`:
+[docs/whiteboard.md](docs/whiteboard.md).
 
 ## 10. Bản podcast giọng ElevenLabs
 

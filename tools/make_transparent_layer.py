@@ -17,6 +17,8 @@ from PIL import Image
 def as_transparent_layer(source: Path) -> Image.Image:
     image = Image.open(source).convert("RGBA")
     pixels = np.asarray(image).copy()
+    if pixels[..., 3].min() < 255:
+        return image   # đã có kênh alpha thật (lớp .rgba.png): giữ nguyên, kể cả mảng trắng bên trong hình
     rgb = pixels[..., :3].astype(np.int16)
     # Whiteboard paper is near white. Keep anti-aliased dark/coloured edges;
     # only the paper itself becomes transparent.
