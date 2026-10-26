@@ -425,6 +425,7 @@ def render(plan: dict, out_dir: Path) -> dict:
             layers.append({"file": f"scene-{scene_index:02d}/{name}", "weight": max(1, (x1-x0)*(y1-y0)) ** 0.5,
                            "alpha_file": f"scene-{scene_index:02d}/{alpha_name}",
                            "kind": str(item.get("kind", "")).lower(),
+                           "color": item.get("color"),
                            "at": item.get("at"),
                            "bbox": {"x": round(x0/W, 5), "y": round(y0/H, 5), "w": round((x1-x0)/W, 5), "h": round((y1-y0)/H, 5)}})
         if not layers: raise ValueError(f"scene {scene_index} has no drawable objects")

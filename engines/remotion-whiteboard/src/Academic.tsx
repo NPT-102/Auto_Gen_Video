@@ -1,6 +1,6 @@
 import { loadFont } from "@remotion/fonts";
 import React from "react";
-import { AbsoluteFill, Audio, Easing, Img, OffthreadVideo, Sequence, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Audio, Img, OffthreadVideo, Sequence, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { C, FONT, Props, WhiteboardLayer, clamp } from "./lib";
 import { Captions } from "./Scenes";
 
@@ -15,12 +15,14 @@ const Paper: React.FC = () => (
   }} />
 );
 
-// Đổi trang: bảng cũ trượt sang trái, bảng mới trượt vào từ bên phải trong PAGE_TURN giây (như máy quay lia sang
-// một khoảng bảng trống), thay cho việc xoá trắng cả khung trong một khung hình.
-const PAGE_TURN = 0.45;
+// Do not move an empty new board across the frame. Keep the completed board
+// visible until the first new pen stroke, then fade it out very briefly.
+// The old sliding transition made the blank board and floating hand resemble
+// a browser refresh.
+const PAGE_FADE = 0.22;
 
 const WhiteboardClips: React.FC<{ data: Props["data"] }> = ({ data }) => {
-  const { fps, width } = useVideoConfig();
+  const { fps } = useVideoConfig();
   const frame = useCurrentFrame();
   const pages = data.whiteboard_pages ?? (data.beats || []).map((beat) => ({
     t0: beat.t0, t1: beat.t1, layers: beat.layers || [], motion: beat.motion,
@@ -31,17 +33,22 @@ const WhiteboardClips: React.FC<{ data: Props["data"] }> = ({ data }) => {
       {pages.map((page, index) => {
         if (!page.layers?.length) return null;
         const next = pages[index + 1];
-        const turnOut = next?.layers?.length ? PAGE_TURN : 0;   // trang sau còn hiện thêm lúc đang trượt ra
+        const nextFirstStroke = next?.layers?.length
+          ? Math.min(...next.layers.map((layer) => layer.t0)) : null;
+        // A page may end before the narration reaches the first drawing on
+        // the next page. Retain it through that pause so the viewer never
+        // sees a blank board with a hand waiting in the middle.
+        const visualEnd = nextFirstStroke === null ? page.t1 : Math.max(page.t1, nextFirstStroke);
+        const fadeStart = nextFirstStroke === null ? visualEnd : Math.max(page.t1, visualEnd - PAGE_FADE);
         const from = Math.max(0, Math.round(page.t0 * fps));
-        const duration = Math.max(1, Math.round((page.t1 + turnOut - page.t0) * fps));
-        const enter = index > 0 ? interpolate(t, [page.t0, page.t0 + PAGE_TURN], [1, 0], {
-          extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) }) : 0;
-        const leave = turnOut ? interpolate(t, [page.t1, page.t1 + turnOut], [0, 1], {
-          extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.inOut(Easing.cubic) }) : 0;
+        const duration = Math.max(1, Math.round((visualEnd - page.t0) * fps));
+        const fading = nextFirstStroke !== null && visualEnd - fadeStart > 0.01;
+        const opacity = fading ? interpolate(t, [fadeStart, visualEnd], [1, 0], {
+          extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 1;
         return (
           <Sequence key={index} from={from} durationInFrames={duration} layout="none">
-            <AbsoluteFill style={{ transform: `translateX(${(enter - leave) * width * 1.04}px)` }}>
-              <LayeredBoard layers={page.layers} sceneStart={page.t0} pageEnd={page.t1} motion={page.motion} />
+            <AbsoluteFill style={{ opacity }}>
+              <LayeredBoard layers={page.layers} sceneStart={page.t0} pageEnd={visualEnd} motion={page.motion} />
             </AbsoluteFill>
           </Sequence>
         );

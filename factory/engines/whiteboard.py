@@ -343,7 +343,8 @@ class Whiteboard(Engine):
                 if planned_layers:
                     layers = [
                         {"file": None, "path": item["path"], "alpha": item.get("alpha_path"), "kind": item.get("kind"),
-                         "weight": item.get("weight", 1.0), "bbox": item["bbox"], "at": item.get("at")}
+                         "color": item.get("color"), "weight": item.get("weight", 1.0),
+                         "bbox": item["bbox"], "at": item.get("at")}
                         for item in planned_layers
                     ]
                     fallback = False
@@ -362,7 +363,10 @@ class Whiteboard(Engine):
                         # An estimate failure is non-fatal: the legacy planner
                         # weight remains a sensible fallback for that layer.
                         try:
-                            complexity = estimate_layer_complexity(python, layer_source, render_mode, workdir)
+                            layer_mode = ("direct_color" if mode == "auto" and planned_layers
+                                          and layer.get("kind") in WRITING_KINDS and layer.get("color")
+                                          else render_mode)
+                            complexity = estimate_layer_complexity(python, layer_source, layer_mode, workdir)
                         except Exception as exc:
                             log(f"whiteboard: khÃ´ng Ä‘o Ä‘Æ°á»£c Ä‘á»™ phức táº¡p layer ({exc}); dÃ¹ng timing dá»± phÃ²ng")
                             complexity = None
@@ -387,6 +391,12 @@ class Whiteboard(Engine):
                     frame_dir = target.with_name(f"{target.stem}-frames")
                     pen = None
                     drawn_seconds = draw_seconds
+                    # A deliberately coloured word is written with that ink
+                    # from the start. Black/default text retains its outline
+                    # pass, which reads like normal handwriting.
+                    layer_mode = ("direct_color" if mode == "auto" and planned_layers
+                                  and layer.get("kind") in WRITING_KINDS and layer.get("color")
+                                  else render_mode)
                     if caps.get("frames_dir"):
                         # The bundled Lab draws straight from the transparent layer into transparent frames (no
                         # hand); its pen path drives one hand in Remotion that travels between objects.
@@ -395,7 +405,7 @@ class Whiteboard(Engine):
                         order = "writing" if layer.get("kind") in WRITING_KINDS else "auto"
                         command = [python, "-m", "lab.module", "--image", image, "--frames-dir", frame_dir,
                                    "--pen-json", pen_file, "--duration", f"{draw_seconds:.3f}",
-                                   "--mode", render_mode]
+                                   "--mode", layer_mode]
                         if caps.get("natural"):
                             command.append("--natural")
                         if caps.get("order"):
@@ -412,7 +422,7 @@ class Whiteboard(Engine):
                         layer_source = image
                     else:
                         run([python, "-m", "lab.module", "--image", layer_source, "--output", target,
-                             "--duration", f"{draw_seconds:.3f}", "--mode", render_mode],
+                             "--duration", f"{draw_seconds:.3f}", "--mode", layer_mode],
                             cwd=WHITEBOARD_LAB_DIR, log_file=workdir / "log.txt", env=utf8_env(), timeout=1800)
                         raw = run([python, ROOT / "tools" / "make_transparent_frames.py", target, frame_dir],
                                   cwd=ROOT, log_file=workdir / "log.txt", env=utf8_env(), timeout=300,
