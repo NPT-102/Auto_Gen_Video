@@ -1,6 +1,7 @@
 {
   "frames_dir": true,
   "pen_json": true,
+  "complexity": true,
   "natural": true,
   "order": true
 }

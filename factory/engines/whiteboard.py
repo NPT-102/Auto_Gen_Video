@@ -90,13 +90,32 @@ def split_scene_objects(python: Path, source: Path, output_dir: Path, workdir: P
         raise RuntimeError("Whiteboard Lab did not return a valid object-layer manifest") from exc
 
 
+def estimate_layer_complexity(python: Path, source: Path, draw_mode: str, workdir: Path) -> float | None:
+    """Ask a compatible Lab how much visible drawing work a layer contains.
+
+    A layer's bounding box says almost nothing about its drawing time: a large
+    circle can be quick, while compact text or a detailed doodle needs many
+    more pen movements.  The estimate is cheap and happens before rendering.
+    """
+    raw = run([python, "-m", "lab.module", "--image", source, "--estimate", "--mode", draw_mode],
+              cwd=WHITEBOARD_LAB_DIR, log_file=workdir / "log.txt", env=utf8_env(),
+              timeout=120, capture_stdout=True)
+    try:
+        value = float(json.loads(raw.strip().splitlines()[-1])["cost"])
+        return value if value > 0 else None
+    except (IndexError, KeyError, TypeError, ValueError, json.JSONDecodeError):
+        return None
+
+
 def layer_durations(seconds: float, layers: list[dict]) -> list[float] | None:
     """Give every object a visible drawing window, or choose one whole scene."""
     minimum = 0.75
     if not layers or len(layers) * minimum > seconds:
         return None
     remaining = max(0.0, seconds - len(layers) * minimum)
-    weights = [max(0.01, float(layer.get("weight", 1))) for layer in layers]
+    # `complexity` comes from the Lab's actual pixels (contours + paint), not
+    # from the rectangle in which an object happens to be positioned.
+    weights = [max(0.01, float(layer.get("complexity", layer.get("weight", 1)))) for layer in layers]
     total = sum(weights)
     return [minimum + remaining * weight / total for weight in weights]
 
@@ -110,6 +129,9 @@ def layer_schedule(seconds: float, layers: list[dict]) -> list[tuple[float, floa
     back to the reliable sequential schedule instead of producing a frantic
     flash of drawings.
     """
+    def sequential(durations: list[float], leading: float = 0.0) -> list[tuple[float, float]]:
+        return [(leading + sum(durations[:i]), duration) for i, duration in enumerate(durations)]
+
     durations = layer_durations(seconds, layers)
     if durations is None:
         return None
@@ -117,22 +139,35 @@ def layer_schedule(seconds: float, layers: list[dict]) -> list[tuple[float, floa
     for layer in layers:
         value = layer.get("at")
         if value is None:
-            return list(zip([sum(durations[:i]) for i in range(len(durations))], durations))
+            return sequential(durations)
         try:
             value = float(value)
         except (TypeError, ValueError):
-            return list(zip([sum(durations[:i]) for i in range(len(durations))], durations))
+            return sequential(durations)
         requested.append(seconds * value if 0 <= value <= 1 else value)
     if requested != sorted(requested):
-        return list(zip([sum(durations[:i]) for i in range(len(durations))], durations))
-    minimum = 0.65
-    windows = []
-    for index, start in enumerate(requested):
-        start = max(0.0, start)
-        end = requested[index + 1] if index + 1 < len(requested) else seconds
-        if end - start < minimum:
-            return list(zip([sum(durations[:i]) for i in range(len(durations))], durations))
-        windows.append((start, end - start))
+        return sequential(durations)
+
+    # `at` is authored as the intended moment an item is mentioned in the
+    # narration.  It used to force the next `at` into a hard deadline, which
+    # made a dense small drawing rush and a sparse large one crawl.  Retain a
+    # deliberate opening gap and reveal the rest in the author-specified
+    # order using the measured drawing work.  When the old timing happens to
+    # leave a usable gap, preserve it without slowing a pen down.
+    leading = min(max(0.0, requested[0]), seconds * 0.25)
+    paced = layer_durations(seconds - leading, layers)
+    if paced is None:
+        return sequential(durations)
+    windows: list[tuple[float, float]] = []
+    cursor = leading
+    for desired, duration in zip(requested, paced):
+        start = max(cursor, desired)
+        windows.append((start, duration))
+        cursor = start + duration
+    # A later explicit cue may consume spare time. If doing so would clip the
+    # final drawing, prefer one continuous, naturally paced reveal.
+    if cursor > seconds + 0.03:
+        return sequential(paced, leading)
     return windows
 
 
@@ -316,6 +351,23 @@ class Whiteboard(Engine):
                     manifest = split_scene_objects(python, source, objects_dir, workdir)
                     layers = list(manifest.get("layers") or [])
                     fallback = bool(manifest.get("fallback"))
+
+                # Primitive doodles are deliberately line art.  Auto mode
+                # misclassifies their thin black strokes as a colour fill.
+                render_mode = "outline_color" if planned_layers and mode == "auto" else mode
+                if caps.get("complexity"):
+                    for layer in layers:
+                        layer_source = (Path(layer["path"]) if layer.get("path") else
+                                        source if layer.get("file") is None else objects_dir / layer["file"])
+                        # An estimate failure is non-fatal: the legacy planner
+                        # weight remains a sensible fallback for that layer.
+                        try:
+                            complexity = estimate_layer_complexity(python, layer_source, render_mode, workdir)
+                        except Exception as exc:
+                            log(f"whiteboard: khÃ´ng Ä‘o Ä‘Æ°á»£c Ä‘á»™ phức táº¡p layer ({exc}); dÃ¹ng timing dá»± phÃ²ng")
+                            complexity = None
+                        if complexity is not None:
+                            layer["complexity"] = complexity
                 schedule = layer_schedule(seconds, layers)
                 # A short narration line cannot show six separate drawings
                 # clearly. Keep the original whole composition in that case,
@@ -326,9 +378,6 @@ class Whiteboard(Engine):
                     schedule = [(0.0, seconds)]
                     fallback = True
 
-                # Primitive doodles are deliberately line art.  Auto mode
-                # misclassifies their thin black strokes as a colour fill.
-                render_mode = "outline_color" if planned_layers and mode == "auto" else mode
                 log(f"whiteboard part {index}/{len(data['beats'])}: {len(layers)} layer(s), {seconds:.1f}s ({render_mode})")
                 rendered_layers = []
                 for layer_index, (layer, (offset, draw_seconds)) in enumerate(zip(layers, schedule), 1):

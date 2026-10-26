@@ -507,10 +507,20 @@ def main() -> None:
     ap.add_argument("--order", default="auto", choices=["auto", "nearest", "writing"],
                     help="thứ tự nét: writing = chữ từ trái sang phải, nearest = nét gần nhất (hình vẽ)")
     ap.add_argument("--split-objects", type=Path)
+    ap.add_argument("--estimate", action="store_true",
+                    help="chỉ đo độ dài thao tác vẽ để Factory chia thời lượng giữa các layer")
     ap.add_argument("--hand", type=Path, default=HAND)
     a = ap.parse_args()
     if a.split_objects:
         print(json.dumps(split_objects(a.image, a.split_objects)))
+        return
+    if a.estimate:
+        plan = Plan(load_rgba(a.image), a.mode, a.order)
+        # Use the Lab's own pen route.  This is more meaningful than an
+        # object's bounding box: small handwriting may contain more pen work
+        # than a large, sparse icon.
+        print(json.dumps({"cost": round(max(0.45, plan.natural()), 4),
+                          "pen_points": len(plan.pen), "mode": plan.mode}))
         return
     if not a.output and not a.frames_dir:
         ap.error("cần --output hoặc --frames-dir")
