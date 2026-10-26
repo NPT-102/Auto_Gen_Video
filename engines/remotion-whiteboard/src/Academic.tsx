@@ -37,10 +37,18 @@ const WhiteboardClips: React.FC<{ data: Props["data"] }> = ({ data }) => {
         // A page may end before the narration reaches the first drawing on
         // the next page. Retain it through that pause so the viewer never
         // sees a blank board with a hand waiting in the middle.
-        const visualEnd = nextFirstStroke === null ? page.t1 : Math.max(page.t1, nextFirstStroke);
+        // Sequences are placed on integer frames.  Keep the old board for
+        // the frame on which the next drawing first appears; otherwise its
+        // clip reaches 100% one frame before the incoming stroke and the
+        // result looks like a page refresh.
+        const nextDrawFrame = nextFirstStroke === null ? null : Math.round(nextFirstStroke * fps);
+        const visualEndFrame = nextDrawFrame === null
+          ? Math.round(page.t1 * fps)
+          : Math.max(Math.round(page.t1 * fps), nextDrawFrame + 1);
+        const visualEnd = visualEndFrame / fps;
         const wipeStart = nextFirstStroke === null ? visualEnd : Math.max(page.t1, visualEnd - PAGE_WIPE);
         const from = Math.max(0, Math.round(page.t0 * fps));
-        const duration = Math.max(1, Math.round((visualEnd - page.t0) * fps));
+        const duration = Math.max(1, visualEndFrame - from);
         const wiping = nextFirstStroke !== null && visualEnd - wipeStart > 0.01;
         const wipe = wiping ? interpolate(t, [wipeStart, visualEnd], [0, 100], {
           extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 1;

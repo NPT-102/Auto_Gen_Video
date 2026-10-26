@@ -72,6 +72,21 @@ def lab_caps() -> dict:
 WRITING_KINDS = {"text", "stat", "formula"}   # drawn left to right like handwriting
 
 
+def planned_draw_mode(requested: str, planned: bool, layer: dict, fallback: str) -> str:
+    """Use direct ink only when the generated layer is genuinely pen-thin.
+
+    The planner marks arrows and simple labels as direct colour.  An icon with
+    an interior to paint (phone screen, lock body, shield, chart bar) keeps
+    outline then colour.  Explicit user modes always win.
+    """
+    if requested != "auto" or not planned:
+        return fallback
+    selected = str(layer.get("draw_mode") or "")
+    if selected in {"direct_color", "outline_color"}:
+        return selected
+    return "direct_color" if layer.get("kind") in WRITING_KINDS else fallback
+
+
 def lab_python() -> Path | None:
     # Whiteboard Lab keeps its isolated interpreter in .venv/, like Factory.
     # Keep the two legacy locations for an existing checkout created differently.
@@ -344,6 +359,7 @@ class Whiteboard(Engine):
                     layers = [
                         {"file": None, "path": item["path"], "alpha": item.get("alpha_path"), "kind": item.get("kind"),
                          "color": item.get("color"), "weight": item.get("weight", 1.0),
+                         "draw_mode": item.get("draw_mode"),
                          "bbox": item["bbox"], "at": item.get("at")}
                         for item in planned_layers
                     ]
@@ -353,8 +369,6 @@ class Whiteboard(Engine):
                     layers = list(manifest.get("layers") or [])
                     fallback = bool(manifest.get("fallback"))
 
-                # Primitive doodles are deliberately line art.  Auto mode
-                # misclassifies their thin black strokes as a colour fill.
                 render_mode = "outline_color" if planned_layers and mode == "auto" else mode
                 if caps.get("complexity"):
                     for layer in layers:
@@ -363,11 +377,7 @@ class Whiteboard(Engine):
                         # An estimate failure is non-fatal: the legacy planner
                         # weight remains a sensible fallback for that layer.
                         try:
-                            # Planner primitives are already clean vector-like
-                            # marks. Drawing them directly gives a continuous
-                            # coloured pen stroke; reserve outline+colour for
-                            # artwork and uploaded reference images.
-                            layer_mode = "direct_color" if mode == "auto" and planned_layers else render_mode
+                            layer_mode = planned_draw_mode(mode, bool(planned_layers), layer, render_mode)
                             complexity = estimate_layer_complexity(python, layer_source, layer_mode, workdir)
                         except Exception as exc:
                             log(f"whiteboard: khÃ´ng Ä‘o Ä‘Æ°á»£c Ä‘á»™ phức táº¡p layer ({exc}); dÃ¹ng timing dá»± phÃ²ng")
@@ -393,10 +403,7 @@ class Whiteboard(Engine):
                     frame_dir = target.with_name(f"{target.stem}-frames")
                     pen = None
                     drawn_seconds = draw_seconds
-                    # Planner primitives are small, clean shapes. They are
-                    # drawn directly in their final colours. Artwork keeps
-                    # the outline-and-colour route selected above.
-                    layer_mode = "direct_color" if mode == "auto" and planned_layers else render_mode
+                    layer_mode = planned_draw_mode(mode, bool(planned_layers), layer, render_mode)
                     if caps.get("frames_dir"):
                         # The bundled Lab draws straight from the transparent layer into transparent frames (no
                         # hand); its pen path drives one hand in Remotion that travels between objects.

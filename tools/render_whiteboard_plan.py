@@ -11,6 +11,8 @@ import json
 import math
 from pathlib import Path
 
+import cv2
+import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
 
@@ -70,14 +72,20 @@ def draw_shield(draw, x, y, s, c, checked=False):
         stroke(draw, [(x + 52*s, y + 135*s), (x + 94*s, y + 178*s), (x + 171*s, y + 86*s)], fill="#ffffff", width=19*s)
 
 
-def draw_phone(draw, x, y, s):
+def draw_phone(draw, x, y, s, item):
     w, h, p = 290*s, 520*s, max(7, 15*s)
-    box(draw, (x, y, x+w, y+h), width=p, radius=44*s)
+    # A plain phone is line art.  Keeping its body/screen transparent lets
+    # one pen draw it continuously.  A plan can request a coloured display
+    # explicitly, which then needs outline first and fill second.
+    box(draw, (x, y, x+w, y+h), fill=None, width=p, radius=44*s)
     stroke(draw, [(x + 105*s, y + 42*s), (x + 185*s, y + 42*s)], width=10*s)
     draw.ellipse((x + 127*s, y + 456*s, x + 163*s, y + 492*s), outline=INK, width=round(8*s))
-    draw.rounded_rectangle((x + 42*s, y + 115*s, x + 248*s, y + 345*s), radius=22*s, fill="#dbeafe", outline=INK, width=round(9*s))
-    for xx in (78, 145, 212):
-        draw.ellipse((x + xx*s, y + 385*s, x + (xx+22)*s, y + 407*s), fill=COLOURS["blue"])
+    screen = item.get("screen_color")
+    draw.rounded_rectangle((x + 42*s, y + 115*s, x + 248*s, y + 345*s), radius=22*s,
+                           fill=colour(screen, "#dbeafe") if screen else None, outline=INK, width=round(9*s))
+    if screen:
+        for xx in (78, 145, 212):
+            draw.ellipse((x + xx*s, y + 385*s, x + (xx+22)*s, y + 407*s), fill=COLOURS["blue"])
 
 
 def draw_laptop(draw, x, y, s):
@@ -289,7 +297,7 @@ def draw_object(layer: Image.Image, item: dict) -> None:
     c = colour(item.get("color"), COLOURS["blue"])
     if kind == "laptop": draw_laptop(draw, x, y, s)
     elif kind == "lock": draw_lock(draw, x, y, s, c, bool(item.get("broken")))
-    elif kind == "phone": draw_phone(draw, x, y, s)
+    elif kind == "phone": draw_phone(draw, x, y, s, item)
     elif kind == "shield": draw_shield(draw, x, y, s, c, bool(item.get("checked")))
     elif kind == "warning": draw_warning(draw, x, y, s)
     elif kind == "code": draw_code(draw, x, y, s, item.get("value"))
@@ -310,6 +318,29 @@ def draw_object(layer: Image.Image, item: dict) -> None:
     elif kind in {"explosion", "burst"}: draw_explosion(draw, x, y, s, c)
     elif kind == "atom": draw_atom(layer, draw, x, y, s, c)
     else: raise ValueError(f"unknown whiteboard object kind: {kind}")
+
+
+def layer_draw_mode(layer: Image.Image, item: dict) -> str:
+    """Choose direct ink only for a layer made of thin marks.
+
+    A coloured arrow and a black handwritten label are just pen strokes. A
+    lock, shield, or phone with a coloured screen contains a real interior
+    area: reveal its outline first, then its fill. Pixel thickness works for
+    generated plans and remains correct when a caller changes a shape's
+    colour or removes its inner fill.
+    """
+    kind = str(item.get("kind", "")).lower()
+    if kind in {"text", "stat", "formula", "arrow", "star", "person", "stick_person"}:
+        return "direct_color"
+    if kind == "phone" and not item.get("screen_color"):
+        return "direct_color"
+    alpha = np.asarray(layer.getchannel("A")) > 10
+    if not alpha.any():
+        return "direct_color"
+    distance = cv2.distanceTransform(alpha.astype(np.uint8), cv2.DIST_L2, 5)
+    # Planner strokes are at most about 17px wide on the 1080px board; a
+    # region thicker than this is a paintable interior rather than a line.
+    return "outline_color" if float(distance.max()) > 12.0 else "direct_color"
 
 
 def measure(item: dict) -> tuple[int, int, int, int] | None:
@@ -411,6 +442,7 @@ def render(plan: dict, out_dir: Path) -> dict:
             draw_object(shape, item)
             bbox = shape.getbbox()
             if bbox is None: continue
+            draw_mode = layer_draw_mode(shape, item)
             layer = Image.new("RGBA", (W, H), PAPER)
             layer.alpha_composite(shape)
             name = f"layer-{object_index:02d}.png"
@@ -424,7 +456,8 @@ def render(plan: dict, out_dir: Path) -> dict:
             x0, y0, x1, y1 = bbox
             layers.append({"file": f"scene-{scene_index:02d}/{name}", "weight": max(1, (x1-x0)*(y1-y0)) ** 0.5,
                            "alpha_file": f"scene-{scene_index:02d}/{alpha_name}",
-                           "kind": str(item.get("kind", "")).lower(),
+                            "kind": str(item.get("kind", "")).lower(),
+                            "draw_mode": draw_mode,
                            "color": item.get("color"),
                            "at": item.get("at"),
                            "bbox": {"x": round(x0/W, 5), "y": round(y0/H, 5), "w": round((x1-x0)/W, 5), "h": round((y1-y0)/H, 5)}})
