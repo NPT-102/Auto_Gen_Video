@@ -364,7 +364,7 @@ class Whiteboard(Engine):
                         # weight remains a sensible fallback for that layer.
                         try:
                             layer_mode = ("direct_color" if mode == "auto" and planned_layers
-                                          and layer.get("kind") in WRITING_KINDS and layer.get("color")
+                                          and layer.get("kind") in WRITING_KINDS
                                           else render_mode)
                             complexity = estimate_layer_complexity(python, layer_source, layer_mode, workdir)
                         except Exception as exc:
@@ -391,11 +391,11 @@ class Whiteboard(Engine):
                     frame_dir = target.with_name(f"{target.stem}-frames")
                     pen = None
                     drawn_seconds = draw_seconds
-                    # A deliberately coloured word is written with that ink
-                    # from the start. Black/default text retains its outline
-                    # pass, which reads like normal handwriting.
+                    # Text, numbers and formulae are written directly in
+                    # their final ink colour. An outline pass followed by a
+                    # same-colour fill adds no visual information.
                     layer_mode = ("direct_color" if mode == "auto" and planned_layers
-                                  and layer.get("kind") in WRITING_KINDS and layer.get("color")
+                                  and layer.get("kind") in WRITING_KINDS
                                   else render_mode)
                     if caps.get("frames_dir"):
                         # The bundled Lab draws straight from the transparent layer into transparent frames (no
