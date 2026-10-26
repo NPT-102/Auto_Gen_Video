@@ -34,6 +34,7 @@ from PIL import Image
 HERE = Path(__file__).resolve().parent
 HAND = HERE / "hand-marker.png"
 PAPER_RGB = (251, 250, 246)
+THICK_PAINT = 26.0    # coloured region wider than a deliberate marker stroke
 
 PEN_SPEED = 1900.0      # px/giây trên đoạn thẳng khi bút chạm giấy (khung 1080×1920); chỗ ngoặt chậm hơn
 AIR_SPEED = 4200.0      # px/giây khi nhấc bút sang nét khác
@@ -65,9 +66,27 @@ def luminance(rgb: np.ndarray) -> np.ndarray:
     return rgb[..., 0] * 0.299 + rgb[..., 1] * 0.587 + rgb[..., 2] * 0.114
 
 
+def automatic_mode(rgb: np.ndarray, visible: np.ndarray) -> str:
+    """Choose drawing order from actual paint regions, not just dark pixels.
+
+    Dark text and black line drawings are still pen marks.  A phone screen,
+    shield body, or coloured artwork has a thick non-paper region and needs
+    its outline before its fill.  This is also safe for uploaded assets where
+    the Factory has no semantic object kind to inspect.
+    """
+    light = luminance(rgb)
+    spread = rgb.max(axis=2) - rgb.min(axis=2)
+    coloured = visible & ((spread >= 24) | ((light >= 135) & (light <= 235)))
+    if not coloured.any():
+        return "direct_ink"
+    thickness = cv2.distanceTransform(coloured.astype(np.uint8), cv2.DIST_L2, 5)
+    return "outline_color" if float(thickness.max()) > THICK_PAINT else "direct_ink"
+
+
 # ------------------------------------------------------------------------------------------------- đường đi của bút
 def thin(mask: np.ndarray) -> np.ndarray:
-    return cv2.ximgproc.thinning((mask > 0).astype(np.uint8) * 255, thinningType=cv2.ximgproc.THINNING_GUOHALL) > 0
+    return cv2.ximgproc.thinning((mask > 0).astype(np.uint8) * 255,
+                                 thinningType=cv2.ximgproc.THINNING_GUOHALL) > 0
 
 
 NEIGHBOURS = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
@@ -259,8 +278,7 @@ class Plan:
         vis = crop[..., 3] > 10
         rgb = crop[..., :3].astype(np.float32)
         if mode == "auto":
-            dark = (luminance(rgb) < 110) & vis
-            mode = "outline_color" if dark.sum() > 0.06 * vis.sum() else "direct_color"
+            mode = automatic_mode(rgb, vis)
         self.mode = mode
         sketch_ink = None
         if mode == "outline_color":
@@ -274,7 +292,14 @@ class Plan:
                 if dist[part].max() <= THIN:          # mảnh: mũi tên màu, chữ màu → vẽ như nét
                     stroke |= part
             fill = vis & ~stroke
-        else:
+        elif mode == "direct_ink":
+            # A thin arrow, handwritten word, or monochrome icon is one pen
+            # operation. Reveal original coloured pixels from its skeleton;
+            # do not draw a grey outline and then revisit it with a fill pass.
+            stroke = vis.copy()
+            fill = np.zeros_like(vis)
+            sketch_ink = stroke
+        else:  # direct_color: rich artwork, sketch edges then reveal colour
             gray = cv2.cvtColor(crop[..., :3], cv2.COLOR_RGB2GRAY)
             edges = cv2.Canny(cv2.GaussianBlur(gray, (5, 5), 0), 60, 140)
             edges = cv2.dilate(edges, np.ones((2, 2), np.uint8)) > 0
@@ -378,7 +403,11 @@ class Plan:
         out = np.zeros((h, w, 4), np.uint8)
         y0, y1, x0, x1 = self.box
         crop = self.rgba[y0:y1, x0:x1]
-        if self.mode == "direct_color":
+        if self.mode == "direct_ink":
+            shown = self.pix_time <= t
+            part = np.zeros_like(crop)
+            part[shown] = crop[shown]
+        elif self.mode == "direct_color":
             shown = self.fill_time <= t
             sketch = (self.stroke_time <= t) & ~shown
             part = np.zeros_like(crop)
@@ -463,29 +492,75 @@ def overlay(img: np.ndarray, sprite: np.ndarray, left: int, top: int) -> None:
 
 # --------------------------------------------------------------------------------------------------- tách vật thể
 def split_objects(image: Path, out_dir: Path, limit: int = 6) -> dict:
-    """Tách ảnh thành tối đa `limit` lớp theo cụm hình liền nhau (đọc trên → dưới, trái → phải)."""
+    """Split a clean board into a few complete, spatially coherent objects.
+
+    The bridge scales with the canvas, preserves meaningful foreground pixels,
+    and merges excess groups with their closest neighbour instead of silently
+    dropping small labels or accents.
+    """
     rgba = load_rgba(image)
     h, w = rgba.shape[:2]
     vis = (rgba[..., 3] > 10).astype(np.uint8)
-    grown = cv2.dilate(vis, np.ones((41, 41), np.uint8))
-    count, labels, stats, _ = cv2.connectedComponentsWithStats(grown, connectivity=8)
-    parts = [c for c in range(1, count) if stats[c, cv2.CC_STAT_AREA] > 0.002 * h * w]
+    bridge = max(5, min(35, round(min(h, w) * 0.025)))
+    if bridge % 2 == 0:
+        bridge += 1
+    grown = cv2.dilate(vis, np.ones((bridge, bridge), np.uint8))
+    count, labels, _stats, _ = cv2.connectedComponentsWithStats(grown, connectivity=8)
+    minimum = max(16, int(vis.sum() * 0.002))
+    parts = []
+    for component in range(1, count):
+        mask = (labels == component) & (vis > 0)
+        if int(mask.sum()) < minimum:
+            continue
+        ys, xs = np.where(mask)
+        parts.append({"mask": mask, "pixels": int(mask.sum()),
+                      "box": (int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1)})
     out_dir.mkdir(parents=True, exist_ok=True)
-    if not parts or len(parts) > limit * 3:
+    if not parts or sum(part["pixels"] for part in parts) < 0.80 * int(vis.sum()):
         return {"layers": [], "fallback": True}
-    parts.sort(key=lambda c: (stats[c, cv2.CC_STAT_TOP] // 160, stats[c, cv2.CC_STAT_LEFT]))
-    while len(parts) > limit:   # gộp cụm nhỏ nhất vào cụm liền kề trong thứ tự đọc
-        small = min(range(len(parts)), key=lambda i: stats[parts[i], cv2.CC_STAT_AREA])
-        keep = parts[small - 1] if small else parts[1]
-        labels[labels == parts[small]] = keep
-        stats[keep, cv2.CC_STAT_AREA] += stats[parts[small], cv2.CC_STAT_AREA]
+
+    def gap(a, b):
+        ax0, ay0, ax1, ay1 = a["box"]; bx0, by0, bx1, by1 = b["box"]
+        dx, dy = max(0, ax0 - bx1, bx0 - ax1), max(0, ay0 - by1, by0 - ay1)
+        return dx * dx + dy * dy
+
+    # Dots, diacritics, phone buttons and chart markers are often separate
+    # connected components even though their bounding box sits inside the
+    # main icon.  Keep them with that icon before applying the general limit.
+    changed = True
+    while changed and len(parts) > 1:
+        changed = False
+        largest = max(part["pixels"] for part in parts)
+        for small in sorted(range(len(parts)), key=lambda i: parts[i]["pixels"]):
+            if parts[small]["pixels"] > largest * 0.08:
+                break
+            other = min((i for i in range(len(parts)) if i != small), key=lambda i: gap(parts[small], parts[i]))
+            if gap(parts[small], parts[other]) > (bridge * 3) ** 2:
+                continue
+            merged = parts[small]["mask"] | parts[other]["mask"]
+            ys, xs = np.where(merged)
+            parts[other] = {"mask": merged, "pixels": int(merged.sum()),
+                            "box": (int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1)}
+            parts.pop(small)
+            changed = True
+            break
+
+    while len(parts) > limit:
+        small = min(range(len(parts)), key=lambda i: parts[i]["pixels"])
+        other = min((i for i in range(len(parts)) if i != small), key=lambda i: gap(parts[small], parts[i]))
+        merged = parts[small]["mask"] | parts[other]["mask"]
+        ys, xs = np.where(merged)
+        parts[other] = {"mask": merged, "pixels": int(merged.sum()),
+                        "box": (int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1)}
         parts.pop(small)
+    parts.sort(key=lambda part: (part["box"][1] // max(1, h // 12), part["box"][0]))
+
     layers = []
-    for n, c in enumerate(parts, 1):
-        mask = (labels == c) & (vis > 0)
+    for number, part in enumerate(parts, 1):
+        mask = part["mask"]
         layer = np.zeros_like(rgba)
         layer[mask] = rgba[mask]
-        name = f"layer-{n:02d}.png"
+        name = f"layer-{number:02d}.png"
         Image.fromarray(layer, "RGBA").save(out_dir / name)
         ys, xs = np.nonzero(mask)
         layers.append({"file": name, "weight": float(math.sqrt(mask.sum())),
@@ -503,7 +578,7 @@ def main() -> None:
     ap.add_argument("--duration", type=float, default=2.0)
     ap.add_argument("--natural", action="store_true", help="vẽ theo tốc độ tay, tối đa --duration giây")
     ap.add_argument("--fps", type=int, default=30)
-    ap.add_argument("--mode", default="auto", choices=["auto", "outline_color", "direct_color"])
+    ap.add_argument("--mode", default="auto", choices=["auto", "outline_color", "direct_color", "direct_ink"])
     ap.add_argument("--order", default="auto", choices=["auto", "nearest", "writing"],
                     help="thứ tự nét: writing = chữ từ trái sang phải, nearest = nét gần nhất (hình vẽ)")
     ap.add_argument("--split-objects", type=Path)

@@ -82,9 +82,11 @@ def planned_draw_mode(requested: str, planned: bool, layer: dict, fallback: str)
     if requested != "auto" or not planned:
         return fallback
     selected = str(layer.get("draw_mode") or "")
-    if selected in {"direct_color", "outline_color"}:
+    if selected == "direct_color":
+        return "direct_ink"
+    if selected == "outline_color":
         return selected
-    return "direct_color" if layer.get("kind") in WRITING_KINDS else fallback
+    return "direct_ink" if layer.get("kind") in WRITING_KINDS else fallback
 
 
 def lab_python() -> Path | None:
