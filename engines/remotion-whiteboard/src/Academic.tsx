@@ -15,11 +15,10 @@ const Paper: React.FC = () => (
   }} />
 );
 
-// Do not move an empty new board across the frame. Keep the completed board
-// visible until the first new pen stroke, then fade it out very briefly.
-// The old sliding transition made the blank board and floating hand resemble
-// a browser refresh.
-const PAGE_FADE = 0.22;
+// Do not move an empty new board across the frame. Clear the completed board
+// with a narrow left-to-right wipe just before the first new stroke. Fading
+// every object at once looked like a browser refresh.
+const PAGE_WIPE = 0.22;
 
 const WhiteboardClips: React.FC<{ data: Props["data"] }> = ({ data }) => {
   const { fps } = useVideoConfig();
@@ -39,15 +38,15 @@ const WhiteboardClips: React.FC<{ data: Props["data"] }> = ({ data }) => {
         // the next page. Retain it through that pause so the viewer never
         // sees a blank board with a hand waiting in the middle.
         const visualEnd = nextFirstStroke === null ? page.t1 : Math.max(page.t1, nextFirstStroke);
-        const fadeStart = nextFirstStroke === null ? visualEnd : Math.max(page.t1, visualEnd - PAGE_FADE);
+        const wipeStart = nextFirstStroke === null ? visualEnd : Math.max(page.t1, visualEnd - PAGE_WIPE);
         const from = Math.max(0, Math.round(page.t0 * fps));
         const duration = Math.max(1, Math.round((visualEnd - page.t0) * fps));
-        const fading = nextFirstStroke !== null && visualEnd - fadeStart > 0.01;
-        const opacity = fading ? interpolate(t, [fadeStart, visualEnd], [1, 0], {
+        const wiping = nextFirstStroke !== null && visualEnd - wipeStart > 0.01;
+        const wipe = wiping ? interpolate(t, [wipeStart, visualEnd], [0, 100], {
           extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 1;
         return (
           <Sequence key={index} from={from} durationInFrames={duration} layout="none">
-            <AbsoluteFill style={{ opacity }}>
+            <AbsoluteFill style={wiping ? { clipPath: `inset(0 0 0 ${wipe}%)` } : undefined}>
               <LayeredBoard layers={page.layers} sceneStart={page.t0} pageEnd={visualEnd} motion={page.motion} />
             </AbsoluteFill>
           </Sequence>
@@ -97,12 +96,12 @@ export const penAt = (layers: WhiteboardLayer[], second: number): Pen | null => 
     const gap = next.t0 - prev.draw_t1;
     if (gap <= GLIDE_MAX) return mix(end, start, easeInOut(clamp((second - prev.draw_t1) / gap)));
     if (second < prev.draw_t1 + HAND_MOVE) return mix(end, OFFSTAGE, easeInOut((second - prev.draw_t1) / HAND_MOVE));
-    if (second > next.t0 - HAND_MOVE) return mix(OFFSTAGE, start, easeInOut((second - (next.t0 - HAND_MOVE)) / HAND_MOVE));
+    // Do not show a hand hovering on an empty new page before it draws.
+    if (second >= next.t0) return start;
     return null;
   }
   if (start && next) {
-    const s0 = next.t0 - HAND_MOVE;
-    return second < s0 ? null : mix(OFFSTAGE, start, easeInOut((second - s0) / HAND_MOVE));
+    return second < next.t0 ? null : start;
   }
   if (end && prev && second < prev.draw_t1 + HAND_MOVE) {
     return mix(end, OFFSTAGE, easeInOut((second - prev.draw_t1) / HAND_MOVE));

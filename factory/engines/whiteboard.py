@@ -363,9 +363,11 @@ class Whiteboard(Engine):
                         # An estimate failure is non-fatal: the legacy planner
                         # weight remains a sensible fallback for that layer.
                         try:
-                            layer_mode = ("direct_color" if mode == "auto" and planned_layers
-                                          and layer.get("kind") in WRITING_KINDS
-                                          else render_mode)
+                            # Planner primitives are already clean vector-like
+                            # marks. Drawing them directly gives a continuous
+                            # coloured pen stroke; reserve outline+colour for
+                            # artwork and uploaded reference images.
+                            layer_mode = "direct_color" if mode == "auto" and planned_layers else render_mode
                             complexity = estimate_layer_complexity(python, layer_source, layer_mode, workdir)
                         except Exception as exc:
                             log(f"whiteboard: khÃ´ng Ä‘o Ä‘Æ°á»£c Ä‘á»™ phức táº¡p layer ({exc}); dÃ¹ng timing dá»± phÃ²ng")
@@ -391,12 +393,10 @@ class Whiteboard(Engine):
                     frame_dir = target.with_name(f"{target.stem}-frames")
                     pen = None
                     drawn_seconds = draw_seconds
-                    # Text, numbers and formulae are written directly in
-                    # their final ink colour. An outline pass followed by a
-                    # same-colour fill adds no visual information.
-                    layer_mode = ("direct_color" if mode == "auto" and planned_layers
-                                  and layer.get("kind") in WRITING_KINDS
-                                  else render_mode)
+                    # Planner primitives are small, clean shapes. They are
+                    # drawn directly in their final colours. Artwork keeps
+                    # the outline-and-colour route selected above.
+                    layer_mode = "direct_color" if mode == "auto" and planned_layers else render_mode
                     if caps.get("frames_dir"):
                         # The bundled Lab draws straight from the transparent layer into transparent frames (no
                         # hand); its pen path drives one hand in Remotion that travels between objects.
@@ -406,7 +406,10 @@ class Whiteboard(Engine):
                         command = [python, "-m", "lab.module", "--image", image, "--frames-dir", frame_dir,
                                    "--pen-json", pen_file, "--duration", f"{draw_seconds:.3f}",
                                    "--mode", layer_mode]
-                        if caps.get("natural"):
+                        # Text benefits from a short intrinsic writing speed.
+                        # Icons need their scene allocation; applying the
+                        # same cap to a phone made it finish in about a second.
+                        if caps.get("natural") and layer.get("kind") in WRITING_KINDS:
                             command.append("--natural")
                         if caps.get("order"):
                             command.extend(["--order", order])
