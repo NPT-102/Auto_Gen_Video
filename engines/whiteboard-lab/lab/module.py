@@ -74,6 +74,17 @@ def automatic_mode(rgb: np.ndarray, visible: np.ndarray) -> str:
     its outline before its fill.  This is also safe for uploaded assets where
     the Factory has no semantic object kind to inspect.
     """
+    coverage = float(visible.mean())
+    # A dense photo or detailed artwork is neither an icon nor a sketch. It
+    # needs the rich-image route (edge sketch then colour reveal), while a
+    # sparse flat doodle should still do outline then paint.
+    if coverage > 0.52:
+        values = rgb[visible][::max(1, int(visible.sum()) // 12000)]
+        palette = len(np.unique((values // 32).astype(np.uint8), axis=0))
+        edges = cv2.Canny(cv2.cvtColor(rgb.astype(np.uint8), cv2.COLOR_RGB2GRAY), 55, 135) > 0
+        if palette >= 18 or float(edges[visible].mean()) > 0.085:
+            return "direct_color"
+
     light = luminance(rgb)
     spread = rgb.max(axis=2) - rgb.min(axis=2)
     coloured = visible & ((spread >= 24) | ((light >= 135) & (light <= 235)))
