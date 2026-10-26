@@ -344,9 +344,14 @@ class Whiteboard(Engine):
                         image = Path(layer["alpha"]) if layer.get("alpha") else layer_source
                         pen_file = target.with_name(f"{target.stem}-pen.json")
                         order = "writing" if layer.get("kind") in WRITING_KINDS else "auto"
-                        raw = run([python, "-m", "lab.module", "--image", image, "--frames-dir", frame_dir,
-                                   "--pen-json", pen_file, "--duration", f"{draw_seconds:.3f}", "--natural",
-                                   "--mode", render_mode, "--order", order],
+                        command = [python, "-m", "lab.module", "--image", image, "--frames-dir", frame_dir,
+                                   "--pen-json", pen_file, "--duration", f"{draw_seconds:.3f}",
+                                   "--mode", render_mode]
+                        if caps.get("natural"):
+                            command.append("--natural")
+                        if caps.get("order"):
+                            command.extend(["--order", order])
+                        raw = run(command,
                                   cwd=WHITEBOARD_LAB_DIR, log_file=workdir / "log.txt", env=utf8_env(), timeout=1800,
                                   capture_stdout=True)
                         try:
