@@ -30,6 +30,10 @@ from pathlib import Path
 import cv2
 import numpy as np
 from PIL import Image
+try:
+    from skimage.morphology import skeletonize
+except ImportError:  # bundled Lab uses OpenCV contrib and does not need it
+    skeletonize = None
 
 HERE = Path(__file__).resolve().parent
 HAND = HERE / "hand-marker.png"
@@ -96,8 +100,20 @@ def automatic_mode(rgb: np.ndarray, visible: np.ndarray) -> str:
 
 # ------------------------------------------------------------------------------------------------- đường đi của bút
 def thin(mask: np.ndarray) -> np.ndarray:
-    return cv2.ximgproc.thinning((mask > 0).astype(np.uint8) * 255,
-                                 thinningType=cv2.ximgproc.THINNING_GUOHALL) > 0
+    """One-pixel skeleton with the fastest available local implementation.
+
+    The bundled version uses OpenCV contrib's ``ximgproc``.  This checkout
+    deliberately uses the regular OpenCV wheel, but it already has
+    scikit-image, whose skeletoniser gives the same kind of centre line
+    without adding a global dependency.
+    """
+    binary = mask > 0
+    if hasattr(cv2, "ximgproc"):
+        return cv2.ximgproc.thinning(binary.astype(np.uint8) * 255,
+                                     thinningType=cv2.ximgproc.THINNING_GUOHALL) > 0
+    if skeletonize is None:
+        raise RuntimeError("Cần OpenCV contrib hoặc scikit-image để tạo đường xương nét vẽ")
+    return skeletonize(binary)
 
 
 NEIGHBOURS = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
