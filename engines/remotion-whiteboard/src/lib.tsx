@@ -35,6 +35,9 @@ export type WhiteboardLayer = {
   t0: number;
   draw_t1: number;
   hold_t1: number;
+  // Exact page-relative frame at which the next cumulative still begins.
+  // It prevents a one-frame blank board caused by independent time rounding.
+  hold_frame?: number;
   clip: string;
   frames?: string;
   frame_count?: number;

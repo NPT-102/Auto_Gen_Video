@@ -209,10 +209,20 @@ def assemble_pages(beats: list[dict]) -> list[dict]:
             # completed board.  When it finishes, its own cumulative still
             # takes over. Do not leave both cumulative stills visible or all
             # earlier marks are painted a second time.
-            layer["hold_t1"] = round(
-                float(layers[index + 1]["draw_t1"]) if index + 1 < len(layers) else page["t1"],
-                3,
-            )
+            if index + 1 < len(layers):
+                next_layer = layers[index + 1]
+                # Remotion can only switch on integer frame boundaries.  Do
+                # not derive this layer's end from a separately rounded
+                # floating timestamp: that left one frame where the incoming
+                # layer was still transparent and the finished board had
+                # already vanished.  Hold through the exact frame where the
+                # next layer's cumulative still takes over.
+                next_from = round((float(next_layer["t0"]) - float(page["t0"])) * FPS)
+                next_draw = round((float(next_layer["draw_t1"]) - float(next_layer["t0"])) * FPS)
+                layer["hold_frame"] = next_from + max(1, next_draw)
+                layer["hold_t1"] = round(float(page["t0"]) + layer["hold_frame"] / FPS, 3)
+            else:
+                layer["hold_t1"] = round(float(page["t1"]), 3)
         page.pop("key", None)
     return pages
 

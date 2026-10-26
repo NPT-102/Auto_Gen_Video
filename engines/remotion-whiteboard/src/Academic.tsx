@@ -183,7 +183,12 @@ const BoardLayer: React.FC<{ layer: WhiteboardLayer; sceneStart: number; zIndex:
   const from = Math.max(0, Math.round((layer.t0 - sceneStart) * fps));
   const drawDuration = Math.max(1, Math.round((layer.draw_t1 - layer.t0) * fps));
   // Lớp cuối của trang giữ ảnh hoàn chỉnh tới hết Sequence của trang, kể cả lúc trang đang trượt ra.
-  const total = last ? Infinity : Math.max(drawDuration, Math.round((layer.hold_t1 - layer.t0) * fps));
+  const total = last ? Infinity : Math.max(
+    drawDuration,
+    layer.hold_frame !== undefined
+      ? layer.hold_frame - from
+      : Math.round((layer.hold_t1 - layer.t0) * fps),
+  );
   // `frame` belongs to the whole page.  Convert it to the layer's own
   // drawing interval; otherwise a later layer starts by showing a frame from
   // the middle/end of its drawing clip.
